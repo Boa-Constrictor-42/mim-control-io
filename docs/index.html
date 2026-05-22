@@ -274,6 +274,7 @@ const S = {
 
 // ── Serial ────────────────────────────────────────────────────────────────────
 let _port=null, _writer=null, _rxBuf='';
+let _silentNext=false;   // true → suppress console output for next JSON response
 
 async function doConnect() {
   if (!('serial' in navigator)) { document.getElementById('no-ws').style.display='block'; return; }
@@ -286,7 +287,7 @@ async function doConnect() {
     clog('[MIM] Connected @ 115200 baud');
     setTimeout(()=>sendJson({cmd:'ping'}),       200);
     setTimeout(()=>sendJson({cmd:'get_config'}), 450);
-    S.hwSync = setInterval(()=>{ if(S.connected) sendJson({cmd:'get_config'}); }, 3000);
+    S.hwSync = setInterval(()=>{ if(S.connected) sendJson({cmd:'get_config'}, true); }, 3000);
   } catch(e) {
     if (e.name !== 'NotFoundError') clog('[ERR] '+e.message);
   }
@@ -322,11 +323,12 @@ async function _startRead() {
   }
 }
 
-async function sendJson(obj) {
+async function sendJson(obj, silent=false) {
   if(!_writer) return;
   S.reqT0 = performance.now();
   const raw = JSON.stringify(obj)+'\n';
-  clog('→ '+raw.trim());
+  _silentNext = silent;
+  if(!silent) clog('→ '+raw.trim());
   try { await _writer.write(new TextEncoder().encode(raw)); }
   catch(e){ clog('[ERR] write: '+e.message); }
 }
@@ -339,7 +341,14 @@ async function sendRaw(txt) {  // for legacy commands like 'r\n'
 
 // ── Response Handler ─────────────────────────────────────────────────────────
 function handleLine(ln) {
-  clog('← '+ln);
+  // Suppress firmware keepalive/heartbeat lines entirely
+  if(/\[KA\]|heartbeat/i.test(ln)) return;
+
+  // Suppress periodic silent-sync responses
+  const silent = _silentNext;
+  if(ln.startsWith('{')) _silentNext = false;   // consume flag on JSON response
+  if(!silent) clog('← '+ln);
+
   if(!ln.startsWith('{')) return;
   let r;
   try { r=JSON.parse(ln); } catch(e){ return; }

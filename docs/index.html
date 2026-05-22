@@ -263,6 +263,7 @@ const JSON_KEY_TO_IDX = {
 const S = {
   vals:      PARAMS.map(p => p.def),
   connected: false,
+  sleeping:  false,      // true = device is in sleep mode, hwSync paused
   depth:     0,          // >0 → suppress slider callbacks
   oledPg:    0,
   reqT0:     0,
@@ -285,9 +286,10 @@ async function doConnect() {
     setConnected(true);
     _startRead();
     clog('[MIM] Connected @ 115200 baud');
-    setTimeout(()=>sendJson({cmd:'ping'}),       200);
-    setTimeout(()=>sendJson({cmd:'get_config'}), 450);
-    S.hwSync = setInterval(()=>{ if(S.connected) sendJson({cmd:'get_config'}, true); }, 3000);
+    setTimeout(()=>sendJson({cmd:'ping'}),        200);
+    setTimeout(()=>sendJson({cmd:'get_status'}, true), 350);  // check initial sleep state
+    setTimeout(()=>sendJson({cmd:'get_config'}),  550);
+    S.hwSync = setInterval(()=>{ if(S.connected && !S.sleeping) sendJson({cmd:'get_config'}, true); }, 3000);
   } catch(e) {
     if (e.name !== 'NotFoundError') clog('[ERR] '+e.message);
   }
@@ -295,6 +297,7 @@ async function doConnect() {
 
 async function doDisconnect() {
   if (S.hwSync) { clearInterval(S.hwSync); S.hwSync=null; }
+  S.sleeping = false;
   setConnected(false);
   try { if(_writer){ _writer.releaseLock(); _writer=null; } } catch(e){}
   try { if(_port){ await _port.close(); _port=null; } } catch(e){}
@@ -353,6 +356,19 @@ function handleLine(ln) {
   let r;
   try { r=JSON.parse(ln); } catch(e){ return; }
 
+  // ── Unsolicited events (no "status" field) ───────────────────────
+  if(r.event === 'sleep') {
+    S.sleeping = true;
+    clog('[MIM] Sleep mode ON — sync paused');
+    return;
+  }
+  if(r.event === 'wake') {
+    S.sleeping = false;
+    clog('[MIM] Wake — sync resumed');
+    sendJson({cmd:'get_config'});   // re-sync immediately after wake
+    return;
+  }
+
   if(S.reqT0>0){
     const ms = performance.now()-S.reqT0;
     S.reqT0=0;
@@ -363,6 +379,13 @@ function handleLine(ln) {
   if(r.fw_version) {
     document.getElementById('s-fw').textContent = 'FW '+r.fw_version;
   }
+
+  // ── get_status response: read initial sleep state ────────────────
+  if(typeof r.sleep_mode === 'boolean') {
+    S.sleeping = r.sleep_mode;
+    if(r.sleep_mode) clog('[MIM] Device is in sleep mode — sync paused');
+  }
+
   const cfg = r.config;
   if(cfg && typeof cfg === 'object'){
     S.depth++;

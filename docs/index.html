@@ -1,60 +1,726 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MIM Control</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIM Control</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ── Reset & Vars ─────────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a; --bg2:#111111; --bg3:#1a1a1a; --bg4:#222222;
+  --border:#282828; --border2:#333333;
+  --text:#cccccc; --dim:#666666; --dim2:#444444;
+  --green:#00cc66; --blue:#0088cc; --orange:#cc6600;
+  --red:#cc3333;
+}
+body{background:var(--bg);color:var(--text);font-family:"Consolas","Courier New",monospace;
+  font-size:13px;min-width:960px}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
 
-    body {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #0a0a0a;
-      color: #dddddd;
-      font-family: "Consolas", "Courier New", monospace;
-    }
+/* ── Header ──────────────────────────────────────────────────────────────── */
+#hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;background:var(--bg2);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100}
+#logo{font-size:1.7rem;letter-spacing:.22em;color:#fff;font-weight:bold}
+#logo-sub{font-size:.68rem;color:var(--dim);letter-spacing:.1em;margin-left:6px;vertical-align:middle}
+#status-bar{display:flex;align-items:center;gap:14px;font-size:.76rem}
+#dot{width:9px;height:9px;border-radius:50%;background:#333;transition:background .4s}
+#dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+#s-text{color:var(--dim)}
+#s-fw{color:var(--dim);min-width:70px}
+#s-lat{color:var(--dim);min-width:52px;text-align:right}
 
-    h1 {
-      font-size: 2.4rem;
-      letter-spacing: 0.12em;
-      color: #ffffff;
-      margin-bottom: 0.5rem;
-    }
+/* ── Connect wrap ────────────────────────────────────────────────────────── */
+#conn-wrap{text-align:center;padding:22px 0 14px}
+#conn-btn{font-size:.95rem;letter-spacing:.1em;padding:11px 44px;
+  border:1px solid var(--green);background:transparent;color:var(--green);
+  border-radius:4px;transition:background .2s,color .2s}
+#conn-btn:hover{background:var(--green);color:#000}
+#conn-btn.disc{border-color:var(--red);color:var(--red)}
+#conn-btn.disc:hover{background:var(--red);color:#000}
+#no-ws{display:none;margin:16px;padding:14px;border:1px solid #552200;
+  border-radius:4px;color:#cc6633;font-size:.83rem;text-align:center;line-height:1.6}
 
-    .subtitle {
-      font-size: 0.95rem;
-      color: #666666;
-      letter-spacing: 0.06em;
-      margin-bottom: 2.5rem;
-    }
+/* ── Main interface ──────────────────────────────────────────────────────── */
+#main{opacity:.35;pointer-events:none;transition:opacity .5s;padding:0 12px 28px}
+#main.on{opacity:1;pointer-events:all}
 
-    .badge {
-      display: inline-block;
-      padding: 0.5rem 1.4rem;
-      border: 1px solid #333333;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      color: #888888;
-      letter-spacing: 0.08em;
-    }
+/* ── Sections ────────────────────────────────────────────────────────────── */
+.sec{border:1px solid var(--border);border-radius:4px;margin:7px 0}
+.sec-hd{padding:4px 10px;font-size:.7rem;color:var(--dim);letter-spacing:.08em;
+  background:var(--bg2);border-bottom:1px solid var(--border);display:flex;
+  align-items:center;justify-content:space-between}
+.sec-bd{padding:8px}
 
-    footer {
-      position: fixed;
-      bottom: 1.2rem;
-      font-size: 0.75rem;
-      color: #333333;
-      letter-spacing: 0.05em;
-    }
-  </style>
+/* ── Charts ──────────────────────────────────────────────────────────────── */
+#charts-row{display:flex;gap:8px}
+.cw{flex:1;background:var(--bg3);border-radius:3px;padding:6px;height:165px;
+  position:relative}
+.cw canvas{position:absolute;inset:6px}
+
+/* ── Mid row ─────────────────────────────────────────────────────────────── */
+#mid-row{display:flex;gap:8px;align-items:flex-start}
+#console{flex:1;background:#000;color:#00cc44;font-size:11px;height:134px;
+  overflow-y:auto;padding:6px 8px;border-radius:3px;white-space:pre-wrap;
+  word-break:break-all;border:1px solid var(--border)}
+.cls-btn{background:none;border:none;color:var(--dim);font-size:.68rem;
+  padding:1px 5px}
+.cls-btn:hover{color:var(--text)}
+#oled-wrap{flex:0 0 auto}
+#oled-cv{display:block;background:#000;border:1px solid #333;border-radius:2px}
+.oled-pages{display:flex;gap:6px;justify-content:center;padding-top:5px}
+.pg-btn{background:none;border:1px solid var(--border2);color:var(--dim);
+  font-size:.7rem;padding:2px 9px;border-radius:3px}
+.pg-btn.act{border-color:#888;color:var(--text)}
+
+/* ── Spline sliders ──────────────────────────────────────────────────────── */
+#spline-row{display:flex;gap:2px;justify-content:space-between;padding:2px}
+.sc{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0}
+.sc-lbl{font-size:.67rem;margin-bottom:3px;white-space:nowrap}
+.sc-lbl.x{color:var(--blue)} .sc-lbl.y{color:var(--orange)}
+.vsl{writing-mode:vertical-lr;direction:rtl;
+  -webkit-appearance:slider-vertical;appearance:slider-vertical;
+  width:22px;height:132px;cursor:pointer;accent-color:var(--blue)}
+.vsl.y{accent-color:var(--orange)}
+.sc-en{width:36px;font-size:.67rem;text-align:center;background:var(--bg3);
+  border:1px solid var(--border2);color:var(--text);padding:2px 1px;
+  margin-top:3px;border-radius:2px}
+.sc-en.inv{border-color:var(--red);background:#2a1111}
+.sc-set{font-size:.64rem;background:none;border:1px solid var(--border2);
+  color:var(--dim);padding:1px 0;margin-top:2px;border-radius:2px;width:100%}
+.sc-set:hover{border-color:#888;color:var(--text)}
+
+/* ── Parameter rows ──────────────────────────────────────────────────────── */
+.pr{display:flex;align-items:center;gap:8px;padding:5px 0;
+  border-bottom:1px solid #161616}
+.pr:last-child{border-bottom:none}
+.pr-name{width:68px;font-size:.76rem;color:var(--text)}
+.pr-val{width:78px;font-size:.73rem;color:#aaa;text-align:right;
+  white-space:nowrap}
+.pr-sl{flex:1;accent-color:var(--green);cursor:pointer}
+.pr-en{width:56px;font-size:.74rem;text-align:right;background:var(--bg3);
+  border:1px solid var(--border2);color:var(--text);padding:2px 4px;
+  border-radius:2px}
+.pr-en.inv{border-color:var(--red);background:#2a1111}
+.pr-set{font-size:.71rem;background:none;border:1px solid var(--border2);
+  color:var(--dim);padding:3px 10px;border-radius:2px;white-space:nowrap}
+.pr-set:hover{border-color:#888;color:var(--text)}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+#footer{display:flex;gap:8px;padding:10px 0 2px;flex-wrap:wrap}
+.fb{font-size:.8rem;background:none;border:1px solid var(--border2);
+  color:var(--dim);padding:6px 16px;border-radius:3px;
+  letter-spacing:.04em;transition:border-color .15s,color .15s}
+.fb:hover{border-color:#888;color:var(--text)}
+.fb.prim{border-color:#224422;color:var(--green)}
+.fb.prim:hover{background:var(--green);color:#000}
+.fb.dang{border-color:#441111;color:var(--red)}
+.fb.dang:hover{background:var(--red);color:#fff}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#111}
+::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+</style>
 </head>
 <body>
-  <h1>MIM Control</h1>
-  <p class="subtitle">Mouse Input Modifier</p>
-  <span class="badge">Coming soon — MIM Mouse Input Modifier</span>
-  <footer>mim-control.io</footer>
+
+<!-- Header -->
+<header id="hdr">
+  <div>
+    <span id="logo">MIM</span>
+    <span id="logo-sub">Mouse Input Modifier · Control</span>
+  </div>
+  <div id="status-bar">
+    <div id="dot"></div>
+    <span id="s-text">Disconnected</span>
+    <span id="s-fw"></span>
+    <span id="s-lat"></span>
+  </div>
+</header>
+
+<!-- Connect -->
+<div id="conn-wrap">
+  <button id="conn-btn">⏻  Connect</button>
+</div>
+<div id="no-ws">
+  WebSerial API not available.<br>
+  Use <strong>Chrome</strong> or <strong>Edge ≥ 89</strong> via HTTPS or localhost.<br>
+  Enable flag: <code>chrome://flags/#enable-experimental-web-platform-features</code>
+</div>
+
+<!-- Main interface (greyed out until connected) -->
+<div id="main">
+
+  <!-- Velocity Curves -->
+  <div class="sec">
+    <div class="sec-hd">Velocity Curves</div>
+    <div class="sec-bd">
+      <div id="charts-row">
+        <div class="cw"><canvas id="cx"></canvas></div>
+        <div class="cw"><canvas id="cy"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monitor + OLED -->
+  <div class="sec">
+    <div class="sec-hd">
+      Monitor
+      <button class="cls-btn" id="cls-btn">clear</button>
+    </div>
+    <div class="sec-bd">
+      <div id="mid-row">
+        <div id="console"></div>
+        <div id="oled-wrap">
+          <canvas id="oled-cv" width="256" height="128"></canvas>
+          <div class="oled-pages">
+            <button class="pg-btn act" data-pg="0">P1</button>
+            <button class="pg-btn"     data-pg="1">P2</button>
+            <button class="pg-btn"     data-pg="2">P3</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Velocity Spline -->
+  <div class="sec">
+    <div class="sec-hd">Velocity Spline  <span style="color:var(--dim2);font-size:.66rem">vX0–vX6 (blue) · vY0–vY6 (orange) · px/s</span></div>
+    <div class="sec-bd"><div id="spline-row"></div></div>
+  </div>
+
+  <!-- Parameters -->
+  <div class="sec">
+    <div class="sec-hd">Parameters</div>
+    <div class="sec-bd" id="params-bd"></div>
+  </div>
+
+  <!-- Footer -->
+  <div id="footer">
+    <button class="fb prim" id="btn-all">Send all values</button>
+    <button class="fb"      id="btn-rst">Reset Board</button>
+    <button class="fb"      id="btn-exp">Export …</button>
+    <button class="fb"      id="btn-imp">Import …</button>
+    <input  type="file" id="file-imp" accept=".json" style="display:none">
+    <button class="fb dang" id="btn-disc" style="margin-left:auto">Disconnect</button>
+  </div>
+
+</div><!-- #main -->
+
+<script>
+'use strict';
+
+// ── Parameters (matches Python SW exactly) ────────────────────────────────────
+const PARAMS = [
+  {n:'vX0',k:'vx0',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:0},
+  {n:'vX1',k:'vx1',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:1},
+  {n:'vX2',k:'vx2',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:2},
+  {n:'vX3',k:'vx3',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:3},
+  {n:'vX4',k:'vx4',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:4},
+  {n:'vX5',k:'vx5',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:5},
+  {n:'vX6',k:'vx6',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:6},
+  {n:'vY0',k:'vy0',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:0},
+  {n:'vY1',k:'vy1',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:1},
+  {n:'vY2',k:'vy2',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:2},
+  {n:'vY3',k:'vy3',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:3},
+  {n:'vY4',k:'vy4',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:4},
+  {n:'vY5',k:'vy5',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:5},
+  {n:'vY6',k:'vy6',min:-800,max:800, step:5,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:6},
+  {n:'X-Delay', k:'xd', min:0,   max:3000,  step:5,   u:'ms', def:0,    fl:false,sp:false},
+  {n:'Y-Delay', k:'yd', min:0,   max:3000,  step:5,   u:'ms', def:0,    fl:false,sp:false},
+  {n:'Sigma',   k:'s',  min:0.1, max:15,    step:0.1, u:'%',  def:1,    fl:true, sp:false},
+  {n:'RF-Hz',   k:'rf', min:0,   max:100,   step:1,   u:'Hz', def:0,    fl:false,sp:false},
+  {n:'RF-Sprd', k:'rfs',min:0.1, max:15,    step:0.1, u:'%',  def:1,    fl:true, sp:false},
+  {n:'RF-Duty', k:'rfd',min:5,   max:95,    step:5,   u:'%',  def:70,   fl:false,sp:false},
+  {n:'T-End',   k:'te', min:500, max:10000, step:25,  u:'ms', def:5000, fl:false,sp:false},
+];
+
+const JSON_KEY_MAP = {
+  xd:'xDelay', yd:'yDelay', s:'sigmaPct', rf:'rfHz',
+  rfs:'rfSpread', rfd:'rfDutyPct', te:'tEndMs'
+};
+const JSON_KEY_TO_IDX = {
+  xDelay:14, yDelay:15, sigmaPct:16, rfHz:17,
+  rfSpread:18, rfDutyPct:19, tEndMs:20
+};
+
+// ── App State ─────────────────────────────────────────────────────────────────
+const S = {
+  vals:      PARAMS.map(p => p.def),
+  connected: false,
+  depth:     0,          // >0 → suppress slider callbacks
+  oledPg:    0,
+  reqT0:     0,
+  timGraph:  null,
+  timOled:   null,
+  timSend:   null,       // debounce for slider-to-send
+  hwSync:    null,
+};
+
+// ── Serial ────────────────────────────────────────────────────────────────────
+let _port=null, _writer=null, _rxBuf='';
+
+async function doConnect() {
+  if (!('serial' in navigator)) { document.getElementById('no-ws').style.display='block'; return; }
+  try {
+    _port = await navigator.serial.requestPort();
+    await _port.open({baudRate:115200});
+    _writer = _port.writable.getWriter();
+    setConnected(true);
+    _startRead();
+    clog('[MIM] Connected @ 115200 baud');
+    setTimeout(()=>sendJson({cmd:'ping'}),       200);
+    setTimeout(()=>sendJson({cmd:'get_config'}), 450);
+    S.hwSync = setInterval(()=>{ if(S.connected) sendJson({cmd:'get_config'}); }, 3000);
+  } catch(e) {
+    if (e.name !== 'NotFoundError') clog('[ERR] '+e.message);
+  }
+}
+
+async function doDisconnect() {
+  if (S.hwSync) { clearInterval(S.hwSync); S.hwSync=null; }
+  setConnected(false);
+  try { if(_writer){ _writer.releaseLock(); _writer=null; } } catch(e){}
+  try { if(_port){ await _port.close(); _port=null; } } catch(e){}
+  _rxBuf='';
+  clog('[MIM] Disconnected');
+}
+
+async function _startRead() {
+  const tds = new TextDecoderStream();
+  _port.readable.pipeTo(tds.writable).catch(()=>{});
+  const rdr = tds.readable.getReader();
+  try {
+    for(;;) {
+      const {value, done} = await rdr.read();
+      if(done) break;
+      _rxBuf += value;
+      let nl;
+      while((nl = _rxBuf.indexOf('\n')) !== -1) {
+        const ln = _rxBuf.slice(0, nl).trim();
+        _rxBuf  = _rxBuf.slice(nl+1);
+        if(ln) handleLine(ln);
+      }
+    }
+  } catch(e) {
+    if(S.connected){ clog('[ERR] Lost: '+e.message); doDisconnect(); }
+  }
+}
+
+async function sendJson(obj) {
+  if(!_writer) return;
+  S.reqT0 = performance.now();
+  const raw = JSON.stringify(obj)+'\n';
+  clog('→ '+raw.trim());
+  try { await _writer.write(new TextEncoder().encode(raw)); }
+  catch(e){ clog('[ERR] write: '+e.message); }
+}
+
+async function sendRaw(txt) {  // for legacy commands like 'r\n'
+  if(!_writer) return;
+  try { await _writer.write(new TextEncoder().encode(txt)); }
+  catch(e){}
+}
+
+// ── Response Handler ─────────────────────────────────────────────────────────
+function handleLine(ln) {
+  clog('← '+ln);
+  if(!ln.startsWith('{')) return;
+  let r;
+  try { r=JSON.parse(ln); } catch(e){ return; }
+
+  if(S.reqT0>0){
+    const ms = performance.now()-S.reqT0;
+    S.reqT0=0;
+    document.getElementById('s-lat').textContent = ms.toFixed(1)+' ms';
+  }
+  if(r.status !== 'ok') return;
+
+  if(r.fw_version) {
+    document.getElementById('s-fw').textContent = 'FW '+r.fw_version;
+  }
+  const cfg = r.config;
+  if(cfg && typeof cfg === 'object'){
+    S.depth++;
+    try{
+      (cfg.vX||[]).forEach((v,i)=>{ if(i<7) setUi(i, v); });
+      (cfg.vY||[]).forEach((v,i)=>{ if(i<7) setUi(7+i, v); });
+      for(const [jk, idx] of Object.entries(JSON_KEY_TO_IDX)){
+        if(jk in cfg) setUi(idx, cfg[jk]);
+      }
+    }finally{ S.depth--; }
+    schedGraph(); schedOled();
+  }
+}
+
+// ── Send Helpers ──────────────────────────────────────────────────────────────
+function sendParam(idx) {
+  if(idx < 7){
+    sendJson({cmd:'set_config', data:{vX: S.vals.slice(0,7).map(Number)}});
+  } else if(idx < 14){
+    sendJson({cmd:'set_config', data:{vY: S.vals.slice(7,14).map(Number)}});
+  } else {
+    const p=PARAMS[idx], jk=JSON_KEY_MAP[p.k];
+    if(!jk) return;
+    sendJson({cmd:'set_config', data:{[jk]: p.fl ? parseFloat(S.vals[idx]) : Math.round(S.vals[idx])}});
+  }
+}
+
+function sendAll() {
+  const data = {
+    vX: S.vals.slice(0,7).map(Number),
+    vY: S.vals.slice(7,14).map(Number),
+  };
+  for(let i=14;i<PARAMS.length;i++){
+    const p=PARAMS[i], jk=JSON_KEY_MAP[p.k];
+    if(jk) data[jk] = p.fl ? parseFloat(S.vals[i]) : Math.round(S.vals[i]);
+  }
+  sendJson({cmd:'set_config', data});
+}
+
+// Debounced send — fires 120ms after last slider move
+function schedSend(idx) {
+  if(S.timSend) clearTimeout(S.timSend);
+  S.timSend = setTimeout(()=>{ S.timSend=null; sendParam(idx); }, 120);
+}
+
+// ── UI Value ──────────────────────────────────────────────────────────────────
+function fmt(p, v){ return p.fl ? parseFloat(v).toFixed(1) : String(Math.round(v)); }
+
+function clamp(p,v){ return Math.max(p.min, Math.min(p.max, Number(v))); }
+
+function setUi(idx, rawVal) {
+  const p = PARAMS[idx];
+  const v = clamp(p, rawVal);
+  S.vals[idx] = v;
+  if(p.sp){
+    const sl=ge('sl'+idx), en=ge('en'+idx);
+    if(sl){ sl.value=v; }
+    if(en){ en.value=fmt(p,v); en.classList.remove('inv'); }
+  } else {
+    const sl=ge('sl'+idx), en=ge('en'+idx), lbl=ge('lbl'+idx);
+    if(sl)  sl.value=v;
+    if(en){ en.value=fmt(p,v); en.classList.remove('inv'); }
+    if(lbl) lbl.textContent=fmt(p,v)+' '+p.u;
+  }
+}
+
+function ge(id){ return document.getElementById(id); }
+
+// ── Connection UI ─────────────────────────────────────────────────────────────
+function setConnected(v){
+  S.connected=v;
+  const btn=ge('conn-btn'), main=ge('main'),
+        dot=ge('dot'), st=ge('s-text');
+  if(v){
+    main.classList.add('on'); btn.classList.add('disc');
+    dot.classList.add('on');
+    btn.textContent='⏻  Disconnect'; st.textContent='Connected';
+  } else {
+    main.classList.remove('on'); btn.classList.remove('disc');
+    dot.classList.remove('on');
+    btn.textContent='⏻  Connect'; st.textContent='Disconnected';
+    ge('s-fw').textContent=''; ge('s-lat').textContent='';
+  }
+}
+
+// ── Console ───────────────────────────────────────────────────────────────────
+function clog(txt){
+  const el=ge('console');
+  const atBot = el.scrollTop >= el.scrollHeight-el.clientHeight-4;
+  el.textContent += txt+'\n';
+  const lines = el.textContent.split('\n');
+  if(lines.length>400) el.textContent=lines.slice(-400).join('\n');
+  if(atBot) el.scrollTop=el.scrollHeight;
+}
+
+// ── Catmull-Rom Hermite Spline (identical to Python / firmware) ───────────────
+function hermite(v7, tArr, tEnd, delay=0){
+  const out=new Array(tArr.length).fill(0);
+  const span=tEnd-delay;
+  if(span<=0) return out;
+  for(let i=0;i<tArr.length;i++){
+    const t=tArr[i];
+    if(t<delay||t>=tEnd) continue;
+    const tn=Math.max(0,Math.min(1,(t-delay)/span));
+    const sf=tn*6.0;
+    const s=Math.min(5,Math.floor(sf));
+    const u=sf-s;
+    const p0=v7[s], p1=v7[Math.min(s+1,6)];
+    const m0=(s===0)?p1-p0 : 0.5*(v7[Math.min(s+1,6)]-v7[Math.max(s-1,0)]);
+    const m1=(s>=5)?p1-p0  : 0.5*(v7[Math.min(s+2,6)]-v7[s]);
+    const u2=u*u, u3=u2*u;
+    out[i]=(2*u3-3*u2+1)*p0+(u3-2*u2+u)*m0+(-2*u3+3*u2)*p1+(u3-u2)*m1;
+  }
+  return out;
+}
+
+function linspace(a,b,n){
+  const r=[];
+  for(let i=0;i<n;i++) r.push(a+(b-a)*i/(n-1));
+  return r;
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+let CX=null, CY=null;
+const XMAX=5000, NPTS=300;
+
+function chartOpts(title){
+  return {
+    responsive:true, maintainAspectRatio:false, animation:false,
+    plugins:{
+      legend:{display:false},
+      title:{display:true,text:title,color:'#ccc',font:{size:11}},
+    },
+    scales:{
+      x:{type:'linear',min:0,max:XMAX,
+         title:{display:true,text:'t [ms]',color:'#888',font:{size:9}},
+         ticks:{color:'#888',font:{size:8},maxTicksLimit:6},
+         grid:{color:'#252525'}},
+      y:{title:{display:true,text:'px/s',color:'#888',font:{size:9}},
+         ticks:{color:'#888',font:{size:8},maxTicksLimit:5},
+         grid:{color:'#252525'}},
+    },
+  };
+}
+
+function initCharts(){
+  const mkData=c=>({datasets:[
+    {type:'line',   data:[],borderColor:c,borderWidth:2,pointRadius:0,tension:0,order:2},
+    {type:'scatter',data:[],backgroundColor:c,borderColor:'#fff',
+     borderWidth:0.8,pointRadius:5,order:1},
+  ]});
+  CX=new Chart(ge('cx').getContext('2d'),
+    {type:'scatter',data:mkData('#0088cc'),options:chartOpts('X-Speed')});
+  CY=new Chart(ge('cy').getContext('2d'),
+    {type:'scatter',data:mkData('#cc6600'),options:chartOpts('Y-Speed')});
+  drawCharts();
+}
+
+function schedGraph(){
+  if(S.timGraph) clearTimeout(S.timGraph);
+  S.timGraph=setTimeout(drawCharts,250);
+}
+
+function drawCharts(){
+  S.timGraph=null;
+  if(!CX||!CY) return;
+  const vx=S.vals.slice(0,7), vy=S.vals.slice(7,14);
+  const xdly=S.vals[14], ydly=S.vals[15];
+  const te=Math.max(1,S.vals[20]);
+  const tArr=linspace(0,XMAX,NPTS);
+  const xc=hermite(vx,tArr,te,xdly), yc=hermite(vy,tArr,te,ydly);
+  const ktx=linspace(xdly,te,7),      kty=linspace(ydly,te,7);
+  const xH=Math.max(Math.max(...vx.map(Math.abs)),1)*1.3;
+  const yH=Math.max(Math.max(...vy.map(Math.abs)),1)*1.3;
+  function upd(ch,curve,kt,kv,half){
+    ch.data.datasets[0].data=tArr.map((t,i)=>({x:t,y:curve[i]}));
+    ch.data.datasets[1].data=kt.map((t,i)=>({x:t,y:kv[i]}));
+    ch.options.scales.y.min=-Math.max(half,10);
+    ch.options.scales.y.max= Math.max(half,10);
+    ch.update('none');
+  }
+  upd(CX,xc,ktx,vx,xH);
+  upd(CY,yc,kty,vy,yH);
+}
+
+// ── OLED Canvas Preview ───────────────────────────────────────────────────────
+function schedOled(){
+  if(S.timOled) clearTimeout(S.timOled);
+  S.timOled=setTimeout(drawOled,60);
+}
+
+function drawOled(){
+  S.timOled=null;
+  const cv=ge('oled-cv'), ctx=cv.getContext('2d');
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,256,128);
+  ctx.font='11px "Consolas",monospace';
+  const R=[10,24,38,52,66,80,94,108];
+  const vx=S.vals.slice(0,7).map(v=>Math.round(v));
+  const vy=S.vals.slice(7,14).map(v=>Math.round(v));
+  const xd=Math.round(S.vals[14]), yd=Math.round(S.vals[15]);
+  const sig=S.vals[16].toFixed(1), rf=Math.round(S.vals[17]);
+  const rfs=S.vals[18].toFixed(1), rfd=Math.round(S.vals[19]);
+  const te=Math.round(S.vals[20]);
+  const x0=4, W='#ffffff', D='#555555';
+  function t(x,y,s,c=W){ctx.fillStyle=c;ctx.fillText(s,x,y);}
+  function rp(n,w=5){return String(n).padStart(w,' ');}
+
+  if(S.oledPg===0){
+    t(x0,R[0],'─── X-Speed ───',D);
+    t(x0,R[1],`vX0=${rp(vx[0])}  vX1=${rp(vx[1])}`);
+    t(x0,R[2],`vX2=${rp(vx[2])}  vX3=${rp(vx[3])}`);
+    t(x0,R[3],`vX4=${rp(vx[4])}  vX5=${rp(vx[5])}`);
+    t(x0,R[4],`vX6=${rp(vx[6])}`);
+    t(x0,R[5],`X-Dly = ${rp(xd,4)} ms`,D);
+  } else if(S.oledPg===1){
+    t(x0,R[0],'─── Y-Speed ───',D);
+    t(x0,R[1],`vY0=${rp(vy[0])}  vY1=${rp(vy[1])}`);
+    t(x0,R[2],`vY2=${rp(vy[2])}  vY3=${rp(vy[3])}`);
+    t(x0,R[3],`vY4=${rp(vy[4])}  vY5=${rp(vy[5])}`);
+    t(x0,R[4],`vY6=${rp(vy[6])}`);
+    t(x0,R[5],`Y-Dly = ${rp(yd,4)} ms`,D);
+  } else {
+    t(x0,R[0],'─── Settings ───',D);
+    t(x0,R[1],`Sigma   =${rp(sig,6)} %`);
+    t(x0,R[2],`RF-Hz   =${rp(rf, 6)} Hz`);
+    t(x0,R[3],`RF-Sprd =${rp(rfs,6)} %`);
+    t(x0,R[4],`RF-Duty =${rp(rfd,6)} %`);
+    t(x0,R[5],`T-End   =${rp(te, 6)} ms`);
+  }
+}
+
+// ── Build Spline Sliders ──────────────────────────────────────────────────────
+function buildSpline(){
+  const row=ge('spline-row');
+  row.innerHTML='';
+  for(let i=0;i<14;i++){
+    const p=PARAMS[i], isY=i>=7;
+    const col=el('div','sc');
+
+    const lbl=el('div','sc-lbl '+(isY?'y':'x'));
+    lbl.textContent=p.n; col.appendChild(lbl);
+
+    const sl=el('input');
+    sl.type='range'; sl.id='sl'+i;
+    sl.className='vsl'+(isY?' y':'');
+    sl.min=p.min; sl.max=p.max; sl.step=p.step; sl.value=S.vals[i];
+    sl.addEventListener('input',()=>{
+      if(S.depth>0) return;
+      S.vals[i]=Number(sl.value);
+      ge('en'+i).value=fmt(p,sl.value);
+      schedGraph(); schedOled(); schedSend(i);
+    });
+    col.appendChild(sl);
+
+    const en=el('input'); en.type='text'; en.id='en'+i;
+    en.className='sc-en'; en.value=fmt(p,S.vals[i]);
+    en.addEventListener('change',()=>applyEntry(i,p));
+    en.addEventListener('keydown',e=>{if(e.key==='Enter')applyEntry(i,p);});
+    col.appendChild(en);
+
+    const btn=el('button','sc-set'); btn.textContent='Set';
+    btn.addEventListener('click',()=>{ applyEntry(i,p); sendParam(i); });
+    col.appendChild(btn);
+
+    row.appendChild(col);
+  }
+}
+
+// ── Build Parameter Rows ──────────────────────────────────────────────────────
+function buildParams(){
+  const bd=ge('params-bd'); bd.innerHTML='';
+  for(let i=14;i<PARAMS.length;i++){
+    const p=PARAMS[i];
+    const row=el('div','pr');
+
+    const nm=el('div','pr-name'); nm.textContent=p.n; row.appendChild(nm);
+
+    const lbl=el('div','pr-val'); lbl.id='lbl'+i;
+    lbl.textContent=fmt(p,S.vals[i])+' '+p.u; row.appendChild(lbl);
+
+    const sl=el('input'); sl.type='range'; sl.id='sl'+i;
+    sl.className='pr-sl';
+    sl.min=p.min; sl.max=p.max; sl.step=p.step; sl.value=S.vals[i];
+    sl.addEventListener('input',()=>{
+      if(S.depth>0) return;
+      const v=Number(sl.value); S.vals[i]=v;
+      ge('en'+i).value=fmt(p,v);
+      ge('lbl'+i).textContent=fmt(p,v)+' '+p.u;
+      schedGraph(); schedOled(); schedSend(i);
+    });
+    row.appendChild(sl);
+
+    const en=el('input'); en.type='text'; en.id='en'+i;
+    en.className='pr-en'; en.value=fmt(p,S.vals[i]);
+    en.addEventListener('change',()=>applyEntry(i,p));
+    en.addEventListener('keydown',e=>{if(e.key==='Enter')applyEntry(i,p);});
+    row.appendChild(en);
+
+    const btn=el('button','pr-set'); btn.textContent='Set';
+    btn.addEventListener('click',()=>{ applyEntry(i,p); sendParam(i); });
+    row.appendChild(btn);
+
+    bd.appendChild(row);
+  }
+}
+
+function applyEntry(i,p){
+  const en=ge('en'+i);
+  const v=parseFloat(en.value.replace(',','.'));
+  if(isNaN(v)){ en.classList.add('inv'); return; }
+  en.classList.remove('inv');
+  const cv=clamp(p,v);
+  S.vals[i]=cv;
+  const sl=ge('sl'+i); if(sl) sl.value=cv;
+  en.value=fmt(p,cv);
+  const lbl=ge('lbl'+i); if(lbl) lbl.textContent=fmt(p,cv)+' '+p.u;
+  schedGraph(); schedOled();
+}
+
+// ── Export / Import ───────────────────────────────────────────────────────────
+function doExport(){
+  const data={_mim_preset:true};
+  PARAMS.forEach((p,i)=>data[p.k]=S.vals[i]);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download='mim_preset.json'; a.click();
+  clog('[MIM] Preset exported');
+}
+
+function doImport(file){
+  const fr=new FileReader();
+  fr.onload=e=>{
+    let data; try{data=JSON.parse(e.target.result);}
+    catch(err){clog('[ERR] Import: '+err.message);return;}
+    let n=0;
+    PARAMS.forEach((p,i)=>{ if(p.k in data){setUi(i,data[p.k]);n++;} });
+    clog(`[MIM] Preset loaded: ${n}/${PARAMS.length} values`);
+    schedGraph(); schedOled(); sendAll();
+  };
+  fr.readAsText(file);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function el(tag,cls=''){
+  const e=document.createElement(tag);
+  if(cls) e.className=cls;
+  return e;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  if(!('serial' in navigator)){
+    document.getElementById('conn-wrap').style.display='none';
+    document.getElementById('no-ws').style.display='block';
+  }
+  buildSpline();
+  buildParams();
+  initCharts();
+  drawOled();
+
+  ge('conn-btn').onclick=()=>S.connected?doDisconnect():doConnect();
+  ge('btn-disc').onclick=doDisconnect;
+  ge('btn-all').onclick=sendAll;
+  ge('btn-rst').onclick=()=>{ sendRaw('r\n'); clog('[MIM] Reset sent'); };
+  ge('btn-exp').onclick=doExport;
+  ge('btn-imp').onclick=()=>ge('file-imp').click();
+  ge('file-imp').onchange=e=>{ if(e.target.files[0]){doImport(e.target.files[0]);} e.target.value=''; };
+  ge('cls-btn').onclick=()=>{ ge('console').textContent=''; };
+
+  document.querySelectorAll('.pg-btn').forEach(b=>{
+    b.onclick=()=>{
+      S.oledPg=parseInt(b.dataset.pg);
+      document.querySelectorAll('.pg-btn').forEach(x=>x.classList.remove('act'));
+      b.classList.add('act');
+      drawOled();
+    };
+  });
+});
+</script>
 </body>
 </html>

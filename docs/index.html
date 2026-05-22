@@ -20,10 +20,15 @@ body{background:var(--bg);color:var(--text);font-family:"Consolas","Courier New"
 button{font-family:inherit;cursor:pointer}
 input{font-family:inherit}
 
+/* ── Max-width wrapper ───────────────────────────────────────────────────── */
+.wrap{max-width:1140px;margin:0 auto;padding:0 12px}
+
 /* ── Header ──────────────────────────────────────────────────────────────── */
-#hdr{display:flex;align-items:center;justify-content:space-between;
-  padding:8px 16px;background:var(--bg2);border-bottom:1px solid var(--border);
+#hdr{background:var(--bg2);border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:100}
+#hdr-inner{display:flex;align-items:center;justify-content:space-between;
+  max-width:1140px;margin:0 auto;padding:6px 12px}
+#logo-img{height:44px;width:auto;object-fit:contain;display:block}
 #logo{font-size:1.7rem;letter-spacing:.22em;color:#fff;font-weight:bold}
 #logo-sub{font-size:.68rem;color:var(--dim);letter-spacing:.1em;margin-left:6px;vertical-align:middle}
 #status-bar{display:flex;align-items:center;gap:14px;font-size:.76rem}
@@ -45,7 +50,7 @@ input{font-family:inherit}
   border-radius:4px;color:#cc6633;font-size:.83rem;text-align:center;line-height:1.6}
 
 /* ── Main interface ──────────────────────────────────────────────────────── */
-#main{opacity:.35;pointer-events:none;transition:opacity .5s;padding:0 12px 28px}
+#main{opacity:.35;pointer-events:none;transition:opacity .5s;padding-bottom:28px}
 #main.on{opacity:1;pointer-events:all}
 
 /* ── Sections ────────────────────────────────────────────────────────────── */
@@ -130,15 +135,15 @@ input{font-family:inherit}
 
 <!-- Header -->
 <header id="hdr">
-  <div>
-    <span id="logo">MIM</span>
-    <span id="logo-sub">Mouse Input Modifier · Control</span>
-  </div>
-  <div id="status-bar">
-    <div id="dot"></div>
-    <span id="s-text">Disconnected</span>
-    <span id="s-fw"></span>
-    <span id="s-lat"></span>
+  <div id="hdr-inner">
+    <img id="logo-img" src="mim_logo.png" alt="MIM" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='inline'">
+    <span id="logo-fallback" style="display:none"><span id="logo">MIM</span><span id="logo-sub">Mouse Input Modifier · Control</span></span>
+    <div id="status-bar">
+      <div id="dot"></div>
+      <span id="s-text">Disconnected</span>
+      <span id="s-fw"></span>
+      <span id="s-lat"></span>
+    </div>
   </div>
 </header>
 
@@ -153,7 +158,7 @@ input{font-family:inherit}
 </div>
 
 <!-- Main interface (greyed out until connected) -->
-<div id="main">
+<div id="main"><div class="wrap">
 
   <!-- Velocity Curves -->
   <div class="sec">
@@ -209,7 +214,7 @@ input{font-family:inherit}
     <button class="fb dang" id="btn-disc" style="margin-left:auto">Disconnect</button>
   </div>
 
-</div><!-- #main -->
+</div></div><!-- .wrap / #main -->
 
 <script>
 'use strict';

@@ -708,7 +708,12 @@ function applyEntry(i,p){
 // ── Export / Import ───────────────────────────────────────────────────────────
 function doExport(){
   const data={_mim_preset:true};
-  PARAMS.forEach((p,i)=>data[p.k]=S.vals[i]);
+  data.vX = S.vals.slice(0,7).map(v=>Math.round(v));
+  data.vY = S.vals.slice(7,14).map(v=>Math.round(v));
+  for(let i=14;i<PARAMS.length;i++){
+    const p=PARAMS[i], jk=JSON_KEY_MAP[p.k];
+    if(jk) data[jk] = p.fl ? parseFloat(S.vals[i].toFixed(1)) : Math.round(S.vals[i]);
+  }
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   a.download='mim_preset.json'; a.click();
@@ -721,7 +726,17 @@ function doImport(file){
     let data; try{data=JSON.parse(e.target.result);}
     catch(err){clog('[ERR] Import: '+err.message);return;}
     let n=0;
-    PARAMS.forEach((p,i)=>{ if(p.k in data){setUi(i,data[p.k]);n++;} });
+    if('vX' in data || 'vY' in data){
+      // Neues Format: vX/vY-Arrays + camelCase-Keys
+      (data.vX||[]).forEach((v,i)=>{ if(i<7){setUi(i,v);n++;} });
+      (data.vY||[]).forEach((v,i)=>{ if(i<7){setUi(7+i,v);n++;} });
+      for(const [jk,idx] of Object.entries(JSON_KEY_TO_IDX)){
+        if(jk in data){setUi(idx,data[jk]);n++;}
+      }
+    } else {
+      // Altes Format: vx0..vx6, xd, s, rf, …
+      PARAMS.forEach((p,i)=>{ if(p.k in data){setUi(i,data[p.k]);n++;} });
+    }
     clog(`[MIM] Preset loaded: ${n}/${PARAMS.length} values`);
     schedGraph(); schedOled(); sendAll();
   };

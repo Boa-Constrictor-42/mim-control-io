@@ -91,8 +91,36 @@ input{font-family:inherit}
 .sc-lbl.x{color:var(--blue)} .sc-lbl.y{color:var(--orange)}
 .vsl{writing-mode:vertical-lr;direction:rtl;
   -webkit-appearance:slider-vertical;appearance:slider-vertical;
-  width:22px;height:132px;cursor:pointer;accent-color:var(--blue)}
+  width:22px;height:132px;cursor:pointer;accent-color:var(--blue);
+  position:relative;z-index:1}
 .vsl.y{accent-color:var(--orange)}
+
+/* ── Spline grid lines + axis labels ────────────────────────────────────── */
+/* .vsl-wrap wraps each slider and hosts the background grid overlay         */
+.vsl-wrap{position:relative;height:132px;display:flex;
+  justify-content:center;align-items:center}
+/* 5 horizontal reference lines via stacked background gradients:
+   +500 (top 0%) · +250 (25%) · 0 (50%, bright) · -250 (75%) · -500 (100%) */
+.vsl-bg{position:absolute;left:-5px;right:-5px;top:0;bottom:0;
+  pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(#484848 1px,transparent 1px),
+    linear-gradient(#383838 1px,transparent 1px),
+    linear-gradient(rgba(188,188,188,.55) 1px,transparent 1px),
+    linear-gradient(#383838 1px,transparent 1px),
+    linear-gradient(#484848 1px,transparent 1px);
+  background-size:100% 1px;
+  background-position:0 0%,0 25%,0 50%,0 75%,0 100%;
+  background-repeat:no-repeat}
+/* Axis label columns left + right of the entire slider group */
+.vsl-axis{flex:0 0 auto;display:flex;flex-direction:column;
+  align-self:flex-start;padding-top:16px;width:30px}
+.vsl-axis-inner{position:relative;height:132px}
+.vsl-tick{position:absolute;font-size:.60rem;color:#484848;
+  white-space:nowrap;transform:translateY(-50%);line-height:1}
+.vsl-axis.left .vsl-tick{right:2px;text-align:right}
+.vsl-axis.right .vsl-tick{left:2px;text-align:left}
+.vsl-tick.zero{color:#808080}
 .sc-en{width:46px;font-size:.87rem;text-align:center;background:var(--bg3);
   border:1px solid var(--border2);color:var(--text);padding:3px 2px;
   margin-top:3px;border-radius:2px}
@@ -621,12 +649,41 @@ function drawOled(){
 function buildSpline(){
   const row=ge('spline-row');
   row.innerHTML='';
+
+  // Reference ticks: top=+500 (0%), middle=0 (50%), bottom=-500 (100%)
+  const TICKS=[
+    {v:'+500',pct:0},
+    {v:'+250',pct:25},
+    {v:'0',   pct:50,zero:true},
+    {v:'-250',pct:75},
+    {v:'-500',pct:100}
+  ];
+
+  function makeAxis(side){
+    const col=el('div','vsl-axis '+side);
+    const inner=el('div','vsl-axis-inner');
+    TICKS.forEach(tk=>{
+      const t=el('div','vsl-tick'+(tk.zero?' zero':''));
+      t.style.top=tk.pct+'%';
+      t.textContent=tk.v;
+      inner.appendChild(t);
+    });
+    col.appendChild(inner);
+    return col;
+  }
+
+  row.appendChild(makeAxis('left'));
+
   for(let i=0;i<14;i++){
     const p=PARAMS[i], isY=i>=7;
     const col=el('div','sc');
 
     const lbl=el('div','sc-lbl '+(isY?'y':'x'));
     lbl.textContent=p.n; col.appendChild(lbl);
+
+    // Wrapper holds the background grid overlay + slider on top (z-index:1)
+    const wrap=el('div','vsl-wrap');
+    wrap.appendChild(el('div','vsl-bg'));
 
     const sl=el('input');
     sl.type='range'; sl.id='sl'+i;
@@ -638,7 +695,8 @@ function buildSpline(){
       ge('en'+i).value=fmt(p,sl.value);
       schedGraph(); schedOled(); schedSend(i);
     });
-    col.appendChild(sl);
+    wrap.appendChild(sl);
+    col.appendChild(wrap);
 
     const en=el('input'); en.type='text'; en.id='en'+i;
     en.className='sc-en'; en.value=fmt(p,S.vals[i]);
@@ -652,6 +710,8 @@ function buildSpline(){
 
     row.appendChild(col);
   }
+
+  row.appendChild(makeAxis('right'));
 }
 
 // ── Build Parameter Rows ──────────────────────────────────────────────────────

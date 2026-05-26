@@ -42,13 +42,22 @@ input{font-family:inherit}
 #s-lat{color:var(--dim);min-width:52px;text-align:right}
 
 /* ── Connect wrap ────────────────────────────────────────────────────────── */
-#conn-wrap{text-align:center;padding:22px 0 14px}
+#conn-wrap{display:flex;align-items:center;justify-content:center;
+  padding:22px 12px 14px;max-width:1140px;margin:0 auto}
+#conn-spacer{flex:1}
 #conn-btn{font-size:.95rem;letter-spacing:.1em;padding:11px 44px;
   border:1px solid var(--green);background:transparent;color:var(--green);
   border-radius:4px;transition:background .2s,color .2s}
 #conn-btn:hover{background:var(--green);color:#000}
 #conn-btn.disc{border-color:var(--red);color:var(--red)}
 #conn-btn.disc:hover{background:var(--red);color:#000}
+#mode-btns{flex:1;display:flex;justify-content:flex-end;align-items:center;gap:6px}
+.mb{font-size:.74rem;padding:5px 11px;border:1px solid var(--border2);
+  background:transparent;color:var(--dim);border-radius:3px;letter-spacing:.04em;
+  transition:border-color .15s,color .15s}
+.mb:hover{border-color:#888;color:var(--text)}
+.mb:disabled{opacity:.3;cursor:not-allowed}
+#s-mode{font-size:.72rem;color:var(--dim);min-width:44px;text-align:right}
 #no-ws{display:none;margin:16px;padding:14px;border:1px solid #552200;
   border-radius:4px;color:#cc6633;font-size:.83rem;text-align:center;line-height:1.6}
 
@@ -181,9 +190,15 @@ input{font-family:inherit}
   </div>
 </header>
 
-<!-- Connect -->
+<!-- Connect + Mode-Switch -->
 <div id="conn-wrap">
+  <div id="conn-spacer"></div>
   <button id="conn-btn">⏻  Connect</button>
+  <div id="mode-btns">
+    <button class="mb" id="btn-mode-aim" disabled title="Send mode_switch → AIM and reboot">Reboot → AIM</button>
+    <button class="mb" id="btn-mode-mim" disabled title="Send mode_switch → MIM and reboot">Reboot → MIM</button>
+    <span id="s-mode"></span>
+  </div>
 </div>
 <div id="no-ws">
   WebSerial API not available.<br>
@@ -289,16 +304,17 @@ const JSON_KEY_TO_IDX = {
 
 // ── App State ─────────────────────────────────────────────────────────────────
 const S = {
-  vals:      PARAMS.map(p => p.def),
-  connected: false,
-  sleeping:  false,      // true = device is in sleep mode, hwSync paused
-  depth:     0,          // >0 → suppress slider callbacks
-  oledPg:    0,
-  reqT0:     0,
-  timGraph:  null,
-  timOled:   null,
-  timSend:   null,       // debounce for slider-to-send
-  hwSync:    null,
+  vals:       PARAMS.map(p => p.def),
+  connected:  false,
+  sleeping:   false,      // true = device is in sleep mode, hwSync paused
+  depth:      0,          // >0 → suppress slider callbacks
+  oledPg:     0,
+  reqT0:      0,
+  timGraph:   null,
+  timOled:    null,
+  timSend:    null,       // debounce for slider-to-send
+  hwSync:     null,
+  activeMode: 'unknown',  // 'MIM' | 'AIM' | 'unknown'
 };
 
 // ── Serial ────────────────────────────────────────────────────────────────────
@@ -408,6 +424,18 @@ function handleLine(ln) {
     document.getElementById('s-fw').textContent = 'FW '+r.fw_version;
   }
 
+  // ── mode_switch: device is rebooting ────────────────────────────
+  if(r.action === 'rebooting') {
+    clog(`[MIM] Rebooting as ${r.mode} — disconnecting …`);
+    setTimeout(doDisconnect, 300);
+    return;
+  }
+
+  // ── mode field (from ping) ────────────────────────────────────────
+  if(r.mode && typeof r.mode === 'string') {
+    setActiveMode(r.mode);
+  }
+
   // ── get_status response: read initial sleep state ────────────────
   if(typeof r.sleep_mode === 'boolean') {
     S.sleeping = r.sleep_mode;
@@ -426,6 +454,23 @@ function handleLine(ln) {
     }finally{ S.depth--; }
     schedGraph(); schedOled();
   }
+}
+
+// ── Mode Switch ───────────────────────────────────────────────────────────────
+function sendModeSwitch(target) {
+  if(!S.connected){ clog('[MIM] Not connected'); return; }
+  clog(`[MIM] Requesting reboot as ${target} …`);
+  sendJson({cmd:'mode_switch', mode:target});
+}
+
+function setActiveMode(mode) {
+  S.activeMode = mode || 'unknown';
+  const el = ge('s-mode');
+  if(el) el.textContent = mode ? mode : '';
+  // Update button states: disable the button for the current active mode
+  const btnAim = ge('btn-mode-aim'), btnMim = ge('btn-mode-mim');
+  if(btnAim) btnAim.disabled = !S.connected;
+  if(btnMim) btnMim.disabled = !S.connected;
 }
 
 // ── Send Helpers ──────────────────────────────────────────────────────────────
@@ -491,11 +536,17 @@ function setConnected(v){
     main.classList.add('on'); btn.classList.add('disc');
     dot.classList.add('on');
     btn.textContent='⏻  Disconnect'; st.textContent='Connected';
+    ge('btn-mode-aim').disabled=false;
+    ge('btn-mode-mim').disabled=false;
   } else {
     main.classList.remove('on'); btn.classList.remove('disc');
     dot.classList.remove('on');
     btn.textContent='⏻  Connect'; st.textContent='Disconnected';
     ge('s-fw').textContent=''; ge('s-lat').textContent='';
+    ge('btn-mode-aim').disabled=true;
+    ge('btn-mode-mim').disabled=true;
+    ge('s-mode').textContent='';
+    S.activeMode='unknown';
   }
 }
 
@@ -825,6 +876,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   ge('btn-disc').onclick=doDisconnect;
   ge('btn-all').onclick=sendAll;
   ge('btn-rst').onclick=()=>{ sendRaw('r\n'); clog('[MIM] Reset sent'); };
+  ge('btn-mode-aim').onclick=()=>sendModeSwitch('AIM');
+  ge('btn-mode-mim').onclick=()=>sendModeSwitch('MIM');
   ge('btn-exp').onclick=doExport;
   ge('btn-imp').onclick=()=>ge('file-imp').click();
   ge('file-imp').onchange=e=>{ if(e.target.files[0]){doImport(e.target.files[0]);} e.target.value=''; };

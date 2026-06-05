@@ -338,7 +338,9 @@ input{font-family:inherit}
   <div id="tab-bar">
     <button class="tab active" id="tab-mim" disabled>MIM</button>
     <button class="tab"        id="tab-kim" disabled>KIM</button>
-    <button class="tab"        id="tab-cim" disabled>CIM</button>
+    <span id="tab-cim-wrap" title="Requires Joypad output mode + connected controller" style="display:inline-block">
+      <button class="tab" id="tab-cim" disabled>CIM</button>
+    </span>
   </div>
   <div class="tab-hint" id="tab-hint">
     ↻ Device change requires reconnect to update active tab.
@@ -441,13 +443,27 @@ input{font-family:inherit}
 
   <!-- Tab: CIM (Platzhalter) -->
   <div class="tab-panel" id="panel-cim">
+
+    <!-- Step Wizard Platzhalter -->
     <div class="sec" style="margin-top:12px">
-      <div class="sec-hd">CIM — Controller Input Modifier</div>
-      <div class="sec-bd" style="color:var(--dim);font-size:.82rem;padding:20px">
-        Controller pass-through aktiv.<br>
-        Konfiguration (Achsen, Rapid-Fire) folgt in einer späteren Phase.
+      <div class="sec-hd">AXIS &amp; BUTTON MAPPING</div>
+      <div class="sec-bd" style="color:var(--dim);font-size:.82rem;padding:16px;line-height:1.9">
+        <span style="color:var(--text)">Controller pass-through active.</span><br>
+        Axis assignment and Rapid-Fire configuration will be available in a later phase.<br>
+        <span style="color:var(--dim2);font-size:.75rem">
+          Planned: Stick X/Y axis select · Fire button assign · Spline curve editor · RF with spread
+        </span>
       </div>
     </div>
+
+    <!-- Slider-Bereich Platzhalter -->
+    <div class="sec">
+      <div class="sec-hd">CIM PARAMETERS <span style="color:var(--dim2);font-size:.66rem">— coming soon</span></div>
+      <div class="sec-bd" style="color:var(--dim2);font-size:.78rem;padding:12px">
+        vX · vY spline · X/Y-Delay · Sigma · Rapid-Fire · T-End
+      </div>
+    </div>
+
   </div>
 
 </div></div><!-- .wrap / #main -->

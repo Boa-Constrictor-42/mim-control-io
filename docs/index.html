@@ -195,6 +195,25 @@ input{font-family:inherit}
 .axis-row select{background:var(--bg3);border:1px solid var(--border2);
   color:var(--text);padding:3px 6px;border-radius:2px;font-family:inherit;font-size:.82rem}
 
+/* Tab bar */
+#tab-bar{display:flex;align-items:flex-end;gap:2px;max-width:1140px;
+  margin:0 auto;padding:0 12px;border-bottom:1px solid var(--border)}
+.tab{font-size:.78rem;letter-spacing:.1em;padding:6px 20px;
+  border:1px solid transparent;border-bottom:none;border-radius:3px 3px 0 0;
+  background:transparent;color:var(--dim);cursor:pointer;
+  transition:color .15s,border-color .15s;position:relative;top:1px}
+.tab:hover:not(:disabled){color:var(--text);border-color:var(--border)}
+.tab.active{color:var(--text);border-color:var(--border);
+  background:var(--bg);border-bottom-color:var(--bg)}
+.tab:disabled{opacity:.3;cursor:not-allowed}
+.tab-hint{font-size:.68rem;color:var(--dim2);padding:4px 12px 8px;
+  max-width:1140px;margin:0 auto;display:none}
+.tab-hint.show{display:block}
+
+/* Tab panels */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:#111}
@@ -297,8 +316,23 @@ input{font-family:inherit}
   Enable flag: <code>chrome://flags/#enable-experimental-web-platform-features</code>
 </div>
 
+<!-- Tab bar -->
+<div id="tab-bar-wrap" style="background:var(--bg2)">
+  <div id="tab-bar">
+    <button class="tab active" id="tab-mim" disabled>MIM</button>
+    <button class="tab"        id="tab-kim" disabled>KIM</button>
+    <button class="tab"        id="tab-cim" disabled>CIM</button>
+  </div>
+  <div class="tab-hint" id="tab-hint">
+    ↻ Device change requires reconnect to update active tab.
+  </div>
+</div>
+
 <!-- Main interface (greyed out until connected) -->
 <div id="main"><div class="wrap">
+
+  <!-- Tab: MIM -->
+  <div class="tab-panel active" id="panel-mim">
 
   <!-- Velocity Curves -->
   <div class="sec">
@@ -352,6 +386,30 @@ input{font-family:inherit}
     <button class="fb"      id="btn-imp">Import …</button>
     <input  type="file" id="file-imp" accept=".json" style="display:none">
     <button class="fb dang" id="btn-disc" style="margin-left:auto">Disconnect</button>
+  </div>
+
+  </div><!-- #panel-mim -->
+
+  <!-- Tab: KIM (Platzhalter) -->
+  <div class="tab-panel" id="panel-kim">
+    <div class="sec" style="margin-top:12px">
+      <div class="sec-hd">KIM — Keyboard Input Modifier</div>
+      <div class="sec-bd" style="color:var(--dim);font-size:.82rem;padding:20px">
+        KIM-Modus wird in einer späteren Phase implementiert.<br>
+        Verbinde ein Keyboard um diesen Tab zu aktivieren.
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: CIM (Platzhalter) -->
+  <div class="tab-panel" id="panel-cim">
+    <div class="sec" style="margin-top:12px">
+      <div class="sec-hd">CIM — Controller Input Modifier</div>
+      <div class="sec-bd" style="color:var(--dim);font-size:.82rem;padding:20px">
+        Controller pass-through aktiv.<br>
+        Konfiguration (Achsen, Rapid-Fire) folgt in einer späteren Phase.
+      </div>
+    </div>
   </div>
 
 </div></div><!-- .wrap / #main -->
@@ -576,6 +634,34 @@ function setActiveMode(mode) {
   const isJoypad = mode === 'AIM' || mode === 'CIM';
   if(joypad) joypad.disabled = !S.connected || isJoypad;
   if(mnk)    mnk.disabled    = !S.connected || (!isJoypad && mode !== 'unknown');
+  // Tabs aktivieren
+  activateTab(mode);
+}
+
+function activateTab(mode) {
+  const tabs   = ['mim','kim','cim'];
+  const panels = ['mim','kim','cim'];
+
+  // Alle Tabs deaktivieren
+  tabs.forEach(t => {
+    const tab = ge('tab-'+t), panel = ge('panel-'+t);
+    if(tab)   { tab.classList.remove('active'); tab.disabled = true; }
+    if(panel)  panel.classList.remove('active');
+  });
+
+  // Passenden Tab aktivieren
+  let activeId = 'mim'; // Default
+  if(mode === 'CIM') activeId = 'cim';
+  else if(mode === 'KIM') activeId = 'kim';
+
+  const activeTab = ge('tab-'+activeId);
+  const activePanel = ge('panel-'+activeId);
+  if(activeTab)   { activeTab.classList.add('active'); activeTab.disabled = false; }
+  if(activePanel)  activePanel.classList.add('active');
+
+  // Hint anzeigen wenn Gerät verbunden
+  const hint = ge('tab-hint');
+  if(hint) hint.classList.toggle('show', S.connected);
 }
 
 // ── Joypad Modal ──────────────────────────────────────────────────────────────
@@ -742,6 +828,7 @@ function setConnected(v){
     ge('btn-out-mnk').disabled=true;
     ge('s-mode').textContent='';
     S.activeMode='unknown';
+    activateTab(null);
   }
 }
 

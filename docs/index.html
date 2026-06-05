@@ -873,6 +873,7 @@ function setConnected(v){
     btn.textContent='⏻  Disconnect'; st.textContent='Connected';
     ge('btn-out-joypad').disabled=false;
     ge('btn-out-mnk').disabled=false;
+    PM.clearSelection();
   } else {
     main.classList.remove('on'); btn.classList.remove('disc');
     dot.classList.remove('on');
@@ -1238,6 +1239,16 @@ const PM = {
     localStorage.setItem('mim_profile_name_'+n, name);
     const el=ge('pname-'+n);
     if(el) el.textContent = name;
+  },
+
+  // Alle Slot-Markierungen löschen (beim Connect: Gerätewerte ≠ gespeichertes Profil)
+  clearSelection() {
+    this.active = -1;
+    this.setDirty(false);
+    for(let i=0; i<=3; i++){
+      const s = ge('pslot-'+i);
+      if(s) s.classList.remove('active');
+    }
   },
 
   // Init: load stored names

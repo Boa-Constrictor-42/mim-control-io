@@ -370,8 +370,7 @@ input{font-family:inherit}
       <span class="pslot-dot" id="pdot-3"></span>
       <span class="pslot-name" id="pname-3">Profile 3</span>
     </div>
-    <button class="fb" id="btn-load-default" style="margin-left:auto;font-size:.74rem;padding:3px 10px">Load Default</button>
-    <button class="fb prim" id="btn-save" style="font-size:.74rem;padding:3px 10px">Save</button>
+    <button class="fb prim" id="btn-save" style="margin-left:auto;font-size:.74rem;padding:3px 10px">Save</button>
   </div>
 
   <!-- Velocity Curves -->
@@ -1354,7 +1353,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   ge('btn-imp').onclick=()=>ge('file-imp').click();
   ge('file-imp').onchange=e=>{ if(e.target.files[0]){doImport(e.target.files[0]);} e.target.value=''; };
   ge('btn-save').onclick=()=>PM.save();
-  ge('btn-load-default').onclick=()=>{ PM.switchSlot(0); sendAll(); };
   PM.init();
   ge('cls-btn').onclick=()=>{ ge('console').textContent=''; };
 

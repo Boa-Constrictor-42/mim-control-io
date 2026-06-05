@@ -1279,39 +1279,64 @@ const PM = {
 };
 
 // ── Export / Import ───────────────────────────────────────────────────────────
+const EXPORT_SCHEMA = 1;
+
 function doExport(){
-  const data={_mim_preset:true};
-  data.vX = S.vals.slice(0,7).map(v=>Math.round(v));
-  data.vY = S.vals.slice(7,14).map(v=>Math.round(v));
-  for(let i=14;i<PARAMS.length;i++){
-    const p=PARAMS[i], jk=JSON_KEY_MAP[p.k];
-    if(jk) data[jk] = p.fl ? parseFloat(S.vals[i].toFixed(1)) : Math.round(S.vals[i]);
-  }
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
-  const name = PM.active===0 ? 'default' : PM.getName(PM.active).replace(/\s+/g,'_');
-  a.download='mim_preset_'+name+'.json'; a.click();
-  clog('[MIM] Preset exported: '+name);
+  const profileName = PM.active === 0 ? 'Default' : PM.getName(PM.active);
+  const data = {
+    _mim_preset:   true,
+    _schema:       EXPORT_SCHEMA,
+    _profile_name: profileName,
+    _exported:     new Date().toISOString().slice(0,10),
+    _fw_version:   ge('s-fw').textContent.replace('FW ','').trim() || 'unknown',
+    vX:        S.vals.slice(0,7).map(v => Math.round(v)),
+    vY:        S.vals.slice(7,14).map(v => Math.round(v)),
+    xDelay:    Math.round(S.vals[14]),
+    yDelay:    Math.round(S.vals[15]),
+    sigmaPct:  parseFloat(S.vals[16].toFixed(1)),
+    rfHz:      parseFloat(S.vals[17].toFixed(1)),
+    rfSpread:  parseFloat(S.vals[18].toFixed(1)),
+    rfDutyPct: Math.round(S.vals[19]),
+    tEndMs:    Math.round(S.vals[20]),
+  };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download = 'mim_preset_' + profileName.replace(/\s+/g,'_') + '.json';
+  a.click();
+  clog('[MIM] Exported: ' + profileName + ' (schema v' + EXPORT_SCHEMA + ')');
 }
 
 function doImport(file){
-  const fr=new FileReader();
-  fr.onload=e=>{
-    let data; try{data=JSON.parse(e.target.result);}
-    catch(err){clog('[ERR] Import: '+err.message);return;}
-    let n=0;
-    if('vX' in data || 'vY' in data){
-      // Neues Format: vX/vY-Arrays + camelCase-Keys
-      (data.vX||[]).forEach((v,i)=>{ if(i<7){setUi(i,v);n++;} });
-      (data.vY||[]).forEach((v,i)=>{ if(i<7){setUi(7+i,v);n++;} });
+  const fr = new FileReader();
+  fr.onload = e => {
+    let data;
+    try { data = JSON.parse(e.target.result); }
+    catch(err) { clog('[ERR] Import: invalid JSON — ' + err.message); return; }
+
+    if(!data._mim_preset) {
+      clog('[ERR] Import: not a MIM preset file (_mim_preset field missing)');
+      return;
+    }
+    if(data._schema !== undefined && data._schema !== EXPORT_SCHEMA) {
+      clog('[ERR] Import: incompatible schema version (got v' + data._schema +
+           ', expected v' + EXPORT_SCHEMA + ') — please update firmware or web interface');
+      return;
+    }
+
+    let n = 0;
+    if('vX' in data || 'vY' in data) {
+      (data.vX||[]).forEach((v,i) => { if(i<7){ setUi(i,v); n++; } });
+      (data.vY||[]).forEach((v,i) => { if(i<7){ setUi(7+i,v); n++; } });
       for(const [jk,idx] of Object.entries(JSON_KEY_TO_IDX)){
-        if(jk in data){setUi(idx,data[jk]);n++;}
+        if(jk in data){ setUi(idx, data[jk]); n++; }
       }
     } else {
-      // Altes Format: vx0..vx6, xd, s, rf, …
-      PARAMS.forEach((p,i)=>{ if(p.k in data){setUi(i,data[p.k]);n++;} });
+      clog('[MIM] Import: legacy format — best-effort mapping');
+      PARAMS.forEach((p,i) => { if(p.k in data){ setUi(i, data[p.k]); n++; } });
     }
-    clog(`[MIM] Preset loaded: ${n}/${PARAMS.length} values`);
+
+    const nameHint = data._profile_name ? ' ("' + data._profile_name + '")' : '';
+    clog('[MIM] Imported' + nameHint + ': ' + n + '/' + PARAMS.length + ' values');
     schedGraph(); schedOled();
     PM.setDirty(true);
     sendAll();

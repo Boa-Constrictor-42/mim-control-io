@@ -214,6 +214,23 @@ input{font-family:inherit}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
 
+/* Profile bar */
+#profile-bar{display:flex;align-items:center;gap:4px;padding:8px 0 6px;
+  border-bottom:1px solid var(--border);margin-bottom:6px;flex-wrap:wrap}
+.pslot{position:relative;display:flex;align-items:center;gap:4px;
+  padding:4px 12px;border:1px solid var(--border2);border-radius:3px;
+  cursor:pointer;font-size:.78rem;color:var(--dim);
+  transition:border-color .15s,color .15s;user-select:none}
+.pslot:hover{border-color:#888;color:var(--text)}
+.pslot.active{border-color:var(--blue);color:var(--text)}
+.pslot.default{background:var(--bg3);cursor:default}
+.pslot.default:hover{border-color:var(--border2);color:var(--dim)}
+.pslot-dot{width:6px;height:6px;border-radius:50%;background:var(--orange);
+  display:none;flex-shrink:0}
+.pslot-dot.show{display:block}
+.pslot-name-input{background:transparent;border:none;border-bottom:1px solid var(--blue);
+  color:var(--text);font-family:inherit;font-size:.78rem;width:70px;outline:none}
+
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:#111}
@@ -333,6 +350,27 @@ input{font-family:inherit}
 
   <!-- Tab: MIM -->
   <div class="tab-panel active" id="panel-mim">
+
+  <!-- Profile bar -->
+  <div id="profile-bar">
+    <div class="pslot default active" id="pslot-0" data-slot="0">
+      <span class="pslot-name">Default</span>
+    </div>
+    <div class="pslot" id="pslot-1" data-slot="1">
+      <span class="pslot-dot" id="pdot-1"></span>
+      <span class="pslot-name" id="pname-1">Profile 1</span>
+    </div>
+    <div class="pslot" id="pslot-2" data-slot="2">
+      <span class="pslot-dot" id="pdot-2"></span>
+      <span class="pslot-name" id="pname-2">Profile 2</span>
+    </div>
+    <div class="pslot" id="pslot-3" data-slot="3">
+      <span class="pslot-dot" id="pdot-3"></span>
+      <span class="pslot-name" id="pname-3">Profile 3</span>
+    </div>
+    <button class="fb" id="btn-load-default" style="margin-left:auto;font-size:.74rem;padding:3px 10px">Load Default</button>
+    <button class="fb prim" id="btn-save" style="font-size:.74rem;padding:3px 10px">Save</button>
+  </div>
 
   <!-- Velocity Curves -->
   <div class="sec">
@@ -781,6 +819,7 @@ function sendAll() {
 
 // Debounced send — fires 120ms after last slider move
 function schedSend(idx) {
+  PM.setDirty(true);
   if(S.timSend) clearTimeout(S.timSend);
   S.timSend = setTimeout(()=>{ S.timSend=null; sendParam(idx); }, 120);
 }
@@ -1098,6 +1137,132 @@ function applyEntry(i,p){
   schedGraph(); schedOled();
 }
 
+// ── Profile Manager ───────────────────────────────────────────────────────────
+const PM = {
+  active: 0,   // 0 = Default, 1-3 = user slots
+  dirty:  false,
+
+  // Snapshot current UI values → plain object
+  snapshot() {
+    const data = { _mim_preset: true, _schema: 1 };
+    data.vX = S.vals.slice(0,7).map(v => Math.round(v));
+    data.vY = S.vals.slice(7,14).map(v => Math.round(v));
+    for(let i=14; i<PARAMS.length; i++){
+      const p=PARAMS[i], jk=JSON_KEY_MAP[p.k];
+      if(jk) data[jk] = p.fl ? parseFloat(S.vals[i].toFixed(1)) : Math.round(S.vals[i]);
+    }
+    return data;
+  },
+
+  // Apply a data object to the UI
+  apply(data) {
+    (data.vX||[]).forEach((v,i)=>{ if(i<7) setUi(i,v); });
+    (data.vY||[]).forEach((v,i)=>{ if(i<7) setUi(7+i,v); });
+    for(const [jk,idx] of Object.entries(JSON_KEY_TO_IDX)){
+      if(jk in data) setUi(idx, data[jk]);
+    }
+    schedGraph(); schedOled();
+  },
+
+  // Default = all spline zeros, other params at firmware defaults
+  defaultData() {
+    return {
+      _mim_preset:true, _schema:1,
+      vX:[0,0,0,0,0,0,0], vY:[0,0,0,0,0,0,0],
+      xDelay:0, yDelay:0, sigmaPct:1.0, rfHz:0.0,
+      rfSpread:1.0, rfDutyPct:70, tEndMs:5000
+    };
+  },
+
+  // Load slot (0=default, 1-3=localStorage)
+  switchSlot(n) {
+    // Update active styling
+    for(let i=0;i<=3;i++){
+      const s=ge('pslot-'+i);
+      if(s) s.classList.toggle('active', i===n);
+    }
+    this.active = n;
+    this.setDirty(false);
+
+    let data;
+    if(n === 0) {
+      data = this.defaultData();
+    } else {
+      const stored = localStorage.getItem('mim_profile_data_'+n);
+      data = stored ? JSON.parse(stored) : this.defaultData();
+    }
+    this.apply(data);
+    clog('[MIM] Profile '+(n===0?'Default':this.getName(n))+' loaded');
+  },
+
+  // Save active slot to localStorage + send to device
+  save() {
+    if(this.active === 0) return; // Default nicht überschreibbar
+    const data = this.snapshot();
+    localStorage.setItem('mim_profile_data_'+this.active, JSON.stringify(data));
+    this.setDirty(false);
+    sendAll();
+    clog('[MIM] Profile '+this.getName(this.active)+' saved');
+  },
+
+  // Mark unsaved changes
+  setDirty(v) {
+    this.dirty = v;
+    for(let i=1;i<=3;i++){
+      const dot=ge('pdot-'+i);
+      if(dot) dot.classList.toggle('show', v && i===this.active);
+    }
+  },
+
+  // Get/set slot name
+  getName(n) {
+    return localStorage.getItem('mim_profile_name_'+n) || 'Profile '+n;
+  },
+  setName(n, name) {
+    localStorage.setItem('mim_profile_name_'+n, name);
+    const el=ge('pname-'+n);
+    if(el) el.textContent = name;
+  },
+
+  // Init: load stored names
+  init() {
+    for(let i=1;i<=3;i++){
+      const el=ge('pname-'+i);
+      if(el) el.textContent = this.getName(i);
+    }
+    // Double-click to rename slots 1-3
+    for(let i=1;i<=3;i++){
+      const slot=ge('pslot-'+i);
+      if(!slot) continue;
+      slot.addEventListener('dblclick', () => this.startRename(i));
+      slot.addEventListener('click',    () => { if(!this._renaming) this.switchSlot(i); });
+    }
+    ge('pslot-0').addEventListener('click', () => this.switchSlot(0));
+  },
+
+  _renaming: false,
+  startRename(n) {
+    this._renaming = true;
+    const nameEl = ge('pname-'+n);
+    const cur = this.getName(n);
+    const inp = document.createElement('input');
+    inp.className = 'pslot-name-input';
+    inp.value = cur;
+    nameEl.replaceWith(inp);
+    inp.focus(); inp.select();
+    const done = () => {
+      const val = inp.value.trim() || 'Profile '+n;
+      this.setName(n, val);
+      const span = document.createElement('span');
+      span.className = 'pslot-name'; span.id = 'pname-'+n; span.textContent = val;
+      inp.replaceWith(span);
+      this._renaming = false;
+    };
+    inp.addEventListener('blur',  done);
+    inp.addEventListener('keydown', e => { if(e.key==='Enter'||e.key==='Escape') inp.blur(); });
+  }
+};
+
 // ── Export / Import ───────────────────────────────────────────────────────────
 function doExport(){
   const data={_mim_preset:true};
@@ -1109,8 +1274,9 @@ function doExport(){
   }
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
-  a.download='mim_preset.json'; a.click();
-  clog('[MIM] Preset exported');
+  const name = PM.active===0 ? 'default' : PM.getName(PM.active).replace(/\s+/g,'_');
+  a.download='mim_preset_'+name+'.json'; a.click();
+  clog('[MIM] Preset exported: '+name);
 }
 
 function doImport(file){
@@ -1131,7 +1297,9 @@ function doImport(file){
       PARAMS.forEach((p,i)=>{ if(p.k in data){setUi(i,data[p.k]);n++;} });
     }
     clog(`[MIM] Preset loaded: ${n}/${PARAMS.length} values`);
-    schedGraph(); schedOled(); sendAll();
+    schedGraph(); schedOled();
+    PM.setDirty(true);
+    sendAll();
   };
   fr.readAsText(file);
 }
@@ -1169,6 +1337,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   ge('btn-exp').onclick=doExport;
   ge('btn-imp').onclick=()=>ge('file-imp').click();
   ge('file-imp').onchange=e=>{ if(e.target.files[0]){doImport(e.target.files[0]);} e.target.value=''; };
+  ge('btn-save').onclick=()=>PM.save();
+  ge('btn-load-default').onclick=()=>{ PM.switchSlot(0); sendAll(); };
+  PM.init();
   ge('cls-btn').onclick=()=>{ ge('console').textContent=''; };
 
   document.querySelectorAll('.pg-btn').forEach(b=>{

@@ -343,6 +343,18 @@ async function doConnect() {
     setTimeout(()=>sendJson({cmd:'ping'}),        200);
     setTimeout(()=>sendJson({cmd:'get_status'}, true), 350);  // check initial sleep state
     setTimeout(()=>sendJson({cmd:'get_config'}),  550);
+    // Ping timeout: if no mode response in 2.5s → device is likely in AIM/XInput mode (no serial)
+    S._pingTimeout = setTimeout(() => {
+      if (S.connected && S.activeMode === 'unknown') {
+        const el = ge('s-mode');
+        if(el) el.textContent = 'AIM?';
+        S.activeMode = 'AIM?';
+        clog('[MIM] Keine Ping-Antwort — Gerät wahrscheinlich im AIM/XInput-Mode (kein Serial)');
+        clog('[MIM] Zum Wechseln nach MIM: E2-Encoder lang drücken (> 1s) auf dem Gerät');
+        const btnMim = ge('btn-mode-mim');
+        if(btnMim) btnMim.disabled = false;  // Modeswitch-Versuch trotzdem erlauben
+      }
+    }, 2500);
     S.hwSync = setInterval(()=>{ if(S.connected && !S.sleeping) sendJson({cmd:'get_config'}, true); }, 3000);
   } catch(e) {
     if (e.name !== 'NotFoundError') clog('[ERR] '+e.message);
@@ -351,6 +363,7 @@ async function doConnect() {
 
 async function doDisconnect() {
   if (S.hwSync) { clearInterval(S.hwSync); S.hwSync=null; }
+  if (S._pingTimeout) { clearTimeout(S._pingTimeout); S._pingTimeout = null; }
   S.sleeping = false;
   setConnected(false);
   try { if(_writer){ _writer.releaseLock(); _writer=null; } } catch(e){}
@@ -443,6 +456,7 @@ function handleLine(ln) {
 
   // ── mode field (from ping) ────────────────────────────────────────
   if(r.mode && typeof r.mode === 'string') {
+    if(S._pingTimeout) { clearTimeout(S._pingTimeout); S._pingTimeout = null; }
     setActiveMode(r.mode);
   }
 
@@ -476,11 +490,11 @@ function sendModeSwitch(target) {
 function setActiveMode(mode) {
   S.activeMode = mode || 'unknown';
   const el = ge('s-mode');
-  if(el) el.textContent = mode ? mode : '';
-  // Update button states: disable the button for the current active mode
+  if(el) el.textContent = mode ? mode : (S.connected ? '?' : '');
+  // Disable only the button for the current active mode
   const btnAim = ge('btn-mode-aim'), btnMim = ge('btn-mode-mim');
-  if(btnAim) btnAim.disabled = !S.connected;
-  if(btnMim) btnMim.disabled = !S.connected;
+  if(btnAim) btnAim.disabled = !S.connected || mode === 'AIM';
+  if(btnMim) btnMim.disabled = !S.connected || mode === 'MIM';
 }
 
 // ── Send Helpers ──────────────────────────────────────────────────────────────

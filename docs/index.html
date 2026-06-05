@@ -169,6 +169,32 @@ input{font-family:inherit}
 .fb.dang{border-color:#441111;color:var(--red)}
 .fb.dang:hover{background:var(--red);color:#fff}
 
+/* Modal */
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;
+  display:flex;align-items:center;justify-content:center}
+#modal{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;
+  width:440px;max-width:95vw;font-size:13px}
+#modal-hd{padding:8px 16px;font-size:.7rem;color:var(--dim);letter-spacing:.1em;
+  border-bottom:1px solid var(--border)}
+#modal-body{padding:18px 18px 10px}
+#modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px;
+  border-top:1px solid var(--border)}
+.modal-step .step-lbl{font-size:.68rem;color:var(--dim);letter-spacing:.08em;
+  margin-bottom:12px}
+.step-choices{display:flex;flex-direction:column;gap:8px}
+.choice-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:4px;
+  padding:12px 14px;text-align:left;cursor:pointer;transition:border-color .15s}
+.choice-btn:hover{border-color:#888}
+.choice-btn.selected{border-color:var(--green)}
+.choice-title{display:block;color:var(--text);font-size:.88rem;margin-bottom:3px}
+.choice-sub{display:block;color:var(--dim);font-size:.74rem}
+.axis-row{display:flex;align-items:center;gap:10px;padding:5px 0;
+  border-bottom:1px solid #161616}
+.axis-row:last-of-type{border-bottom:none}
+.axis-row label{width:110px;color:var(--dim);font-size:.82rem}
+.axis-row select{background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text);padding:3px 6px;border-radius:2px;font-family:inherit;font-size:.82rem}
+
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:#111}
@@ -200,14 +226,69 @@ input{font-family:inherit}
   <button id="conn-btn">⏻  Connect</button>
   <div id="mode-btns">
     <div class="mb-wrap">
-      <button class="mb" id="btn-mode-aim" disabled title="Send mode_switch → AIM and reboot">Reboot → AIM</button>
-      <span class="mb-sub">[Joypad Mode]</span>
+      <button class="mb" id="btn-out-joypad" disabled title="Switch to Joypad output mode">Joypad output mode</button>
+      <span class="mb-sub">[CIM / AIM]</span>
     </div>
     <div class="mb-wrap">
-      <button class="mb" id="btn-mode-mim" disabled title="Send mode_switch → MIM and reboot">Reboot → MIM</button>
-      <span class="mb-sub">[Mouse Mode]</span>
+      <button class="mb" id="btn-out-mnk" disabled title="Switch to Mouse &amp; Keyboard output mode">MnK output mode</button>
+      <span class="mb-sub">[MIM / KIM]</span>
     </div>
     <span id="s-mode"></span>
+  </div>
+</div>
+
+<!-- Joypad Output Modal -->
+<div id="modal-overlay" style="display:none">
+  <div id="modal">
+    <div id="modal-hd">JOYPAD OUTPUT MODE</div>
+    <div id="modal-body">
+
+      <!-- Step 1: CIM or AIM -->
+      <div class="modal-step" id="step-1">
+        <div class="step-lbl">Step 1 — Input source</div>
+        <div class="step-choices">
+          <button class="choice-btn" id="choice-cim">
+            <span class="choice-title">Controller pass-through</span>
+            <span class="choice-sub">Gamepad/Controller → Joypad output (CIM)</span>
+          </button>
+          <button class="choice-btn" id="choice-aim">
+            <span class="choice-title">Mouse → Stick</span>
+            <span class="choice-sub">Mouse movement → Joystick axes (AIM)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Axis assignment (CIM only) -->
+      <div class="modal-step" id="step-2" style="display:none">
+        <div class="step-lbl">Step 2 — Stick axes</div>
+        <div class="axis-row">
+          <label>Left stick X</label>
+          <select id="sel-lx"><option value="0">Axis 0</option><option value="1">Axis 1</option><option value="2">Axis 2</option><option value="3">Axis 3</option></select>
+        </div>
+        <div class="axis-row">
+          <label>Left stick Y</label>
+          <select id="sel-ly"><option value="1" selected>Axis 1</option><option value="0">Axis 0</option><option value="2">Axis 2</option><option value="3">Axis 3</option></select>
+        </div>
+        <div class="axis-row">
+          <label>Fire button</label>
+          <select id="sel-fire"><option value="0">Button 1</option><option value="1">Button 2</option><option value="2">Button 3</option><option value="3">Button 4</option></select>
+        </div>
+        <div style="color:var(--dim);font-size:.75rem;padding-top:8px">All other axes and buttons are passed through 1:1.</div>
+      </div>
+
+      <!-- Step 3: Confirm -->
+      <div class="modal-step" id="step-3" style="display:none">
+        <div class="step-lbl">Step 3 — Confirm</div>
+        <div id="confirm-summary" style="color:var(--text);font-size:.85rem;padding:8px 0 14px;line-height:1.8"></div>
+        <div style="color:var(--orange);font-size:.76rem">Device will reboot and reconnect in the new mode.</div>
+      </div>
+
+    </div>
+    <div id="modal-footer">
+      <button class="fb" id="modal-back" style="display:none">← Back</button>
+      <button class="fb" id="modal-cancel">Cancel</button>
+      <button class="fb prim" id="modal-next">Next →</button>
+    </div>
   </div>
 </div>
 <div id="no-ws">
@@ -491,11 +572,101 @@ function setActiveMode(mode) {
   S.activeMode = mode || 'unknown';
   const el = ge('s-mode');
   if(el) el.textContent = mode ? mode : (S.connected ? '?' : '');
-  // Disable only the button for the current active mode
-  const btnAim = ge('btn-mode-aim'), btnMim = ge('btn-mode-mim');
-  if(btnAim) btnAim.disabled = !S.connected || mode === 'AIM';
-  if(btnMim) btnMim.disabled = !S.connected || mode === 'MIM';
+  const joypad = ge('btn-out-joypad'), mnk = ge('btn-out-mnk');
+  const isJoypad = mode === 'AIM' || mode === 'CIM';
+  if(joypad) joypad.disabled = !S.connected || isJoypad;
+  if(mnk)    mnk.disabled    = !S.connected || (!isJoypad && mode !== 'unknown');
 }
+
+// ── Joypad Modal ──────────────────────────────────────────────────────────────
+const Modal = {
+  step: 1,
+  subMode: null,  // 'CIM' | 'AIM'
+
+  open() {
+    this.step = 1; this.subMode = null;
+    ge('step-1').style.display = '';
+    ge('step-2').style.display = 'none';
+    ge('step-3').style.display = 'none';
+    ge('modal-back').style.display = 'none';
+    ge('modal-next').textContent = 'Next →';
+    ge('modal-next').disabled = true;
+    document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+    ge('modal-overlay').style.display = 'flex';
+  },
+
+  close() { ge('modal-overlay').style.display = 'none'; },
+
+  selectSub(sub) {
+    this.subMode = sub;
+    document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+    ge(sub === 'CIM' ? 'choice-cim' : 'choice-aim').classList.add('selected');
+    ge('modal-next').disabled = false;
+  },
+
+  next() {
+    if(this.step === 1) {
+      if(!this.subMode) return;
+      if(this.subMode === 'CIM') {
+        this.step = 2;
+        ge('step-1').style.display = 'none';
+        ge('step-2').style.display = '';
+        ge('modal-back').style.display = '';
+        ge('modal-next').textContent = 'Next →';
+      } else {
+        // AIM: Schritt 2 überspringen
+        this.step = 3;
+        ge('step-1').style.display = 'none';
+        ge('step-3').style.display = '';
+        ge('modal-back').style.display = '';
+        ge('modal-next').textContent = 'Confirm & Reboot';
+        ge('confirm-summary').innerHTML = 'Mode: <strong>Mouse → Stick (AIM)</strong>';
+      }
+    } else if(this.step === 2) {
+      this.step = 3;
+      ge('step-2').style.display = 'none';
+      ge('step-3').style.display = '';
+      ge('modal-next').textContent = 'Confirm & Reboot';
+      const lx = ge('sel-lx').value, ly = ge('sel-ly').value;
+      const fb = parseInt(ge('sel-fire').value) + 1;
+      ge('confirm-summary').innerHTML =
+        `Mode: <strong>Controller pass-through (CIM)</strong><br>` +
+        `Left stick X → Axis ${lx}<br>` +
+        `Left stick Y → Axis ${ly}<br>` +
+        `Fire button → Button ${fb}`;
+    } else if(this.step === 3) {
+      this.confirm();
+    }
+  },
+
+  back() {
+    if(this.step === 2) {
+      this.step = 1;
+      ge('step-2').style.display = 'none';
+      ge('step-1').style.display = '';
+      ge('modal-back').style.display = 'none';
+      ge('modal-next').textContent = 'Next →';
+    } else if(this.step === 3) {
+      if(this.subMode === 'AIM') {
+        this.step = 1;
+        ge('step-3').style.display = 'none';
+        ge('step-1').style.display = '';
+        ge('modal-back').style.display = 'none';
+        ge('modal-next').textContent = 'Next →';
+      } else {
+        this.step = 2;
+        ge('step-3').style.display = 'none';
+        ge('step-2').style.display = '';
+        ge('modal-next').textContent = 'Next →';
+      }
+    }
+  },
+
+  confirm() {
+    this.close();
+    sendModeSwitch(this.subMode);
+  }
+};
 
 // ── Send Helpers ──────────────────────────────────────────────────────────────
 function sendParam(idx) {
@@ -560,15 +731,15 @@ function setConnected(v){
     main.classList.add('on'); btn.classList.add('disc');
     dot.classList.add('on');
     btn.textContent='⏻  Disconnect'; st.textContent='Connected';
-    ge('btn-mode-aim').disabled=false;
-    ge('btn-mode-mim').disabled=false;
+    ge('btn-out-joypad').disabled=false;
+    ge('btn-out-mnk').disabled=false;
   } else {
     main.classList.remove('on'); btn.classList.remove('disc');
     dot.classList.remove('on');
     btn.textContent='⏻  Connect'; st.textContent='Disconnected';
     ge('s-fw').textContent=''; ge('s-lat').textContent='';
-    ge('btn-mode-aim').disabled=true;
-    ge('btn-mode-mim').disabled=true;
+    ge('btn-out-joypad').disabled=true;
+    ge('btn-out-mnk').disabled=true;
     ge('s-mode').textContent='';
     S.activeMode='unknown';
   }
@@ -900,8 +1071,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   ge('btn-disc').onclick=doDisconnect;
   ge('btn-all').onclick=sendAll;
   ge('btn-rst').onclick=()=>{ sendRaw('r\n'); clog('[MIM] Reset sent'); };
-  ge('btn-mode-aim').onclick=()=>sendModeSwitch('AIM');
-  ge('btn-mode-mim').onclick=()=>sendModeSwitch('MIM');
+  ge('btn-out-joypad').onclick=()=>Modal.open();
+  ge('btn-out-mnk').onclick=()=>sendModeSwitch('MIM');
+  ge('choice-cim').onclick=()=>Modal.selectSub('CIM');
+  ge('choice-aim').onclick=()=>Modal.selectSub('AIM');
+  ge('modal-next').onclick=()=>Modal.next();
+  ge('modal-back').onclick=()=>Modal.back();
+  ge('modal-cancel').onclick=()=>Modal.close();
+  ge('modal-overlay').onclick=e=>{ if(e.target===ge('modal-overlay')) Modal.close(); };
   ge('btn-exp').onclick=doExport;
   ge('btn-imp').onclick=()=>ge('file-imp').click();
   ge('file-imp').onchange=e=>{ if(e.target.files[0]){doImport(e.target.files[0]);} e.target.value=''; };

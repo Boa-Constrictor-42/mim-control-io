@@ -1207,7 +1207,8 @@ const PM = {
       data = stored ? JSON.parse(stored) : this.defaultData();
     }
     this.apply(data);
-    clog('[MIM] Profile '+(n===0?'Default':this.getName(n))+' loaded');
+    sendAll();
+    clog('[MIM] Profile '+(n===0?'Default':this.getName(n))+' loaded → sent to device');
   },
 
   // Save active slot to localStorage + send to device

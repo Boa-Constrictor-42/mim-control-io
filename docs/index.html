@@ -215,19 +215,19 @@ input{font-family:inherit}
 .tab-panel.active{display:block}
 
 /* Profile bar */
-#profile-bar{display:flex;align-items:center;gap:4px;padding:8px 0 6px;
+#profile-bar{display:flex;align-items:flex-start;gap:6px;padding:8px 0 6px;
   border-bottom:1px solid var(--border);margin-bottom:6px;flex-wrap:wrap}
-.pslot{position:relative;display:flex;align-items:center;gap:4px;
+.prof-col{display:flex;flex-direction:column;gap:3px}
+.pslot{display:flex;align-items:center;
   padding:4px 12px;border:1px solid var(--border2);border-radius:3px;
   cursor:pointer;font-size:.78rem;color:var(--dim);
-  transition:border-color .15s,color .15s;user-select:none}
+  transition:border-color .15s,color .15s;user-select:none;white-space:nowrap}
 .pslot:hover{border-color:#888;color:var(--text)}
 .pslot.active{border-color:var(--blue);color:var(--text)}
-.pslot.default{background:var(--bg3);cursor:default}
-.pslot.default:hover{border-color:var(--border2);color:var(--dim)}
-.pslot-dot{width:6px;height:6px;border-radius:50%;background:var(--orange);
-  display:none;flex-shrink:0}
-.pslot-dot.show{display:block}
+.save-slot{padding:4px 12px;border:1px solid #224422;border-radius:3px;
+  background:transparent;color:var(--green);font-family:inherit;font-size:.78rem;
+  cursor:pointer;transition:background .15s,color .15s;white-space:nowrap}
+.save-slot:hover{background:var(--green);color:#000}
 .pslot-name-input{background:transparent;border:none;border-bottom:1px solid var(--blue);
   color:var(--text);font-family:inherit;font-size:.78rem;width:70px;outline:none}
 
@@ -355,22 +355,20 @@ input{font-family:inherit}
 
   <!-- Profile bar -->
   <div id="profile-bar">
-    <div class="pslot default active" id="pslot-0" data-slot="0">
-      <span class="pslot-name">Default</span>
+    <div class="prof-col">
+      <div class="pslot" id="pslot-1" data-slot="1"><span class="pslot-name" id="pname-1">Profile 1</span></div>
+      <button class="save-slot" id="btn-save-1">Save Prof. 1</button>
     </div>
-    <div class="pslot" id="pslot-1" data-slot="1">
-      <span class="pslot-dot" id="pdot-1"></span>
-      <span class="pslot-name" id="pname-1">Profile 1</span>
+    <div class="prof-col">
+      <div class="pslot" id="pslot-2" data-slot="2"><span class="pslot-name" id="pname-2">Profile 2</span></div>
+      <button class="save-slot" id="btn-save-2">Save Prof. 2</button>
     </div>
-    <div class="pslot" id="pslot-2" data-slot="2">
-      <span class="pslot-dot" id="pdot-2"></span>
-      <span class="pslot-name" id="pname-2">Profile 2</span>
+    <div class="prof-col">
+      <div class="pslot" id="pslot-3" data-slot="3"><span class="pslot-name" id="pname-3">Profile 3</span></div>
+      <button class="save-slot" id="btn-save-3">Save Prof. 3</button>
     </div>
-    <div class="pslot" id="pslot-3" data-slot="3">
-      <span class="pslot-dot" id="pdot-3"></span>
-      <span class="pslot-name" id="pname-3">Profile 3</span>
-    </div>
-    <button class="fb prim" id="btn-save" style="margin-left:auto;font-size:.74rem;padding:3px 10px">Save</button>
+    <div style="flex:1"></div>
+    <button class="fb" id="btn-set-default" title="Reset all parameters to factory defaults">Default</button>
   </div>
 
   <!-- Velocity Curves -->
@@ -834,7 +832,7 @@ function sendAll() {
 
 // Debounced send — fires 120ms after last slider move
 function schedSend(idx) {
-  PM.setDirty(true);
+  PM.markChanged();
   if(S.timSend) clearTimeout(S.timSend);
   S.timSend = setTimeout(()=>{ S.timSend=null; sendParam(idx); }, 120);
 }
@@ -1155,12 +1153,10 @@ function applyEntry(i,p){
 
 // ── Profile Manager ───────────────────────────────────────────────────────────
 const PM = {
-  active: 0,   // 0 = Default, 1-3 = user slots
-  dirty:  false,
+  active: -1,   // -1=none, 1-3=profile slot
 
-  // Snapshot current UI values → plain object
   snapshot() {
-    const data = { _mim_preset: true, _schema: 1 };
+    const data = { _mim_preset:true, _schema:1 };
     data.vX = S.vals.slice(0,7).map(v => Math.round(v));
     data.vY = S.vals.slice(7,14).map(v => Math.round(v));
     for(let i=14; i<PARAMS.length; i++){
@@ -1170,7 +1166,6 @@ const PM = {
     return data;
   },
 
-  // Apply a data object to the UI
   apply(data) {
     (data.vX||[]).forEach((v,i)=>{ if(i<7) setUi(i,v); });
     (data.vY||[]).forEach((v,i)=>{ if(i<7) setUi(7+i,v); });
@@ -1180,7 +1175,6 @@ const PM = {
     schedGraph(); schedOled();
   },
 
-  // Default = all spline zeros, other params at firmware defaults
   defaultData() {
     return {
       _mim_preset:true, _schema:1,
@@ -1190,91 +1184,85 @@ const PM = {
     };
   },
 
-  // Load slot (0=default, 1-3=localStorage)
+  // Profil laden → UI updaten → einmal ans Gerät senden
   switchSlot(n) {
-    // Update active styling
-    for(let i=0;i<=3;i++){
-      const s=ge('pslot-'+i);
+    this._setHighlight(n);
+    this.active = n;
+    const stored = localStorage.getItem('mim_profile_data_'+n);
+    this.apply(stored ? JSON.parse(stored) : this.defaultData());
+    sendAll();
+    clog('[MIM] ' + this.getName(n) + ' loaded');
+  },
+
+  // Default setzen → UI updaten → einmal ans Gerät senden → kein Slot highlighted
+  applyDefault() {
+    this._setHighlight(-1);
+    this.active = -1;
+    this.apply(this.defaultData());
+    sendAll();
+    clog('[MIM] Default applied');
+  },
+
+  // Slot n in localStorage speichern — keine Gerätekommunikation nötig
+  // (Gerät hat bereits aktuelle Werte durch Slider-Debounce-Sends)
+  saveSlot(n) {
+    const data = this.snapshot();
+    data._profile_name = this.getName(n);
+    localStorage.setItem('mim_profile_data_'+n, JSON.stringify(data));
+    this.active = n;
+    this._setHighlight(n);
+    clog('[MIM] ' + this.getName(n) + ' saved');
+  },
+
+  // Parameteränderung durch User → aktiver Slot verliert Highlight
+  markChanged() {
+    if(this.active < 1) return;
+    this._setHighlight(-1);
+    this.active = -1;
+  },
+
+  // Alle Slot-Markierungen löschen (beim Connect)
+  clearSelection() {
+    this.active = -1;
+    this._setHighlight(-1);
+  },
+
+  _setHighlight(n) {
+    for(let i=1; i<=3; i++){
+      const s = ge('pslot-'+i);
       if(s) s.classList.toggle('active', i===n);
     }
-    this.active = n;
-    this.setDirty(false);
-
-    let data;
-    if(n === 0) {
-      data = this.defaultData();
-    } else {
-      const stored = localStorage.getItem('mim_profile_data_'+n);
-      data = stored ? JSON.parse(stored) : this.defaultData();
-    }
-    this.apply(data);
-    sendAll();
-    clog('[MIM] Profile '+(n===0?'Default':this.getName(n))+' loaded → sent to device');
   },
 
-  // Save active slot to localStorage + send to device
-  save() {
-    if(this.active === 0) return; // Default nicht überschreibbar
-    const data = this.snapshot();
-    localStorage.setItem('mim_profile_data_'+this.active, JSON.stringify(data));
-    this.setDirty(false);
-    sendAll();
-    clog('[MIM] Profile '+this.getName(this.active)+' saved');
-  },
-
-  // Mark unsaved changes
-  setDirty(v) {
-    this.dirty = v;
-    for(let i=1;i<=3;i++){
-      const dot=ge('pdot-'+i);
-      if(dot) dot.classList.toggle('show', v && i===this.active);
-    }
-  },
-
-  // Get/set slot name
   getName(n) {
     return localStorage.getItem('mim_profile_name_'+n) || 'Profile '+n;
   },
   setName(n, name) {
     localStorage.setItem('mim_profile_name_'+n, name);
-    const el=ge('pname-'+n);
+    const el = ge('pname-'+n);
     if(el) el.textContent = name;
   },
 
-  // Alle Slot-Markierungen löschen (beim Connect: Gerätewerte ≠ gespeichertes Profil)
-  clearSelection() {
-    this.active = -1;
-    this.setDirty(false);
-    for(let i=0; i<=3; i++){
-      const s = ge('pslot-'+i);
-      if(s) s.classList.remove('active');
-    }
-  },
-
-  // Init: load stored names
   init() {
-    for(let i=1;i<=3;i++){
-      const el=ge('pname-'+i);
+    for(let i=1; i<=3; i++){
+      const el = ge('pname-'+i);
       if(el) el.textContent = this.getName(i);
     }
-    // Double-click to rename slots 1-3
-    for(let i=1;i<=3;i++){
-      const slot=ge('pslot-'+i);
+    for(let i=1; i<=3; i++){
+      const slot = ge('pslot-'+i);
       if(!slot) continue;
       slot.addEventListener('dblclick', () => this.startRename(i));
       slot.addEventListener('click',    () => { if(!this._renaming) this.switchSlot(i); });
     }
-    ge('pslot-0').addEventListener('click', () => this.switchSlot(0));
   },
 
   _renaming: false,
   startRename(n) {
     this._renaming = true;
     const nameEl = ge('pname-'+n);
-    const cur = this.getName(n);
     const inp = document.createElement('input');
     inp.className = 'pslot-name-input';
-    inp.value = cur;
+    inp.value = this.getName(n);
     nameEl.replaceWith(inp);
     inp.focus(); inp.select();
     const done = () => {
@@ -1350,7 +1338,7 @@ function doImport(file){
     const nameHint = data._profile_name ? ' ("' + data._profile_name + '")' : '';
     clog('[MIM] Imported' + nameHint + ': ' + n + '/' + PARAMS.length + ' values');
     schedGraph(); schedOled();
-    PM.setDirty(true);
+    PM.markChanged();
     sendAll();
   };
   fr.readAsText(file);
@@ -1389,7 +1377,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   ge('btn-exp').onclick=doExport;
   ge('btn-imp').onclick=()=>ge('file-imp').click();
   ge('file-imp').onchange=e=>{ if(e.target.files[0]){doImport(e.target.files[0]);} e.target.value=''; };
-  ge('btn-save').onclick=()=>PM.save();
+  ge('btn-save-1').onclick = () => PM.saveSlot(1);
+  ge('btn-save-2').onclick = () => PM.saveSlot(2);
+  ge('btn-save-3').onclick = () => PM.saveSlot(3);
+  ge('btn-set-default').onclick = () => PM.applyDefault();
   PM.init();
   ge('cls-btn').onclick=()=>{ ge('console').textContent=''; };
 

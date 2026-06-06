@@ -1074,11 +1074,11 @@ function setUi(idx, rawVal) {
   if(p.sp){
     const sl=ge('sl'+idx), en=ge('en'+idx);
     if(sl){ sl.value=v; }
-    if(en){ en.value=fmt(p,v); en.classList.remove('inv'); }
+    if(en && en !== document.activeElement){ en.value=fmt(p,v); en.classList.remove('inv'); }
   } else {
     const sl=ge('sl'+idx), en=ge('en'+idx), lbl=ge('lbl'+idx);
     if(sl)  sl.value=v;
-    if(en){ en.value=fmt(p,v); en.classList.remove('inv'); }
+    if(en && en !== document.activeElement){ en.value=fmt(p,v); en.classList.remove('inv'); }
     if(lbl) lbl.textContent=fmt(p,v)+' '+p.u;
   }
 }

@@ -939,7 +939,7 @@ function chartOpts(title){
          ticks:{color:'#888',font:{size:8},maxTicksLimit:6},
          grid:{color:'#252525'}},
       y:{title:{display:true,text:'px/s',color:'#888',font:{size:9}},
-         ticks:{color:'#888',font:{size:8},maxTicksLimit:5},
+         ticks:{color:'#888',font:{size:8}},
          grid:{color:'#252525'}},
     },
   };
@@ -963,6 +963,12 @@ function schedGraph(){
   S.timGraph=setTimeout(drawCharts,250);
 }
 
+// Snap peak value up to nearest 100-step (min ±100)
+function snapScale(vals){
+  const peak=Math.max(...vals.map(Math.abs),1);
+  return Math.ceil(peak/100)*100;
+}
+
 function drawCharts(){
   S.timGraph=null;
   if(!CX||!CY) return;
@@ -972,17 +978,20 @@ function drawCharts(){
   const tArr=linspace(0,XMAX,NPTS);
   const xc=hermite(vx,tArr,te,xdly), yc=hermite(vy,tArr,te,ydly);
   const ktx=linspace(xdly,te,7),      kty=linspace(ydly,te,7);
-  const xH=Math.max(Math.max(...vx.map(Math.abs)),1)*1.3;
-  const yH=Math.max(Math.max(...vy.map(Math.abs)),1)*1.3;
-  function upd(ch,curve,kt,kv,half){
+  const xSnap=snapScale(vx), ySnap=snapScale(vy);
+  function upd(ch,curve,kt,kv,snap){
     ch.data.datasets[0].data=tArr.map((t,i)=>({x:t,y:curve[i]}));
     ch.data.datasets[1].data=kt.map((t,i)=>({x:t,y:kv[i]}));
-    ch.options.scales.y.min=-Math.max(half,10);
-    ch.options.scales.y.max= Math.max(half,10);
+    ch.options.scales.y.min=-snap;
+    ch.options.scales.y.max= snap;
+    // Fixed grid lines: ±max, ±half, 0
+    ch.options.scales.y.afterBuildTicks=axis=>{
+      axis.ticks=[-snap,-snap/2,0,snap/2,snap].map(v=>({value:v}));
+    };
     ch.update('none');
   }
-  upd(CX,xc,ktx,vx,xH);
-  upd(CY,yc,kty,vy,yH);
+  upd(CX,xc,ktx,vx,xSnap);
+  upd(CY,yc,kty,vy,ySnap);
 }
 
 // ── OLED Canvas Preview ───────────────────────────────────────────────────────

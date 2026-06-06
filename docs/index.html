@@ -1781,12 +1781,21 @@ const KIM = {
     if(!btn) return;
     btn.classList.add('waiting');
     btn.textContent='← Taste drücken…';
-    console.log('[KIM] bind called, connected='+S.connected+', target='+btnId);
-    clog('[KIM] bind: connected='+S.connected+' target='+btnId);
+    console.log('[KIM] bind: connected='+S.connected+', _writer='+(typeof _writer)+', target='+btnId);
+    clog('[KIM] bind: connected='+S.connected+' writer='+!!_writer+' target='+btnId);
     if(S.connected) {
-      sendJson({cmd:'kim_bind_start'});
-      console.log('[KIM] kim_bind_start gesendet');
-      clog('[KIM] kim_bind_start gesendet');
+      // Direkt schreiben ohne sendJson um sicherzugehen
+      const raw = JSON.stringify({cmd:'kim_bind_start'})+'\n';
+      console.log('[KIM] sende raw: '+raw.trim());
+      clog('→ '+raw.trim()+' [BIND-DIRECT]');
+      if(_writer) {
+        _writer.write(new TextEncoder().encode(raw))
+          .then(()=>{ console.log('[KIM] write OK'); clog('[KIM] write OK'); })
+          .catch(e=>{ console.error('[KIM] write ERR: '+e); clog('[KIM] write ERR: '+e); });
+      } else {
+        console.error('[KIM] _writer is null/undefined!');
+        clog('[KIM] FEHLER: _writer ist null');
+      }
     } else {
       console.log('[KIM] NICHT verbunden');
       clog('[KIM] NICHT gesendet — nicht verbunden');

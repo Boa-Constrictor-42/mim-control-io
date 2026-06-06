@@ -84,9 +84,11 @@ input{font-family:inherit}
 
 /* ── Mid row ─────────────────────────────────────────────────────────────── */
 #mid-row{display:flex;gap:8px;align-items:flex-start}
-#console{flex:1;background:#000;color:#00cc44;font-size:11px;height:118px;
+#console,#kim-console{flex:1;background:#000;color:#00cc44;font-size:11px;
   overflow-y:auto;padding:6px 8px;border-radius:3px;white-space:pre-wrap;
   word-break:break-all;border:1px solid var(--border)}
+#console{height:118px}
+#kim-console{height:140px;width:100%}
 .cls-btn{background:none;border:none;color:var(--dim);font-size:.68rem;
   padding:1px 5px}
 .cls-btn:hover{color:var(--text)}
@@ -595,11 +597,22 @@ input{font-family:inherit}
     </div>
 
     <!-- Footer: Reset / Export / Import -->
-    <div style="display:flex;gap:8px;padding:6px 0 18px;max-width:1140px;margin:0 auto">
+    <div style="display:flex;gap:8px;padding:6px 0 12px;max-width:1140px;margin:0 auto">
       <button class="fb dang" id="kim-reset-btn">Reset</button>
       <button class="fb"      id="kim-exp-btn">Export …</button>
       <button class="fb"      id="kim-imp-btn">Import …</button>
       <input type="file" id="kim-file-imp" accept=".json" style="display:none">
+    </div>
+
+    <!-- Serial Monitor (KIM) -->
+    <div class="sec" style="max-width:1140px;margin:0 auto 18px">
+      <div class="sec-hd">
+        Serial Monitor
+        <button class="cls-btn" id="kim-cls-btn">clear</button>
+      </div>
+      <div class="sec-bd">
+        <div id="kim-console"></div>
+      </div>
     </div>
 
   </div><!-- #panel-kim -->
@@ -687,6 +700,7 @@ const S = {
 // ── Serial ────────────────────────────────────────────────────────────────────
 let _port=null, _writer=null, _rxBuf='';
 let _silentNext=false;   // true → suppress console output for next JSON response
+let _pipeAbort=null;     // AbortController für laufende pipeTo — zum sauberen Disconnect
 
 async function doConnect() {
   if (!('serial' in navigator)) { document.getElementById('no-ws').style.display='block'; return; }
@@ -694,6 +708,7 @@ async function doConnect() {
     _port = await navigator.serial.requestPort();
     await _port.open({baudRate:115200});
     _writer = _port.writable.getWriter();
+    _port.addEventListener('disconnect', ()=>{ if(S.connected){ clog('[MIM] USB getrennt (Reboot?)'); doDisconnect(); } });
     setConnected(true);
     _startRead();
     clog('[MIM] Connected @ 115200 baud');
@@ -723,15 +738,20 @@ async function doDisconnect() {
   if (S._pingTimeout) { clearTimeout(S._pingTimeout); S._pingTimeout = null; }
   S.sleeping = false;
   setConnected(false);
+  // pipeTo-Lock freigeben bevor Port geschlossen wird
+  if (_pipeAbort) { _pipeAbort.abort(); _pipeAbort=null; }
   try { if(_writer){ _writer.releaseLock(); _writer=null; } } catch(e){}
+  // Kurz warten damit der pipeTo-Abort propagiert (Readable-Lock freigegeben)
+  await new Promise(r=>setTimeout(r,50));
   try { if(_port){ await _port.close(); _port=null; } } catch(e){}
   _rxBuf='';
   clog('[MIM] Disconnected');
 }
 
 async function _startRead() {
+  _pipeAbort = new AbortController();
   const tds = new TextDecoderStream();
-  _port.readable.pipeTo(tds.writable).catch(()=>{});
+  _port.readable.pipeTo(tds.writable, {signal:_pipeAbort.signal}).catch(()=>{});
   const rdr = tds.readable.getReader();
   try {
     for(;;) {
@@ -793,6 +813,20 @@ function handleLine(ln) {
     return;
   }
 
+  // ── Bind-Modus: unsolicited responses (kein status-Feld) ────────
+  if(typeof r.kim_bound_key !== 'undefined') {
+    KIM.onBoundKey(r.kim_bound_key);
+    return;
+  }
+  if(typeof r.kim_bind_ack !== 'undefined') {
+    console.log('[KIM] Firmware ACK: bind_start empfangen, warte auf Taste');
+    return;
+  }
+  if(typeof r.dbg_press !== 'undefined') {
+    console.log('[KIM] dbg_press hid='+r.dbg_press+' bind='+r.bind);
+    return;
+  }
+
   if(S.reqT0>0){
     const ms = performance.now()-S.reqT0;
     S.reqT0=0;
@@ -821,20 +855,6 @@ function handleLine(ln) {
   if(typeof r.sleep_mode === 'boolean') {
     S.sleeping = r.sleep_mode;
     if(r.sleep_mode) clog('[MIM] Device is in sleep mode — sync paused');
-  }
-
-  // ── kim_bound_key response (Bind-Modus) ────────────────────────
-  if(typeof r.kim_bound_key !== 'undefined') {
-    KIM.onBoundKey(r.kim_bound_key);
-    return;
-  }
-  if(typeof r.kim_bind_ack !== 'undefined') {
-    console.log('[KIM] Firmware ACK: bind_start empfangen, warte auf Taste');
-    return;
-  }
-  if(typeof r.dbg_press !== 'undefined') {
-    console.log('[KIM] dbg_press hid='+r.dbg_press+' bind='+r.bind);
-    return;
   }
 
   // ── get_kim_config response ─────────────────────────────────────
@@ -1077,12 +1097,14 @@ function setConnected(v){
 
 // ── Console ───────────────────────────────────────────────────────────────────
 function clog(txt){
-  const el=ge('console');
-  const atBot = el.scrollTop >= el.scrollHeight-el.clientHeight-4;
-  el.textContent += txt+'\n';
-  const lines = el.textContent.split('\n');
-  if(lines.length>400) el.textContent=lines.slice(-400).join('\n');
-  if(atBot) el.scrollTop=el.scrollHeight;
+  ['console','kim-console'].forEach(id=>{
+    const el=ge(id); if(!el) return;
+    const atBot = el.scrollTop >= el.scrollHeight-el.clientHeight-4;
+    el.textContent += txt+'\n';
+    const lines = el.textContent.split('\n');
+    if(lines.length>400) el.textContent=lines.slice(-400).join('\n');
+    if(atBot) el.scrollTop=el.scrollHeight;
+  });
 }
 
 // ── Catmull-Rom Hermite Spline (identical to Python / firmware) ───────────────
@@ -1781,23 +1803,9 @@ const KIM = {
     if(!btn) return;
     btn.classList.add('waiting');
     btn.textContent='← Taste drücken…';
-    console.log('[KIM] bind: connected='+S.connected+', _writer='+(typeof _writer)+', target='+btnId);
-    clog('[KIM] bind: connected='+S.connected+' writer='+!!_writer+' target='+btnId);
     if(S.connected) {
-      // Direkt schreiben ohne sendJson um sicherzugehen
-      const raw = JSON.stringify({cmd:'kim_bind_start'})+'\n';
-      console.log('[KIM] sende raw: '+raw.trim());
-      clog('→ '+raw.trim()+' [BIND-DIRECT]');
-      if(_writer) {
-        _writer.write(new TextEncoder().encode(raw))
-          .then(()=>{ console.log('[KIM] write OK'); clog('[KIM] write OK'); })
-          .catch(e=>{ console.error('[KIM] write ERR: '+e); clog('[KIM] write ERR: '+e); });
-      } else {
-        console.error('[KIM] _writer is null/undefined!');
-        clog('[KIM] FEHLER: _writer ist null');
-      }
+      sendJson({cmd:'set_kim_config', data:{start_bind:true}});
     } else {
-      console.log('[KIM] NICHT verbunden');
       clog('[KIM] NICHT gesendet — nicht verbunden');
     }
   },
@@ -1908,6 +1916,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   ge('btn-set-default').onclick = () => PM.applyDefault();
   PM.init();
   ge('cls-btn').onclick=()=>{ ge('console').textContent=''; };
+  ge('kim-cls-btn').onclick=()=>{ ge('kim-console').textContent=''; };
 
   // ── KIM event handlers ────────────────────────────────────────
   ge('kim-active-chk').onchange  = ()=>KIM.onToggle();

@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "2.2.0-alpha",
+    "version":  "2.3.0",
     "date":  "2026-06-06",
     "changelog":  [
                       "Release-Infrastruktur: /update Seite auf mim-control.com",
@@ -15,5 +15,5 @@
                       "KIM: TAP / HOLD / TOGGLE Auslösemodi pro Mapping",
                       "KIM-Tab mit vollständigem Macro-Editor in Web Interface"
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.2.0-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.3.0.hex"
 }

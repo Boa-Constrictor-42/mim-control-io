@@ -828,6 +828,14 @@ function handleLine(ln) {
     KIM.onBoundKey(r.kim_bound_key);
     return;
   }
+  if(typeof r.kim_bind_ack !== 'undefined') {
+    console.log('[KIM] Firmware ACK: bind_start empfangen, warte auf Taste');
+    return;
+  }
+  if(typeof r.dbg_press !== 'undefined') {
+    console.log('[KIM] dbg_press hid='+r.dbg_press+' bind='+r.bind);
+    return;
+  }
 
   // ── get_kim_config response ─────────────────────────────────────
   if(typeof r.kim_active !== 'undefined') {

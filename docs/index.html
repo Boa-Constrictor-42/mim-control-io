@@ -1772,7 +1772,13 @@ const KIM = {
     if(!btn) return;
     btn.classList.add('waiting');
     btn.textContent='← Taste drücken…';
-    if(S.connected) sendJson({cmd:'kim_bind_start'});
+    clog('[KIM] bind: connected='+S.connected+' target='+btnId);
+    if(S.connected) {
+      sendJson({cmd:'kim_bind_start'});
+      clog('[KIM] kim_bind_start gesendet');
+    } else {
+      clog('[KIM] NICHT gesendet — nicht verbunden');
+    }
   },
 
   // Wird von handleLine aufgerufen wenn Firmware kim_bound_key meldet

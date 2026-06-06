@@ -1322,8 +1322,8 @@ function buildSpline(){
 
     const en=el('input'); en.type='text'; en.id='en'+i;
     en.className='sc-en'; en.value=fmt(p,S.vals[i]);
-    en.addEventListener('change',()=>applyEntry(i,p));
-    en.addEventListener('keydown',e=>{if(e.key==='Enter')applyEntry(i,p);});
+    en.addEventListener('change',()=>{ applyEntry(i,p); schedSend(i); });
+    en.addEventListener('keydown',e=>{if(e.key==='Enter'){ applyEntry(i,p); schedSend(i); }});
     col.appendChild(en);
 
     const btn=el('button','sc-set'); btn.textContent='Set';
@@ -1362,8 +1362,8 @@ function buildParams(){
 
     const en=el('input'); en.type='text'; en.id='en'+i;
     en.className='pr-en'; en.value=fmt(p,S.vals[i]);
-    en.addEventListener('change',()=>applyEntry(i,p));
-    en.addEventListener('keydown',e=>{if(e.key==='Enter')applyEntry(i,p);});
+    en.addEventListener('change',()=>{ applyEntry(i,p); schedSend(i); });
+    en.addEventListener('keydown',e=>{if(e.key==='Enter'){ applyEntry(i,p); schedSend(i); }});
     row.appendChild(en);
 
     const btn=el('button','pr-set'); btn.textContent='Set';

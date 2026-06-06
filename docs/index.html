@@ -235,6 +235,42 @@ input{font-family:inherit}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:#111}
 ::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+
+/* ── KIM tab ─────────────────────────────────────────────────────────────── */
+.kim-row{display:flex;align-items:center;gap:8px;padding:4px 0;flex-wrap:wrap}
+.kim-lbl{width:90px;font-size:.82rem;color:var(--dim);flex-shrink:0}
+.kim-sel{background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+  padding:3px 6px;border-radius:2px;font-family:inherit;font-size:.82rem}
+.kim-ms{width:54px;font-size:.87rem;text-align:right;background:var(--bg3);
+  border:1px solid var(--border2);color:var(--text);padding:3px 4px;border-radius:2px}
+.kim-unit{font-size:.78rem;color:var(--dim)}
+.kim-dimtxt{font-size:.76rem;color:var(--dim2)}
+.kim-step-row{border-top:1px solid #1c1c1c;padding-top:5px;margin-top:2px}
+.kim-type-wrap{display:flex;gap:4px}
+.kim-type-btn{background:none;border:1px solid var(--border2);color:var(--dim);
+  font-size:.78rem;padding:3px 10px;border-radius:2px;cursor:pointer;
+  transition:border-color .15s,color .15s}
+.kim-type-btn:hover{border-color:#888;color:var(--text)}
+.kim-type-btn.active{border-color:var(--green);color:var(--green)}
+.kim-entry-row{display:flex;align-items:center;gap:8px;padding:5px 0;
+  border-bottom:1px solid #161616;flex-wrap:wrap}
+.kim-entry-row:last-child{border-bottom:none}
+.kim-et{font-size:.70rem;font-weight:600;letter-spacing:.06em;
+  border:1px solid;border-radius:2px;padding:1px 6px;white-space:nowrap}
+.kim-et-1{color:#6aa;border-color:#6aa4}
+.kim-et-2{color:#aa6;border-color:#aa64}
+.kim-et-3{color:#a6a;border-color:#a6a4}
+.kim-et-trigger{font-size:.82rem;color:var(--text);min-width:56px;white-space:nowrap}
+.kim-et-seq{font-size:.78rem;color:var(--dim);flex:1;min-width:80px}
+.kim-et-tog{font-size:.82rem;color:var(--blue);width:16px;text-align:center}
+.kim-sw-wrap{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.kim-sw-wrap input[type=checkbox]{display:none}
+.kim-sw-track{width:34px;height:18px;background:#222;border:1px solid var(--border2);
+  border-radius:9px;position:relative;transition:background .2s,border-color .2s}
+.kim-sw-wrap input:checked ~ .kim-sw-track{background:#1a3a1a;border-color:var(--green)}
+.kim-sw-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;
+  background:#555;border-radius:50%;transition:left .18s,background .18s}
+.kim-sw-wrap input:checked ~ .kim-sw-track .kim-sw-thumb{left:18px;background:var(--green)}
 </style>
 </head>
 <body>
@@ -427,16 +463,133 @@ input{font-family:inherit}
 
   </div><!-- #panel-mim -->
 
-  <!-- Tab: KIM (Platzhalter) -->
+  <!-- Tab: KIM -->
   <div class="tab-panel" id="panel-kim">
+
+    <!-- Header + Active Toggle -->
     <div class="sec" style="margin-top:12px">
-      <div class="sec-hd">KIM — Keyboard Input Modifier</div>
-      <div class="sec-bd" style="color:var(--dim);font-size:.82rem;padding:20px">
-        KIM-Modus wird in einer späteren Phase implementiert.<br>
-        Verbinde ein Keyboard um diesen Tab zu aktivieren.
+      <div class="sec-hd" style="display:flex;align-items:center;justify-content:space-between">
+        KIM — Keyboard Input Modifier
+        <label class="kim-sw-wrap" title="KIM aktivieren / deaktivieren">
+          <input type="checkbox" id="kim-active-chk">
+          <span class="kim-sw-track"><span class="kim-sw-thumb"></span></span>
+          <span id="kim-active-lbl" style="font-size:.8rem;color:var(--dim)">inaktiv</span>
+        </label>
       </div>
     </div>
-  </div>
+
+    <!-- Entry List -->
+    <div class="sec">
+      <div class="sec-hd" style="display:flex;align-items:center">
+        Entries
+        <button class="fb" id="kim-add-btn" style="margin-left:auto;padding:3px 12px">+ Neu</button>
+      </div>
+      <div class="sec-bd">
+        <div id="kim-empty-msg" style="color:var(--dim);font-size:.82rem;padding:6px 0">Keine Entries konfiguriert.</div>
+        <div id="kim-entry-list"></div>
+      </div>
+    </div>
+
+    <!-- Inline Editor (hidden until opened) -->
+    <div class="sec" id="kim-editor" style="display:none">
+      <div class="sec-hd" id="kim-editor-title">Entry bearbeiten</div>
+      <div class="sec-bd">
+
+        <!-- Type selector -->
+        <div class="kim-row">
+          <span class="kim-lbl">Typ</span>
+          <div class="kim-type-wrap">
+            <button class="kim-type-btn active" data-type="1">Key Sequence</button>
+            <button class="kim-type-btn"        data-type="2">Double-Tap</button>
+            <button class="kim-type-btn"        data-type="3">Chord</button>
+          </div>
+        </div>
+
+        <!-- Key Sequence fields -->
+        <div id="kim-f-seq">
+          <div class="kim-row">
+            <span class="kim-lbl">Trigger</span>
+            <select id="kim-seq-trigger" class="kim-sel"></select>
+          </div>
+          <div id="kim-steps-seq"></div>
+          <div class="kim-row">
+            <span class="kim-lbl">Toggle</span>
+            <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--dim)">
+              <input type="checkbox" id="kim-seq-toggle">
+              1× drücken → start &nbsp;·&nbsp; 2× drücken → stop
+            </label>
+          </div>
+        </div>
+
+        <!-- Double-Tap fields -->
+        <div id="kim-f-dtap" style="display:none">
+          <div class="kim-row">
+            <span class="kim-lbl">Trigger</span>
+            <select id="kim-dtap-trigger" class="kim-sel"></select>
+          </div>
+          <div class="kim-row">
+            <span class="kim-lbl">Max. Abstand</span>
+            <input type="number" id="kim-dtap-gap" class="kim-ms" min="50" max="500" value="250">
+            <span class="kim-unit">ms</span>
+          </div>
+          <div class="kim-row">
+            <span class="kim-lbl">Aktion</span>
+            <select id="kim-dtap-action" class="kim-sel"></select>
+            <span class="kim-dimtxt">Taste die bei Doppel-Tap ausgegeben wird</span>
+          </div>
+        </div>
+
+        <!-- Chord fields -->
+        <div id="kim-f-chord" style="display:none">
+          <div class="kim-row">
+            <span class="kim-lbl">Taste 1</span>
+            <select id="kim-chord-t1" class="kim-sel"></select>
+          </div>
+          <div class="kim-row">
+            <span class="kim-lbl">Taste 2</span>
+            <select id="kim-chord-t2" class="kim-sel"></select>
+          </div>
+          <div id="kim-steps-chord"></div>
+          <div class="kim-row">
+            <span class="kim-lbl" style="width:auto;font-size:.74rem;color:var(--dim2)">
+              Sequenz wird wiederholt solange beide Tasten gehalten werden
+            </span>
+          </div>
+        </div>
+
+        <!-- Editor buttons -->
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+          <button class="fb prim" id="kim-save-btn">Speichern</button>
+          <button class="fb"      id="kim-cancel-btn">Abbrechen</button>
+          <button class="fb dang" id="kim-del-btn" style="margin-left:auto;display:none">Löschen</button>
+        </div>
+      </div>
+    </div><!-- #kim-editor -->
+
+    <!-- Global σ -->
+    <div class="sec">
+      <div class="sec-bd">
+        <div class="kim-row">
+          <span class="kim-lbl">Streuung σ</span>
+          <input type="range" id="kim-sigma-sl" min="0" max="50" step="0.5" value="5"
+                 style="flex:1;max-width:200px;accent-color:var(--green)">
+          <span id="kim-sigma-val" class="kim-unit" style="min-width:42px">5.0 %</span>
+        </div>
+        <div style="font-size:.72rem;color:var(--dim2);padding-left:98px;margin-top:1px">
+          Gaußsche Streuung für alle Halte- und Pause-Zeiten (analog MIM)
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer: Reset / Export / Import -->
+    <div style="display:flex;gap:8px;padding:6px 0 18px;max-width:1140px;margin:0 auto">
+      <button class="fb dang" id="kim-reset-btn">Reset</button>
+      <button class="fb"      id="kim-exp-btn">Export …</button>
+      <button class="fb"      id="kim-imp-btn">Import …</button>
+      <input type="file" id="kim-file-imp" accept=".json" style="display:none">
+    </div>
+
+  </div><!-- #panel-kim -->
 
   <!-- Tab: CIM (Platzhalter) -->
   <div class="tab-panel" id="panel-cim">
@@ -656,6 +809,12 @@ function handleLine(ln) {
     if(r.sleep_mode) clog('[MIM] Device is in sleep mode — sync paused');
   }
 
+  // ── get_kim_config response ─────────────────────────────────────
+  if(typeof r.kim_active !== 'undefined') {
+    KIM.init(r);
+    return;
+  }
+
   const cfg = r.config;
   if(cfg && typeof cfg === 'object'){
     S.depth++;
@@ -709,6 +868,9 @@ function activateTab(mode) {
   const activePanel = ge('panel-'+activeId);
   if(activeTab)   { activeTab.classList.add('active'); activeTab.disabled = false; }
   if(activePanel)  activePanel.classList.add('active');
+
+  // KIM-Konfig laden sobald KIM-Tab aktiv wird
+  if(activeId === 'kim' && S.connected) setTimeout(()=>KIM.load(), 150);
 
   // Hint anzeigen wenn Gerät verbunden
   const hint = ge('tab-hint');
@@ -1353,6 +1515,268 @@ function doImport(file){
   fr.readAsText(file);
 }
 
+// ── KIM ───────────────────────────────────────────────────────────────────────
+const KIM_KEYS = [
+  {c:0x00,l:'— leer —'},
+  {c:0x04,l:'A'},{c:0x05,l:'B'},{c:0x06,l:'C'},{c:0x07,l:'D'},
+  {c:0x08,l:'E'},{c:0x09,l:'F'},{c:0x0A,l:'G'},{c:0x0B,l:'H'},
+  {c:0x0C,l:'I'},{c:0x0D,l:'J'},{c:0x0E,l:'K'},{c:0x0F,l:'L'},
+  {c:0x10,l:'M'},{c:0x11,l:'N'},{c:0x12,l:'O'},{c:0x13,l:'P'},
+  {c:0x14,l:'Q'},{c:0x15,l:'R'},{c:0x16,l:'S'},{c:0x17,l:'T'},
+  {c:0x18,l:'U'},{c:0x19,l:'V'},{c:0x1A,l:'W'},{c:0x1B,l:'X'},
+  {c:0x1C,l:'Y'},{c:0x1D,l:'Z'},
+  {c:0x1E,l:'1'},{c:0x1F,l:'2'},{c:0x20,l:'3'},{c:0x21,l:'4'},
+  {c:0x22,l:'5'},{c:0x23,l:'6'},{c:0x24,l:'7'},{c:0x25,l:'8'},
+  {c:0x26,l:'9'},{c:0x27,l:'0'},
+  {c:0x28,l:'Enter'},{c:0x29,l:'Esc'},{c:0x2A,l:'Backspace'},
+  {c:0x2B,l:'Tab'},{c:0x2C,l:'Space'},
+  {c:0x2D,l:'- _'},{c:0x2E,l:'= +'},{c:0x2F,l:'[ {'},{c:0x30,l:'] }'},
+  {c:0x33,l:'; :'},{c:0x34,l:"' \""},{c:0x35,l:'` ~'},
+  {c:0x36,l:', <'},{c:0x37,l:'. >'},{c:0x38,l:'/ ?'},
+  {c:0x39,l:'Caps Lock'},
+  {c:0x3A,l:'F1'},{c:0x3B,l:'F2'},{c:0x3C,l:'F3'},{c:0x3D,l:'F4'},
+  {c:0x3E,l:'F5'},{c:0x3F,l:'F6'},{c:0x40,l:'F7'},{c:0x41,l:'F8'},
+  {c:0x42,l:'F9'},{c:0x43,l:'F10'},{c:0x44,l:'F11'},{c:0x45,l:'F12'},
+  {c:0x4A,l:'Home'},{c:0x4B,l:'PgUp'},{c:0x4C,l:'Delete'},
+  {c:0x4D,l:'End'},{c:0x4E,l:'PgDn'},
+  {c:0x4F,l:'→'},{c:0x50,l:'←'},{c:0x51,l:'↓'},{c:0x52,l:'↑'},
+  {c:0xE0,l:'LCtrl'},{c:0xE1,l:'LShift'},{c:0xE2,l:'LAlt'},
+  {c:0xE4,l:'RCtrl'},{c:0xE5,l:'RShift'},{c:0xE6,l:'RAlt'},
+];
+
+function _kimKeyOpts(sel=0) {
+  return KIM_KEYS.map(k=>`<option value="${k.c}"${k.c===sel?' selected':''}>${k.l}</option>`).join('');
+}
+function _kimKeyLabel(c) {
+  const k = KIM_KEYS.find(x=>x.c===c); return k ? k.l : `0x${c.toString(16).padStart(2,'0')}`;
+}
+function _kimTypeLabel(t) { return t===1?'Seq':t===2?'2×Tap':t===3?'Chord':'?'; }
+function _kimSeqSummary(e) {
+  if(e.type===1||e.type===3)
+    return e.steps.filter(s=>s.key!==0).map(s=>`${_kimKeyLabel(s.key)}(${s.hold}ms)`).join(' → ');
+  if(e.type===2)
+    return `${_kimKeyLabel(e.trigger0)} ×2 → ${_kimKeyLabel(e.steps[0]?.key||0)}`;
+  return '';
+}
+function _kimRenderSteps(containerId, steps) {
+  const el = ge(containerId); el.innerHTML = '';
+  steps.forEach((st,i)=>{
+    const d=document.createElement('div');
+    d.className='kim-row kim-step-row'; d.dataset.idx=i;
+    d.innerHTML=`<span class="kim-lbl" style="font-size:.78rem">Schritt ${i+1}</span>
+      <select class="kim-sel kim-step-key">${_kimKeyOpts(st.key)}</select>
+      <span class="kim-unit">Halten</span>
+      <input type="number" class="kim-ms kim-step-hold" min="1" max="2000" value="${st.hold}">
+      <span class="kim-unit">ms &nbsp; Pause</span>
+      <input type="number" class="kim-ms kim-step-pause" min="0" max="2000" value="${st.pause}">
+      <span class="kim-unit">ms</span>`;
+    el.appendChild(d);
+  });
+}
+
+const KIM = {
+  profile: {kim_active:0, sigma_pct:5.0, n_entries:0, entries:[]},
+  editIdx: -1,
+  curType: 1,
+
+  _def() {
+    return {type:1,trigger0:0,trigger1:0,toggle:0,gap_ms:250,
+      steps:[{key:0,hold:80,pause:60},{key:0,hold:80,pause:60},{key:0,hold:80,pause:60}]};
+  },
+
+  // Map firmware field names → internal (trigger0/trigger1 → trigger0/trigger1, keycode → key, etc.)
+  _mapEntry(e) {
+    return {
+      type:    e.type    ?? 1,
+      trigger0:e.trigger0?? 0,
+      trigger1:e.trigger1?? 0,
+      toggle:  e.toggle  ?? 0,
+      gap_ms:  e.gap_ms  ?? 250,
+      steps: (e.steps||[]).map(s=>({
+        key:   s.keycode  ?? s.key  ?? 0,
+        hold:  s.hold_ms  ?? s.hold ?? 80,
+        pause: s.pause_ms ?? s.pause?? 0
+      }))
+    };
+  },
+
+  init(data) {
+    this.profile = {
+      kim_active: data.kim_active ?? 0,
+      sigma_pct:  data.sigma_pct  ?? 5.0,
+      n_entries:  data.n_entries  ?? 0,
+      entries:   (data.entries||[]).map(e=>this._mapEntry(e))
+    };
+    this.render();
+  },
+
+  render() {
+    const chk = ge('kim-active-chk');
+    chk.checked = !!this.profile.kim_active;
+    const lbl = ge('kim-active-lbl');
+    lbl.textContent = chk.checked ? 'aktiv' : 'inaktiv';
+    lbl.style.color  = chk.checked ? 'var(--green)' : 'var(--dim)';
+
+    const sig = this.profile.sigma_pct;
+    ge('kim-sigma-sl').value = sig;
+    ge('kim-sigma-val').textContent = sig.toFixed(1) + ' %';
+
+    const list  = ge('kim-entry-list');
+    const empty = ge('kim-empty-msg');
+    const es = this.profile.entries;
+    if(!es.length){ empty.style.display=''; list.innerHTML=''; return; }
+    empty.style.display='none';
+    list.innerHTML = es.map((e,i)=>`
+      <div class="kim-entry-row">
+        <span class="kim-et kim-et-${e.type}">${_kimTypeLabel(e.type)}</span>
+        <span class="kim-et-trigger">${e.type===3
+          ? _kimKeyLabel(e.trigger0)+' + '+_kimKeyLabel(e.trigger1)
+          : _kimKeyLabel(e.trigger0)}</span>
+        <span class="kim-et-seq">${_kimSeqSummary(e)}</span>
+        <span class="kim-et-tog">${e.toggle?'⟳':''}</span>
+        <button class="fb" style="padding:2px 10px;font-size:.75rem" onclick="KIM.openEditor(${i})">Bearb.</button>
+      </div>`).join('');
+  },
+
+  openEditor(idx) {
+    this.editIdx = idx;
+    const isNew = idx<0;
+    const e = isNew ? this._def() : JSON.parse(JSON.stringify(this.profile.entries[idx]));
+    ge('kim-editor-title').textContent = isNew ? 'Neuer Entry' : `Entry ${idx+1} bearbeiten`;
+    ge('kim-del-btn').style.display = isNew ? 'none' : '';
+
+    this.curType = e.type;
+    document.querySelectorAll('.kim-type-btn').forEach(b=>{
+      b.classList.toggle('active', parseInt(b.dataset.type)===e.type);
+    });
+    this._showFields(e.type);
+
+    if(e.type===1){
+      ge('kim-seq-trigger').innerHTML = _kimKeyOpts(e.trigger0);
+      ge('kim-seq-toggle').checked    = !!e.toggle;
+      _kimRenderSteps('kim-steps-seq', e.steps);
+    } else if(e.type===2){
+      ge('kim-dtap-trigger').innerHTML = _kimKeyOpts(e.trigger0);
+      ge('kim-dtap-gap').value         = e.gap_ms;
+      ge('kim-dtap-action').innerHTML  = _kimKeyOpts(e.steps[0]?.key??0);
+    } else if(e.type===3){
+      ge('kim-chord-t1').innerHTML = _kimKeyOpts(e.trigger0);
+      ge('kim-chord-t2').innerHTML = _kimKeyOpts(e.trigger1);
+      _kimRenderSteps('kim-steps-chord', e.steps);
+    }
+    ge('kim-editor').style.display='';
+    ge('kim-editor').scrollIntoView({behavior:'smooth',block:'nearest'});
+  },
+
+  closeEditor() { ge('kim-editor').style.display='none'; this.editIdx=-1; },
+
+  _showFields(type) {
+    ge('kim-f-seq').style.display   = type===1?'':'none';
+    ge('kim-f-dtap').style.display  = type===2?'':'none';
+    ge('kim-f-chord').style.display = type===3?'':'none';
+  },
+
+  _collectSteps(cid) {
+    return Array.from(ge(cid).querySelectorAll('.kim-step-row')).map(row=>({
+      key:   parseInt(row.querySelector('.kim-step-key').value),
+      hold:  parseInt(row.querySelector('.kim-step-hold').value)||80,
+      pause: parseInt(row.querySelector('.kim-step-pause').value)||0
+    }));
+  },
+
+  _collect() {
+    const type = this.curType;
+    const e = this._def(); e.type = type;
+    if(type===1){
+      e.trigger0 = parseInt(ge('kim-seq-trigger').value);
+      e.toggle   = ge('kim-seq-toggle').checked ? 1 : 0;
+      e.steps    = this._collectSteps('kim-steps-seq');
+    } else if(type===2){
+      e.trigger0 = parseInt(ge('kim-dtap-trigger').value);
+      e.gap_ms   = parseInt(ge('kim-dtap-gap').value)||250;
+      e.steps[0] = {key:parseInt(ge('kim-dtap-action').value),hold:80,pause:0};
+    } else if(type===3){
+      e.trigger0 = parseInt(ge('kim-chord-t1').value);
+      e.trigger1 = parseInt(ge('kim-chord-t2').value);
+      e.steps    = this._collectSteps('kim-steps-chord');
+    }
+    return e;
+  },
+
+  saveEntry() {
+    const e = this._collect();
+    if(this.editIdx<0) this.profile.entries.push(e);
+    else this.profile.entries[this.editIdx]=e;
+    this.profile.n_entries = this.profile.entries.length;
+    this.closeEditor(); this.render(); this.sendConfig();
+  },
+
+  deleteEntry() {
+    if(this.editIdx<0) return;
+    this.profile.entries.splice(this.editIdx,1);
+    this.profile.n_entries = this.profile.entries.length;
+    this.closeEditor(); this.render(); this.sendConfig();
+  },
+
+  onToggle() {
+    const active = ge('kim-active-chk').checked ? 1 : 0;
+    this.profile.kim_active = active;
+    const lbl = ge('kim-active-lbl');
+    lbl.textContent = active ? 'aktiv' : 'inaktiv';
+    lbl.style.color  = active ? 'var(--green)' : 'var(--dim)';
+    sendJson({cmd:'set_kim_config', data:{kim_active:active}});
+  },
+
+  onSigmaInput() {
+    const v = parseFloat(ge('kim-sigma-sl').value);
+    ge('kim-sigma-val').textContent = v.toFixed(1)+' %';
+  },
+
+  onSigmaChange() {
+    this.profile.sigma_pct = parseFloat(ge('kim-sigma-sl').value);
+    this.sendConfig();
+  },
+
+  sendConfig() {
+    const p = this.profile;
+    sendJson({cmd:'set_kim_config', data:{
+      kim_active: p.kim_active,
+      sigma_pct:  p.sigma_pct,
+      entries: p.entries.map(e=>({
+        type:     e.type,
+        trigger0: e.trigger0,
+        trigger1: e.trigger1,
+        toggle:   e.toggle,
+        gap_ms:   e.gap_ms,
+        steps: e.steps.map(s=>({keycode:s.key, hold_ms:s.hold, pause_ms:s.pause}))
+      }))
+    }});
+  },
+
+  load() { if(S.connected) sendJson({cmd:'get_kim_config'}); },
+
+  exportJSON() {
+    const blob = new Blob([JSON.stringify(this.profile, null,2)],{type:'application/json'});
+    const a = document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='kim_profile.json'; a.click();
+  },
+
+  importJSON(file) {
+    const r=new FileReader();
+    r.onload=ev=>{ try{
+      const d=JSON.parse(ev.target.result);
+      this.init(d); this.sendConfig(); clog('[KIM] Profil importiert');
+    }catch(e){ clog('[KIM] Import-Fehler: '+e.message); }};
+    r.readAsText(file);
+  },
+
+  reset() {
+    this.profile={kim_active:0,sigma_pct:5.0,n_entries:0,entries:[]};
+    this.closeEditor(); this.render(); this.sendConfig();
+    clog('[KIM] Reset auf Defaults');
+  }
+};
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function el(tag,cls=''){
   const e=document.createElement(tag);
@@ -1392,6 +1816,29 @@ document.addEventListener('DOMContentLoaded',()=>{
   ge('btn-set-default').onclick = () => PM.applyDefault();
   PM.init();
   ge('cls-btn').onclick=()=>{ ge('console').textContent=''; };
+
+  // ── KIM event handlers ────────────────────────────────────────
+  ge('kim-active-chk').onchange  = ()=>KIM.onToggle();
+  ge('kim-sigma-sl').oninput     = ()=>KIM.onSigmaInput();
+  ge('kim-sigma-sl').onchange    = ()=>KIM.onSigmaChange();
+  ge('kim-add-btn').onclick      = ()=>KIM.openEditor(-1);
+  ge('kim-save-btn').onclick     = ()=>KIM.saveEntry();
+  ge('kim-cancel-btn').onclick   = ()=>KIM.closeEditor();
+  ge('kim-del-btn').onclick      = ()=>KIM.deleteEntry();
+  ge('kim-reset-btn').onclick    = ()=>KIM.reset();
+  ge('kim-exp-btn').onclick      = ()=>KIM.exportJSON();
+  ge('kim-imp-btn').onclick      = ()=>ge('kim-file-imp').click();
+  ge('kim-file-imp').onchange    = e=>{ if(e.target.files[0]) KIM.importJSON(e.target.files[0]); e.target.value=''; };
+
+  document.querySelectorAll('.kim-type-btn').forEach(b=>{
+    b.onclick=()=>{
+      const type=parseInt(b.dataset.type);
+      KIM.curType=type;
+      document.querySelectorAll('.kim-type-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      KIM._showFields(type);
+    };
+  });
 
   document.querySelectorAll('.pg-btn').forEach(b=>{
     b.onclick=()=>{

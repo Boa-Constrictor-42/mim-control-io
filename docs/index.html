@@ -633,6 +633,7 @@ input{font-family:inherit}
 
 <script>
 'use strict';
+window.onerror = (msg,src,line,col,err) => console.error('[JS-ERR]',msg,'@'+line+':'+col,err);
 
 // ── Parameters (matches Python SW exactly) ────────────────────────────────────
 const PARAMS = [
@@ -1772,11 +1773,14 @@ const KIM = {
     if(!btn) return;
     btn.classList.add('waiting');
     btn.textContent='← Taste drücken…';
+    console.log('[KIM] bind called, connected='+S.connected+', target='+btnId);
     clog('[KIM] bind: connected='+S.connected+' target='+btnId);
     if(S.connected) {
       sendJson({cmd:'kim_bind_start'});
+      console.log('[KIM] kim_bind_start gesendet');
       clog('[KIM] kim_bind_start gesendet');
     } else {
+      console.log('[KIM] NICHT verbunden');
       clog('[KIM] NICHT gesendet — nicht verbunden');
     }
   },

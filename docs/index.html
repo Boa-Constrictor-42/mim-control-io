@@ -271,6 +271,14 @@ input{font-family:inherit}
 .kim-sw-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;
   background:#555;border-radius:50%;transition:left .18s,background .18s}
 .kim-sw-wrap input:checked ~ .kim-sw-track .kim-sw-thumb{left:18px;background:var(--green)}
+/* Bind-Button: zeigt aktuelle Taste, klicken → Bind-Modus */
+.kim-bind-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+  font-size:.82rem;padding:3px 10px;border-radius:2px;cursor:pointer;min-width:80px;
+  text-align:left;transition:border-color .15s,color .15s}
+.kim-bind-btn:hover{border-color:#888}
+.kim-bind-btn.waiting{border-color:var(--yellow,#c8a000);color:var(--yellow,#c8a000);
+  animation:kim-blink .6s step-start infinite}
+@keyframes kim-blink{50%{opacity:.4}}
 </style>
 </head>
 <body>
@@ -509,7 +517,8 @@ input{font-family:inherit}
         <div id="kim-f-seq">
           <div class="kim-row">
             <span class="kim-lbl">Trigger</span>
-            <select id="kim-seq-trigger" class="kim-sel"></select>
+            <button class="kim-bind-btn" id="kim-seq-trigger" data-code="0"
+                    onclick="KIM.bind('kim-seq-trigger')">— leer —</button>
           </div>
           <div id="kim-steps-seq"></div>
           <div class="kim-row">
@@ -525,7 +534,8 @@ input{font-family:inherit}
         <div id="kim-f-dtap" style="display:none">
           <div class="kim-row">
             <span class="kim-lbl">Trigger</span>
-            <select id="kim-dtap-trigger" class="kim-sel"></select>
+            <button class="kim-bind-btn" id="kim-dtap-trigger" data-code="0"
+                    onclick="KIM.bind('kim-dtap-trigger')">— leer —</button>
           </div>
           <div class="kim-row">
             <span class="kim-lbl">Max. Abstand</span>
@@ -534,7 +544,8 @@ input{font-family:inherit}
           </div>
           <div class="kim-row">
             <span class="kim-lbl">Aktion</span>
-            <select id="kim-dtap-action" class="kim-sel"></select>
+            <button class="kim-bind-btn" id="kim-dtap-action" data-code="0"
+                    onclick="KIM.bind('kim-dtap-action')">— leer —</button>
             <span class="kim-dimtxt">Taste die bei Doppel-Tap ausgegeben wird</span>
           </div>
         </div>
@@ -543,11 +554,13 @@ input{font-family:inherit}
         <div id="kim-f-chord" style="display:none">
           <div class="kim-row">
             <span class="kim-lbl">Taste 1</span>
-            <select id="kim-chord-t1" class="kim-sel"></select>
+            <button class="kim-bind-btn" id="kim-chord-t1" data-code="0"
+                    onclick="KIM.bind('kim-chord-t1')">— leer —</button>
           </div>
           <div class="kim-row">
             <span class="kim-lbl">Taste 2</span>
-            <select id="kim-chord-t2" class="kim-sel"></select>
+            <button class="kim-bind-btn" id="kim-chord-t2" data-code="0"
+                    onclick="KIM.bind('kim-chord-t2')">— leer —</button>
           </div>
           <div id="kim-steps-chord"></div>
           <div class="kim-row">
@@ -807,6 +820,12 @@ function handleLine(ln) {
   if(typeof r.sleep_mode === 'boolean') {
     S.sleeping = r.sleep_mode;
     if(r.sleep_mode) clog('[MIM] Device is in sleep mode — sync paused');
+  }
+
+  // ── kim_bound_key response (Bind-Modus) ────────────────────────
+  if(typeof r.kim_bound_key !== 'undefined') {
+    KIM.onBoundKey(r.kim_bound_key);
+    return;
   }
 
   // ── get_kim_config response ─────────────────────────────────────
@@ -1558,13 +1577,23 @@ function _kimSeqSummary(e) {
     return `${_kimKeyLabel(e.trigger0)} ×2 → ${_kimKeyLabel(e.steps[0]?.key||0)}`;
   return '';
 }
+// Setzt einen Bind-Button auf einen HID-Keycode (data-code + Label)
+function _kimSetBind(btnId, code) {
+  const btn = ge(btnId); if(!btn) return;
+  btn.dataset.code = code;
+  btn.classList.remove('waiting');
+  btn.textContent = code ? _kimKeyLabel(code) : '— leer —';
+}
+
 function _kimRenderSteps(containerId, steps) {
   const el = ge(containerId); el.innerHTML = '';
   steps.forEach((st,i)=>{
     const d=document.createElement('div');
     d.className='kim-row kim-step-row'; d.dataset.idx=i;
+    const btnId=`${containerId}-step-${i}`;
     d.innerHTML=`<span class="kim-lbl" style="font-size:.78rem">Schritt ${i+1}</span>
-      <select class="kim-sel kim-step-key">${_kimKeyOpts(st.key)}</select>
+      <button class="kim-bind-btn kim-step-key" id="${btnId}" data-code="${st.key}"
+              onclick="KIM.bind('${btnId}')">${_kimKeyLabel(st.key)||'— leer —'}</button>
       <span class="kim-unit">Halten</span>
       <input type="number" class="kim-ms kim-step-hold" min="1" max="2000" value="${st.hold}">
       <span class="kim-unit">ms &nbsp; Pause</span>
@@ -1634,7 +1663,10 @@ const KIM = {
           : _kimKeyLabel(e.trigger0)}</span>
         <span class="kim-et-seq">${_kimSeqSummary(e)}</span>
         <span class="kim-et-tog">${e.toggle?'⟳':''}</span>
-        <button class="fb" style="padding:2px 10px;font-size:.75rem" onclick="KIM.openEditor(${i})">Bearb.</button>
+        <button class="fb" style="padding:2px 10px;font-size:.75rem;margin-left:auto"
+                onclick="KIM.openEditor(${i})">Bearb.</button>
+        <button class="fb dang" style="padding:2px 8px;font-size:.75rem"
+                onclick="KIM.deleteAt(${i})" title="Entry löschen">✕</button>
       </div>`).join('');
   },
 
@@ -1652,16 +1684,16 @@ const KIM = {
     this._showFields(e.type);
 
     if(e.type===1){
-      ge('kim-seq-trigger').innerHTML = _kimKeyOpts(e.trigger0);
-      ge('kim-seq-toggle').checked    = !!e.toggle;
+      _kimSetBind('kim-seq-trigger', e.trigger0);
+      ge('kim-seq-toggle').checked = !!e.toggle;
       _kimRenderSteps('kim-steps-seq', e.steps);
     } else if(e.type===2){
-      ge('kim-dtap-trigger').innerHTML = _kimKeyOpts(e.trigger0);
-      ge('kim-dtap-gap').value         = e.gap_ms;
-      ge('kim-dtap-action').innerHTML  = _kimKeyOpts(e.steps[0]?.key??0);
+      _kimSetBind('kim-dtap-trigger', e.trigger0);
+      ge('kim-dtap-gap').value = e.gap_ms;
+      _kimSetBind('kim-dtap-action', e.steps[0]?.key??0);
     } else if(e.type===3){
-      ge('kim-chord-t1').innerHTML = _kimKeyOpts(e.trigger0);
-      ge('kim-chord-t2').innerHTML = _kimKeyOpts(e.trigger1);
+      _kimSetBind('kim-chord-t1', e.trigger0);
+      _kimSetBind('kim-chord-t2', e.trigger1);
       _kimRenderSteps('kim-steps-chord', e.steps);
     }
     ge('kim-editor').style.display='';
@@ -1678,7 +1710,7 @@ const KIM = {
 
   _collectSteps(cid) {
     return Array.from(ge(cid).querySelectorAll('.kim-step-row')).map(row=>({
-      key:   parseInt(row.querySelector('.kim-step-key').value),
+      key:   parseInt(row.querySelector('.kim-step-key').dataset.code)||0,
       hold:  parseInt(row.querySelector('.kim-step-hold').value)||80,
       pause: parseInt(row.querySelector('.kim-step-pause').value)||0
     }));
@@ -1688,16 +1720,16 @@ const KIM = {
     const type = this.curType;
     const e = this._def(); e.type = type;
     if(type===1){
-      e.trigger0 = parseInt(ge('kim-seq-trigger').value);
+      e.trigger0 = parseInt(ge('kim-seq-trigger').dataset.code)||0;
       e.toggle   = ge('kim-seq-toggle').checked ? 1 : 0;
       e.steps    = this._collectSteps('kim-steps-seq');
     } else if(type===2){
-      e.trigger0 = parseInt(ge('kim-dtap-trigger').value);
+      e.trigger0 = parseInt(ge('kim-dtap-trigger').dataset.code)||0;
       e.gap_ms   = parseInt(ge('kim-dtap-gap').value)||250;
-      e.steps[0] = {key:parseInt(ge('kim-dtap-action').value),hold:80,pause:0};
+      e.steps[0] = {key:parseInt(ge('kim-dtap-action').dataset.code)||0,hold:80,pause:0};
     } else if(type===3){
-      e.trigger0 = parseInt(ge('kim-chord-t1').value);
-      e.trigger1 = parseInt(ge('kim-chord-t2').value);
+      e.trigger0 = parseInt(ge('kim-chord-t1').dataset.code)||0;
+      e.trigger1 = parseInt(ge('kim-chord-t2').dataset.code)||0;
       e.steps    = this._collectSteps('kim-steps-chord');
     }
     return e;
@@ -1716,6 +1748,39 @@ const KIM = {
     this.profile.entries.splice(this.editIdx,1);
     this.profile.n_entries = this.profile.entries.length;
     this.closeEditor(); this.render(); this.sendConfig();
+  },
+
+  deleteAt(idx) {
+    this.profile.entries.splice(idx,1);
+    this.profile.n_entries = this.profile.entries.length;
+    if(this.editIdx===idx) this.closeEditor();
+    this.render(); this.sendConfig();
+  },
+
+  // ── Bind-Mechanismus ─────────────────────────────────────────
+  // _bindTarget: ID des Bind-Buttons der gerade wartet
+  _bindTarget: null,
+
+  bind(btnId) {
+    // Vorherige Warterunde beenden falls noch aktiv
+    if(this._bindTarget) {
+      const old=ge(this._bindTarget);
+      if(old) old.classList.remove('waiting');
+    }
+    this._bindTarget = btnId;
+    const btn=ge(btnId);
+    if(!btn) return;
+    btn.classList.add('waiting');
+    btn.textContent='← Taste drücken…';
+    if(S.connected) sendJson({cmd:'kim_bind_start'});
+  },
+
+  // Wird von handleLine aufgerufen wenn Firmware kim_bound_key meldet
+  onBoundKey(code) {
+    const btnId = this._bindTarget;
+    this._bindTarget = null;
+    if(!btnId) return;
+    _kimSetBind(btnId, code);
   },
 
   onToggle() {

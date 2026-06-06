@@ -171,6 +171,9 @@ button{font-family:inherit;cursor:pointer}
         <div id="progress-track"><div id="progress-fill"></div></div>
         <span id="progress-pct">0%</span>
       </div>
+      <button class="fb warn" id="btn-bootloader-ready" style="display:none;margin-top:12px">
+        ⚡  Open device picker
+      </button>
     </div>
   </div>
 
@@ -410,6 +413,26 @@ async function flashHalfKay(blocks, onProgress) {
 }
 
 // ── Flash flow orchestrator ───────────────────────────────────────────────────
+
+// Wartet bis User auf "Open device picker" klickt
+function waitForBootloaderReady() {
+  return new Promise((resolve, reject) => {
+    const btn = ge('btn-bootloader-ready');
+    btn.style.display = 'inline-block';
+    btn.onclick = () => { btn.style.display = 'none'; resolve(); };
+    S._rejectBootloader = reject;
+  });
+}
+
+function flashReset() {
+  ge('btn-flash').disabled    = false;
+  ge('btn-download').disabled = !S.hexUrl;
+  ge('btn-connect').disabled  = false;
+  ge('btn-bootloader-ready').style.display = 'none';
+  S.flashing = false;
+  S._rejectBootloader = null;
+}
+
 async function doFlash() {
   if (!S.hexUrl) return;
   if (S.flashing) return;
@@ -420,57 +443,61 @@ async function doFlash() {
   ge('btn-download').disabled = true;
   ge('btn-connect').disabled  = true;
   setProgress(0);
-  ge('progress-wrap').style.display = 'flex';
 
   try {
-    // Step 1: reboot into HalfKay if currently connected via Serial
-    if (S.connected) {
-      setFlashMsg('Sending reboot command …', 'info');
-      await sendJson({ cmd: 'reboot_bootloader' });
-      await sleep(300);
-      await doDisconnect();
-      setFlashMsg('Device restarting — waiting for bootloader …', 'info');
-      await sleep(3000);
-    } else {
-      setFlashMsg('Connect the device or put it into bootloader mode, then continue …', 'info');
-    }
-
-    // Step 2: fetch .hex
+    // Step 1: .hex herunterladen (same-origin → kein CORS)
     setFlashMsg('Downloading firmware …', 'info');
-    const hexResp = await fetch(S.hexUrl);
+    const hexResp = await fetch(S.hexUrl, { cache: 'no-store' });
     if (!hexResp.ok) throw new Error('Download failed: HTTP ' + hexResp.status);
     const hexText = await hexResp.text();
 
-    // Step 3: parse
+    // Step 2: HEX parsen
     setFlashMsg('Parsing firmware …', 'info');
     const blocks = parseHex(hexText);
     if (blocks.size === 0) throw new Error('HEX file contains no valid data blocks.');
 
-    // Step 4: flash via WebHID
-    setFlashMsg('Bootloader detected ✓ — flashing …', 'info');
+    // Step 3: Gerät in Bootloader schicken (falls verbunden)
+    if (S.connected) {
+      setFlashMsg('Sending reboot command to device …', 'info');
+      await sendJson({ cmd: 'reboot_bootloader' });
+      await sleep(200);
+      await doDisconnect();
+      setFlashMsg(
+        'Device is entering bootloader mode.\n' +
+        'If it did not reboot automatically, press the white button on the Teensy.\n' +
+        'When the LED flashes, click the button below.',
+        'info'
+      );
+    } else {
+      setFlashMsg(
+        'Press the white button on the Teensy to enter bootloader mode.\n' +
+        'When the LED flashes, click the button below.',
+        'info'
+      );
+    }
+
+    // Step 4: User bestätigt dass Bootloader aktiv ist
+    await waitForBootloaderReady();
+
+    // Step 5: via WebHID flashen
+    ge('progress-wrap').style.display = 'flex';
+    setFlashMsg('Opening HID device picker — select the Teensy bootloader …', 'info');
     await flashHalfKay(blocks, (done, total) => {
       const pct = Math.round(done / total * 100);
       setProgress(pct);
       setFlashMsg(`Flashing … ${pct}%`, 'info');
     });
 
-    // Step 5: done
     setProgress(100);
     setFlashMsg('Flash complete ✓ — device is restarting …', 'ok');
-
-    // Re-enable after success
-    setTimeout(() => {
-      ge('btn-flash').disabled    = false;
-      ge('btn-download').disabled = false;
-      ge('btn-connect').disabled  = false;
-      S.flashing = false;
-    }, 3000);
+    setTimeout(() => flashReset(), 4000);
 
   } catch (err) {
     const msg = err.message || String(err);
-    if (msg.includes('No HalfKay') || msg.includes('cancelled') || msg.toLowerCase().includes('no device')) {
+    if (msg.includes('No HalfKay') || msg.includes('cancelled') || msg.toLowerCase().includes('no device') || msg.includes('No device selected')) {
       setFlashMsg(
-        'Bootloader not detected — if the device did not reboot automatically, press the reset button on the Teensy.',
+        'No bootloader device selected.\n' +
+        'Make sure the Teensy is in bootloader mode (LED flashing), then try again.',
         'err'
       );
     } else if (msg.includes('Download failed')) {
@@ -481,10 +508,7 @@ async function doFlash() {
         'err'
       );
     }
-    ge('btn-flash').disabled    = false;
-    ge('btn-download').disabled = !!S.hexUrl ? false : true;
-    ge('btn-connect').disabled  = false;
-    S.flashing = false;
+    flashReset();
   }
 }
 

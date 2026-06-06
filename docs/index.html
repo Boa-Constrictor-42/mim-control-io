@@ -281,6 +281,12 @@ input{font-family:inherit}
 .kim-bind-btn.waiting{border-color:var(--yellow,#c8a000);color:var(--yellow,#c8a000);
   animation:kim-blink .6s step-start infinite}
 @keyframes kim-blink{50%{opacity:.4}}
+.kim-tmode-grp{display:flex;gap:0;border:1px solid var(--border2);border-radius:3px;overflow:hidden}
+.kim-tmode-btn{background:var(--bg3);border:none;border-right:1px solid var(--border2);
+  color:var(--dim);font-size:.78rem;padding:3px 12px;cursor:pointer;transition:background .15s,color .15s}
+.kim-tmode-btn:last-child{border-right:none}
+.kim-tmode-btn:hover{background:var(--bg4,#3a3a3a);color:var(--text)}
+.kim-tmode-btn.active{background:var(--accent,#0078d4);color:#fff;font-weight:600}
 </style>
 </head>
 <body>
@@ -524,11 +530,12 @@ input{font-family:inherit}
           </div>
           <div id="kim-steps-seq"></div>
           <div class="kim-row">
-            <span class="kim-lbl">Toggle</span>
-            <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--dim)">
-              <input type="checkbox" id="kim-seq-toggle">
-              1× drücken → start &nbsp;·&nbsp; 2× drücken → stop
-            </label>
+            <span class="kim-lbl">Auslösung</span>
+            <div class="kim-tmode-grp" id="kim-seq-tmode" data-mode="0">
+              <button class="kim-tmode-btn active" data-mode="0" onclick="KIM.setTMode('kim-seq-tmode',0)">Tap</button>
+              <button class="kim-tmode-btn"         data-mode="1" onclick="KIM.setTMode('kim-seq-tmode',1)">Hold</button>
+              <button class="kim-tmode-btn"         data-mode="2" onclick="KIM.setTMode('kim-seq-tmode',2)">Toggle</button>
+            </div>
           </div>
         </div>
 
@@ -566,9 +573,12 @@ input{font-family:inherit}
           </div>
           <div id="kim-steps-chord"></div>
           <div class="kim-row">
-            <span class="kim-lbl" style="width:auto;font-size:.74rem;color:var(--dim2)">
-              Sequenz wird wiederholt solange beide Tasten gehalten werden
-            </span>
+            <span class="kim-lbl">Auslösung</span>
+            <div class="kim-tmode-grp" id="kim-chord-tmode" data-mode="1">
+              <button class="kim-tmode-btn"         data-mode="0" onclick="KIM.setTMode('kim-chord-tmode',0)">Tap</button>
+              <button class="kim-tmode-btn active"  data-mode="1" onclick="KIM.setTMode('kim-chord-tmode',1)">Hold</button>
+              <button class="kim-tmode-btn"         data-mode="2" onclick="KIM.setTMode('kim-chord-tmode',2)">Toggle</button>
+            </div>
           </div>
         </div>
 
@@ -1640,24 +1650,38 @@ const KIM = {
   curType: 1,
 
   _def() {
-    return {type:1,trigger0:0,trigger1:0,toggle:0,gap_ms:250,
+    return {type:1,trigger0:0,trigger1:0,trigger_mode:0,gap_ms:250,
       steps:[{key:0,hold:80,pause:60},{key:0,hold:80,pause:60},{key:0,hold:80,pause:60}]};
   },
 
   // Map firmware field names → internal (trigger0/trigger1 → trigger0/trigger1, keycode → key, etc.)
   _mapEntry(e) {
     return {
-      type:    e.type    ?? 1,
-      trigger0:e.trigger0?? 0,
-      trigger1:e.trigger1?? 0,
-      toggle:  e.toggle  ?? 0,
-      gap_ms:  e.gap_ms  ?? 250,
+      type:         e.type         ?? 1,
+      trigger0:     e.trigger0     ?? 0,
+      trigger1:     e.trigger1     ?? 0,
+      trigger_mode: e.trigger_mode ?? 0,
+      gap_ms:       e.gap_ms       ?? 250,
       steps: (e.steps||[]).map(s=>({
         key:   s.keycode  ?? s.key  ?? 0,
         hold:  s.hold_ms  ?? s.hold ?? 80,
         pause: s.pause_ms ?? s.pause?? 0
       }))
     };
+  },
+
+  // Trigger-Mode Button-Gruppe: Auswahl setzen
+  setTMode(grpId, mode) {
+    const grp = ge(grpId);
+    if(!grp) return;
+    grp.dataset.mode = mode;
+    grp.querySelectorAll('.kim-tmode-btn').forEach(b=>{
+      b.classList.toggle('active', parseInt(b.dataset.mode)===mode);
+    });
+  },
+  getTMode(grpId) {
+    const grp = ge(grpId);
+    return grp ? parseInt(grp.dataset.mode)||0 : 0;
   },
 
   init(data) {
@@ -1693,7 +1717,7 @@ const KIM = {
           ? _kimKeyLabel(e.trigger0)+' + '+_kimKeyLabel(e.trigger1)
           : _kimKeyLabel(e.trigger0)}</span>
         <span class="kim-et-seq">${_kimSeqSummary(e)}</span>
-        <span class="kim-et-tog">${e.toggle?'⟳':''}</span>
+        <span class="kim-et-tog">${['Tap','Hold','⟳'][e.trigger_mode??0]??''}</span>
         <button class="fb" style="padding:2px 10px;font-size:.75rem;margin-left:auto"
                 onclick="KIM.openEditor(${i})">Bearb.</button>
         <button class="fb dang" style="padding:2px 8px;font-size:.75rem"
@@ -1716,7 +1740,7 @@ const KIM = {
 
     if(e.type===1){
       _kimSetBind('kim-seq-trigger', e.trigger0);
-      ge('kim-seq-toggle').checked = !!e.toggle;
+      this.setTMode('kim-seq-tmode', e.trigger_mode??0);
       _kimRenderSteps('kim-steps-seq', e.steps);
     } else if(e.type===2){
       _kimSetBind('kim-dtap-trigger', e.trigger0);
@@ -1725,6 +1749,7 @@ const KIM = {
     } else if(e.type===3){
       _kimSetBind('kim-chord-t1', e.trigger0);
       _kimSetBind('kim-chord-t2', e.trigger1);
+      this.setTMode('kim-chord-tmode', e.trigger_mode??1);
       _kimRenderSteps('kim-steps-chord', e.steps);
     }
     ge('kim-editor').style.display='';
@@ -1751,17 +1776,18 @@ const KIM = {
     const type = this.curType;
     const e = this._def(); e.type = type;
     if(type===1){
-      e.trigger0 = parseInt(ge('kim-seq-trigger').dataset.code)||0;
-      e.toggle   = ge('kim-seq-toggle').checked ? 1 : 0;
-      e.steps    = this._collectSteps('kim-steps-seq');
+      e.trigger0     = parseInt(ge('kim-seq-trigger').dataset.code)||0;
+      e.trigger_mode = this.getTMode('kim-seq-tmode');
+      e.steps        = this._collectSteps('kim-steps-seq');
     } else if(type===2){
       e.trigger0 = parseInt(ge('kim-dtap-trigger').dataset.code)||0;
       e.gap_ms   = parseInt(ge('kim-dtap-gap').value)||250;
       e.steps[0] = {key:parseInt(ge('kim-dtap-action').dataset.code)||0,hold:80,pause:0};
     } else if(type===3){
-      e.trigger0 = parseInt(ge('kim-chord-t1').dataset.code)||0;
-      e.trigger1 = parseInt(ge('kim-chord-t2').dataset.code)||0;
-      e.steps    = this._collectSteps('kim-steps-chord');
+      e.trigger0     = parseInt(ge('kim-chord-t1').dataset.code)||0;
+      e.trigger1     = parseInt(ge('kim-chord-t2').dataset.code)||0;
+      e.trigger_mode = this.getTMode('kim-chord-tmode');
+      e.steps        = this._collectSteps('kim-steps-chord');
     }
     return e;
   },
@@ -1846,7 +1872,7 @@ const KIM = {
         type:     e.type,
         trigger0: e.trigger0,
         trigger1: e.trigger1,
-        toggle:   e.toggle,
+        trigger_mode: e.trigger_mode,
         gap_ms:   e.gap_ms,
         steps: e.steps.map(s=>({keycode:s.key, hold_ms:s.hold, pause_ms:s.pause}))
       }))

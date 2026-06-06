@@ -208,7 +208,7 @@ const S = {
   hexUrl:      null,
   otaRunning:  false,
 };
-let _port = null, _writer = null, _rxBuf = '';
+let _port = null, _writer = null, _reader = null, _rxBuf = '';
 let _otaResolve = null;   // wird von handleLine() aufgerufen wenn OTA-Nachricht ankommt
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────
@@ -279,20 +279,21 @@ async function doConnect() {
 async function doDisconnect() {
   setConnected(false);
   try { if (_writer) { _writer.releaseLock(); _writer = null; } } catch (_) {}
-  try { if (_port)   { await _port.close();                    } } catch (_) {}
-  _rxBuf = '';
+  try { if (_reader) { await _reader.cancel(); } } catch (_) {}
   // _port intentionally not nulled — needed for auto-reconnect after OTA
+  try { if (_port)   { await _port.close();   } } catch (_) {}
+  _rxBuf = '';
 }
 
 async function _startRead() {
-  const tds = new TextDecoderStream();
-  _port.readable.pipeTo(tds.writable).catch(() => {});
-  const rdr = tds.readable.getReader();
+  // Direktes getReader()-Pattern — zuverlässiger als pipeTo+TextDecoderStream
+  const dec = new TextDecoder();
+  _reader = _port.readable.getReader();
   try {
     for (;;) {
-      const { value, done } = await rdr.read();
+      const { value, done } = await _reader.read();
       if (done) break;
-      _rxBuf += value;
+      _rxBuf += dec.decode(value, { stream: true });
       let nl;
       while ((nl = _rxBuf.indexOf('\n')) !== -1) {
         const ln = _rxBuf.slice(0, nl).trim();
@@ -300,7 +301,12 @@ async function _startRead() {
         if (ln) handleLine(ln);
       }
     }
-  } catch (_) { if (S.connected) doDisconnect(); }
+  } catch (_) {
+    // Port geschlossen oder Fehler — erwartet beim Disconnect
+  } finally {
+    _reader = null;
+    if (S.connected) doDisconnect();
+  }
 }
 
 async function sendJson(obj) {

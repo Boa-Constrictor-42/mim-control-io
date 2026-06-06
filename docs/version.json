@@ -1,0 +1,19 @@
+﻿{
+    "version":  "2.2.0-alpha",
+    "date":  "2026-06-06",
+    "changelog":  [
+                      "Release-Infrastruktur: /update Seite auf mim-control.com",
+                      "WebHID Flash-Integration in /update Seite",
+                      "CIM — Controller Input Modifier (Firmware B, Pass-Through MVP)",
+                      "Auto-Detection beim Boot: Maus=AIM, Controller=CIM (Firmware B)",
+                      "Web Interface: MnK/Joypad Output-Mode Buttons",
+                      "Web Interface: 3-Step Modal CIM-Einrichtung",
+                      "Web Interface: Tab-Struktur [MIM][KIM][CIM]",
+                      "MIM Profil-System: Slot 0 (Default) + Slots 1–3 (benennbar)",
+                      "EEPROM-Persistenz mit Checksum + Schema-Version",
+                      "KIM — Keyboard Input Modifier: Key Sequence, Chord, Double-Tap",
+                      "KIM: TAP / HOLD / TOGGLE Auslösemodi pro Mapping",
+                      "KIM-Tab mit vollständigem Macro-Editor in Web Interface"
+                  ],
+    "hex_url":  "https://github.com/boa-constrictor-42/mim-mouse-input-modifier/releases/download/v2.2.0-alpha/mim_firmware_v2.2.0-alpha.hex"
+}

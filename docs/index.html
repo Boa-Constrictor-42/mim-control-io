@@ -230,6 +230,8 @@ input{font-family:inherit}
   background:transparent;color:var(--green);font-family:inherit;font-size:.78rem;
   cursor:pointer;transition:background .15s,color .15s;white-space:nowrap}
 .save-slot:hover{background:var(--green);color:#000}
+/* Aktiver Modus-Button: Text grün, Umrandung bleibt grau */
+#main.on .mb:disabled{color:var(--green)}
 .pslot-name-input{background:transparent;border:none;border-bottom:1px solid var(--blue);
   color:var(--text);font-family:inherit;font-size:.78rem;width:70px;outline:none}
 
@@ -1937,9 +1939,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   ge('btn-exp').onclick=doExport;
   ge('btn-imp').onclick=()=>ge('file-imp').click();
   ge('file-imp').onchange=e=>{ if(e.target.files[0]){doImport(e.target.files[0]);} e.target.value=''; };
-  ge('btn-save-1').onclick = () => PM.saveSlot(1);
-  ge('btn-save-2').onclick = () => PM.saveSlot(2);
-  ge('btn-save-3').onclick = () => PM.saveSlot(3);
+  ge('btn-save-1').onclick = () => { if(confirm('Overwrite Profile 1?')) PM.saveSlot(1); };
+  ge('btn-save-2').onclick = () => { if(confirm('Overwrite Profile 2?')) PM.saveSlot(2); };
+  ge('btn-save-3').onclick = () => { if(confirm('Overwrite Profile 3?')) PM.saveSlot(3); };
   ge('btn-set-default').onclick = () => PM.applyDefault();
   PM.init();
   ge('cls-btn').onclick=()=>{ ge('console').textContent=''; };

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MIM — Firmware Update</title>
+<title>MIM — Developer Options</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -38,24 +38,6 @@ button{font-family:inherit;cursor:pointer}
   background:var(--bg2);border-bottom:1px solid var(--border)}
 .card-bd{padding:14px 16px}
 
-/* Version */
-.ver-row{display:flex;align-items:baseline;gap:12px;padding:5px 0}
-.ver-label{width:140px;color:var(--dim);font-size:.82rem}
-.ver-val{font-size:1.05rem;letter-spacing:.06em;color:var(--text)}
-.ver-val.ok{color:var(--green)}
-.ver-val.upd{color:var(--orange)}
-.ver-val.unknown{color:var(--dim)}
-#status-pill{font-size:.72rem;padding:2px 9px;border-radius:10px;
-  border:1px solid var(--border2);color:var(--dim);margin-left:8px;vertical-align:middle}
-#status-pill.uptodate{border-color:#224422;color:var(--green)}
-#status-pill.update{border-color:#552200;color:var(--orange)}
-
-/* Changelog */
-#changelog-list{list-style:none;padding:0;margin:0}
-#changelog-list li{padding:4px 0;border-bottom:1px solid #161616;font-size:.86rem}
-#changelog-list li:last-child{border-bottom:none}
-#changelog-list li::before{content:"→  ";color:var(--dim)}
-
 /* Buttons */
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;padding-top:6px}
 .fb{font-size:.84rem;background:none;border:1px solid var(--border2);
@@ -65,8 +47,8 @@ button{font-family:inherit;cursor:pointer}
 .fb:disabled{opacity:.35;cursor:not-allowed}
 .fb.prim{border-color:#224422;color:var(--green)}
 .fb.prim:hover:not(:disabled){background:var(--green);color:#000}
-.fb.warn{border-color:#224422;color:var(--green)}
-.fb.warn:hover:not(:disabled){background:var(--green);color:#000}
+.fb.warn{border-color:#552200;color:var(--orange)}
+.fb.warn:hover:not(:disabled){background:var(--orange);color:#000}
 .fb.sec{border-color:var(--border2);color:var(--dim)}
 
 /* Connect area */
@@ -82,8 +64,7 @@ button{font-family:inherit;cursor:pointer}
 #btn-connect.disc:hover{background:var(--red);color:#000}
 
 /* Flash status */
-#flash-card{display:none}
-#flash-msg{font-size:.88rem;padding:2px 0 10px;min-height:1.4em}
+#flash-msg{font-size:.88rem;padding:2px 0 10px;min-height:1.4em;white-space:pre-line}
 #flash-msg.ok{color:var(--green)}
 #flash-msg.err{color:var(--red)}
 #flash-msg.info{color:var(--text)}
@@ -94,9 +75,18 @@ button{font-family:inherit;cursor:pointer}
   transition:width .12s linear}
 #progress-pct{font-size:.76rem;color:var(--dim);min-width:36px;text-align:right}
 
+/* Dev warning banner */
+.dev-banner{border:1px solid #332200;border-radius:4px;background:#0f0900;
+  color:#aa7733;font-size:.78rem;padding:10px 14px;line-height:1.7;margin-bottom:16px}
+
 /* Notice */
-.notice{border:1px solid #332200;border-radius:4px;background:#0f0900;
-  color:#aa7733;font-size:.78rem;padding:10px 14px;line-height:1.7;margin-bottom:12px}
+.notice{border:1px solid var(--border2);border-radius:4px;background:var(--bg3);
+  color:var(--dim);font-size:.78rem;padding:10px 14px;line-height:1.7;margin-top:10px}
+.notice.warn{border-color:#332200;background:#0f0900;color:#aa7733}
+
+/* Placeholder / todo sections */
+.todo-section{border:1px dashed var(--border2);border-radius:4px;padding:14px 16px;
+  color:var(--dim2);font-size:.78rem;line-height:1.8;margin-bottom:12px}
 
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
@@ -111,18 +101,22 @@ button{font-family:inherit;cursor:pointer}
     <img id="logo-img" src="/mim_logo.png" alt="MIM Logo" onerror="this.style.display='none'">
     <div id="hdr-center">
       <span id="logo">MIM</span>
-      <span id="logo-sub">firmware update</span>
+      <span id="logo-sub">developer options</span>
     </div>
-    <a id="nav-back" href="index.html">← back to control</a>
+    <a id="nav-back" href="/update/">← firmware update</a>
   </div>
 </header>
 
 <div class="wrap">
 
-  <div class="notice" id="notice-browser" style="display:none">
-    ⚠ WebSerial and WebHID require <strong>Chrome</strong> or <strong>Edge ≥ 89</strong> via HTTPS.<br>
-    Firefox and Safari are not supported.
+  <div class="dev-banner">
+    ⚠ <strong>Developer Options</strong> — nicht für den allgemeinen Gebrauch.<br>
+    Diese Seite ist nicht verlinkt. Nur für Entwickler und technische Tester.
   </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       Abschnitt 1 — WebHID Flash (Legacy / macOS + Linux only)
+       ══════════════════════════════════════════════════════════ -->
 
   <!-- Device connection -->
   <div class="card">
@@ -131,64 +125,49 @@ button{font-family:inherit;cursor:pointer}
       <div id="conn-area">
         <div id="dot"></div>
         <span id="conn-status">Not connected</span>
-        <button id="btn-connect">⏻  Connect</button>
+        <button id="btn-connect">⏻  Connect via WebSerial</button>
       </div>
     </div>
   </div>
 
-  <!-- Version -->
+  <!-- WebHID Flash -->
   <div class="card">
-    <div class="card-hd">VERSION</div>
-    <div class="card-bd">
-      <div class="ver-row">
-        <span class="ver-label">Installed:</span>
-        <span class="ver-val unknown" id="ver-installed">—</span>
-      </div>
-      <div class="ver-row">
-        <span class="ver-label">Available:</span>
-        <span class="ver-val unknown" id="ver-available">—</span>
-        <span id="status-pill">checking …</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Changelog -->
-  <div class="card">
-    <div class="card-hd">CHANGELOG</div>
-    <div class="card-bd">
-      <ul id="changelog-list">
-        <li style="list-style:none;border:none"><span style="color:var(--dim)">Loading …</span></li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- Flash status (shown during flash) -->
-  <div class="card" id="flash-card">
-    <div class="card-hd">FLASH STATUS</div>
+    <div class="card-hd">WEBHID FLASH (LEGACY)</div>
     <div class="card-bd">
       <div id="flash-msg" class="info"></div>
       <div id="progress-wrap">
         <div id="progress-track"><div id="progress-fill"></div></div>
         <span id="progress-pct">0%</span>
       </div>
-      <button class="fb warn" id="btn-bootloader-ready" style="display:none;margin-top:12px">
+      <button class="fb warn" id="btn-bootloader-ready" style="display:none;margin-bottom:10px">
         ⚡  Open device picker
       </button>
+      <div class="btn-row">
+        <button class="fb prim" id="btn-reboot-hk" disabled>↩  Restart device → HalfKay</button>
+        <button class="fb warn" id="btn-flash"     disabled>⚡  Flash via WebHID</button>
+      </div>
+      <div class="notice warn">
+        ⚠ WebHID Flash funktioniert <strong>nicht auf Windows</strong> (OS-Inkompatibilität —
+        Chrome nutzt Control Transfer, HalfKay erwartet Interrupt OUT).<br>
+        Für Windows: OTA WebSerial auf
+        <a href="/update/" style="color:var(--orange)">mim-control.com/update</a> verwenden,
+        oder .hex manuell mit <strong>Teensy Loader</strong> flashen.
+      </div>
     </div>
   </div>
 
-  <!-- Actions -->
-  <div class="card">
-    <div class="card-hd">ACTIONS</div>
-    <div class="card-bd">
-      <div class="btn-row">
-        <button class="fb prim" id="btn-download" disabled>⬇  Download .hex</button>
-      </div>
-      <p id="action-hint" style="color:var(--dim);font-size:.76rem;padding-top:12px;line-height:1.7">
-        Download .hex → open with <strong>Teensy Loader</strong> → flash.<br>
-        <span style="color:var(--dim2)">Manueller Flash als Fallback verfügbar.</span>
-      </p>
-    </div>
+  <!-- ══════════════════════════════════════════════════════════
+       Abschnitt 2 — Platzhalter für künftige Dev-Tools
+       ══════════════════════════════════════════════════════════ -->
+
+  <div class="todo-section">
+    <!-- TODO: Raw Serial Console -->
+    // TODO: Raw Serial Console — Direktzugriff auf Serial-Stream ohne JSON-Parsing
+  </div>
+
+  <div class="todo-section">
+    <!-- TODO: TEST_MODE Trigger -->
+    // TODO: TEST_MODE Trigger — smoke_test_MIM_FW Befehle direkt aus dem Browser auslösen
   </div>
 
 </div>
@@ -196,76 +175,47 @@ button{font-family:inherit;cursor:pointer}
 <script>
 'use strict';
 
+// ── Teensy 4.1 (iMXRT1062) HalfKay constants ─────────────────────────────────
+const HK_VID        = 0x16C0;
+const HK_PID        = 0x0478;
+const HK_BLOCK      = 1024;          // bytes per block
+const HK_REPORT     = HK_BLOCK + 64; // total HID report size
+
 // ── State ─────────────────────────────────────────────────────────────────────
 const S = {
-  connected:   false,
-  fwInstalled: null,
-  hexUrl:      null,
+  connected: false,
+  hexUrl:    null,
+  flashing:  false,
+  _rejectBootloader: null,
 };
 let _port = null, _writer = null, _rxBuf = '';
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────
 const ge = id => document.getElementById(id);
 
-// ── version.json ──────────────────────────────────────────────────────────────
-async function fetchVersionJson() {
+// ── version.json — hex_url holen ──────────────────────────────────────────────
+async function fetchHexUrl() {
   try {
     const r = await fetch('/version.json?_=' + Date.now());
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    if (!r.ok) return;
     const data = await r.json();
     S.hexUrl = data.hex_url || null;
-
-    ge('ver-available').textContent = data.version || '?';
-    ge('ver-available').className = 'ver-val';
-
-    const list = ge('changelog-list');
-    list.innerHTML = '';
-    const entries = Array.isArray(data.changelog) ? data.changelog : [];
-    if (entries.length === 0) {
-      list.innerHTML = '<li style="list-style:none;border:none"><span style="color:var(--dim)">No entries.</span></li>';
-    } else {
-      entries.forEach(e => {
-        const li = document.createElement('li');
-        li.textContent = e;
-        list.appendChild(li);
-      });
-    }
-
-    if (S.hexUrl) {
-      ge('btn-download').disabled = false;
-    }
-    compareVersions(data.version);
-  } catch (err) {
-    ge('ver-available').textContent = 'Error';
-    ge('status-pill').textContent   = 'fetch failed';
-    ge('changelog-list').innerHTML  =
-      '<li style="list-style:none;color:var(--red);font-size:.8rem">Could not load version.json: ' + err.message + '</li>';
-  }
-}
-
-function compareVersions(available) {
-  const pill = ge('status-pill');
-  if (!S.fwInstalled) { pill.textContent = 'connect device'; return; }
-  if (S.fwInstalled === available) {
-    pill.textContent = 'up to date'; pill.className = 'uptodate';
-    ge('ver-installed').className = 'ver-val ok';
-  } else {
-    pill.textContent = 'update available'; pill.className = 'update';
-    ge('ver-installed').className = 'ver-val upd';
-    ge('ver-available').className = 'ver-val ok';
-  }
+    if (S.hexUrl) ge('btn-flash').disabled = false;
+  } catch (_) {}
 }
 
 // ── WebSerial ─────────────────────────────────────────────────────────────────
 async function doConnect() {
-  if (!('serial' in navigator)) { ge('notice-browser').style.display = 'block'; return; }
+  if (!('serial' in navigator)) {
+    alert('WebSerial wird von diesem Browser nicht unterstützt. Bitte Chrome oder Edge verwenden.');
+    return;
+  }
   try {
     _port = await navigator.serial.requestPort();
     await _port.open({ baudRate: 115200 });
     _writer = _port.writable.getWriter();
     setConnected(true);
     _startRead();
-    setTimeout(() => sendJson({ cmd: 'ping' }), 200);
   } catch (e) {
     if (e.name !== 'NotFoundError') console.error(e);
   }
@@ -291,7 +241,7 @@ async function _startRead() {
       while ((nl = _rxBuf.indexOf('\n')) !== -1) {
         const ln = _rxBuf.slice(0, nl).trim();
         _rxBuf   = _rxBuf.slice(nl + 1);
-        if (ln) handleLine(ln);
+        if (ln) console.log('[DEV]', ln);
       }
     }
   } catch (_) { if (S.connected) doDisconnect(); }
@@ -301,19 +251,6 @@ async function sendJson(obj) {
   if (!_writer) return;
   try { await _writer.write(new TextEncoder().encode(JSON.stringify(obj) + '\n')); }
   catch (_) {}
-}
-
-function handleLine(ln) {
-  if (!ln.startsWith('{')) return;
-  let r; try { r = JSON.parse(ln); } catch (_) { return; }
-  if (r.status !== 'ok') return;
-  if (r.fw_version) {
-    S.fwInstalled = r.fw_version;
-    ge('ver-installed').textContent = r.fw_version;
-    ge('ver-installed').className   = 'ver-val';
-    const avail = ge('ver-available').textContent;
-    if (avail && avail !== '—' && avail !== 'Error') compareVersions(avail);
-  }
 }
 
 // ── Intel HEX parser ──────────────────────────────────────────────────────────
@@ -354,7 +291,6 @@ function parseHex(text) {
     }
   }
 
-  // Remove blocks that are entirely 0xFF (blank — bootloader skips them)
   for (const [addr, data] of blocks) {
     if (data.every(b => b === 0xFF)) blocks.delete(addr);
   }
@@ -362,8 +298,124 @@ function parseHex(text) {
   return blocks;
 }
 
-// ── Flash-Hilfsfunktionen (für OTA WebSerial — wird in OTA6 befüllt) ──────────
-// parseHex() bleibt erhalten — wird für WebSerial OTA benötigt.
+// ── HalfKay WebHID flash ──────────────────────────────────────────────────────
+async function flashHalfKay(blocks, onProgress) {
+  if (!('hid' in navigator)) throw new Error('WebHID not supported in this browser.');
+
+  setFlashMsg('Opening device picker — select the Teensy bootloader …', 'info');
+
+  const devices = await navigator.hid.requestDevice({
+    filters: [{ vendorId: HK_VID, productId: HK_PID }],
+  });
+  if (!devices.length) throw new Error('No device selected.');
+
+  const dev = devices[0];
+  await dev.open();
+
+  const col = dev.collections?.[0];
+  const outReport = col?.outputReports?.[0];
+  let reportSize = HK_REPORT;
+  let reportId = 0;
+  if (outReport) {
+    const fromDescriptor = (outReport.items || [])
+      .reduce((sum, it) => sum + Math.ceil((it.reportCount ?? 0) * (it.reportSize ?? 0) / 8), 0);
+    reportId = outReport.reportId ?? 0;
+    if (fromDescriptor > 0) reportSize = fromDescriptor;
+  }
+
+  setFlashMsg(`Flashing … (reportId:${reportId}, size:${reportSize}b)`, 'info');
+
+  const sorted = [...blocks.entries()].sort((a, b) => a[0] - b[0]);
+  const total  = sorted.length;
+
+  for (let i = 0; i < total; i++) {
+    const [addr, data] = sorted[i];
+    const report = new Uint8Array(reportSize);
+    report[0] = addr         & 0xFF;
+    report[1] = (addr >> 8)  & 0xFF;
+    report[2] = (addr >> 16) & 0xFF;
+    const dataLen = Math.min(data.length, reportSize - 64);
+    report.set(data.subarray(0, dataLen), 64);
+    await dev.sendReport(reportId, report);
+    onProgress(i + 1, total);
+    await new Promise(r => setTimeout(r, 5));
+  }
+
+  // Reboot command: address 0xFFFFFF
+  const reboot = new Uint8Array(reportSize);
+  reboot[0] = 0xFF; reboot[1] = 0xFF; reboot[2] = 0xFF;
+  await dev.sendReport(reportId, reboot);
+  await dev.close();
+}
+
+// ── Flash flow ────────────────────────────────────────────────────────────────
+function waitForBootloaderReady() {
+  return new Promise((resolve, reject) => {
+    const btn = ge('btn-bootloader-ready');
+    btn.style.display = 'inline-block';
+    btn.onclick = () => { btn.style.display = 'none'; resolve(); };
+    S._rejectBootloader = reject;
+  });
+}
+
+function flashReset() {
+  ge('btn-flash').disabled    = !S.hexUrl;
+  ge('btn-reboot-hk').disabled = !S.connected;
+  ge('btn-bootloader-ready').style.display = 'none';
+  ge('progress-wrap').style.display = 'none';
+  S.flashing = false;
+  S._rejectBootloader = null;
+}
+
+async function doFlash() {
+  if (!S.hexUrl || S.flashing) return;
+  S.flashing = true;
+  ge('btn-flash').disabled     = true;
+  ge('btn-reboot-hk').disabled = true;
+
+  try {
+    setFlashMsg('Downloading firmware …', 'info');
+    const hexResp = await fetch(S.hexUrl, { cache: 'no-store' });
+    if (!hexResp.ok) throw new Error('Download failed: HTTP ' + hexResp.status);
+    const hexText = await hexResp.text();
+
+    setFlashMsg('Parsing firmware …', 'info');
+    const blocks = parseHex(hexText);
+    if (blocks.size === 0) throw new Error('HEX file contains no valid data blocks.');
+
+    if (S.connected) {
+      setFlashMsg('Sending reboot command to device …', 'info');
+      await sendJson({ cmd: 'reboot_bootloader' });
+      await sleep(200);
+      await doDisconnect();
+    }
+
+    setFlashMsg(
+      'Device entering bootloader mode.\n' +
+      'If it did not reboot automatically, press the white button on the Teensy.\n' +
+      'When the LED flashes, click the button below.',
+      'info'
+    );
+
+    await waitForBootloaderReady();
+
+    ge('progress-wrap').style.display = 'flex';
+    await flashHalfKay(blocks, (done, total) => {
+      const pct = Math.round(done / total * 100);
+      setProgress(pct);
+      setFlashMsg(`Flashing … ${pct}%`, 'info');
+    });
+
+    setProgress(100);
+    setFlashMsg('Flash complete ✓ — device is restarting …', 'ok');
+    setTimeout(() => flashReset(), 4000);
+
+  } catch (err) {
+    const msg = err.message || String(err);
+    setFlashMsg('Flash failed: ' + msg + '\n\nThe device is not damaged — HalfKay remains active.', 'err');
+    flashReset();
+  }
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -386,28 +438,26 @@ function setConnected(v) {
   if (v) {
     btn.textContent = '⏻  Disconnect'; btn.classList.add('disc');
     dot.classList.add('on'); st.textContent = 'Connected';
+    ge('btn-reboot-hk').disabled = false;
   } else {
-    btn.textContent = '⏻  Connect'; btn.classList.remove('disc');
+    btn.textContent = '⏻  Connect via WebSerial'; btn.classList.remove('disc');
     dot.classList.remove('on'); st.textContent = 'Not connected';
-    ge('ver-installed').textContent = '—';
-    ge('ver-installed').className   = 'ver-val unknown';
-    S.fwInstalled = null;
-    ge('status-pill').textContent = 'connect device';
-    ge('status-pill').className   = '';
+    ge('btn-reboot-hk').disabled = true;
   }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  if (!('serial' in navigator)) {
-    ge('notice-browser').style.display = 'block';
-    ge('btn-connect').disabled = true;
-  }
+  ge('btn-connect').onclick   = () => S.connected ? doDisconnect() : doConnect();
+  ge('btn-reboot-hk').onclick = async () => {
+    await sendJson({ cmd: 'reboot_bootloader' });
+    await sleep(200);
+    await doDisconnect();
+    setFlashMsg('Device rebooting into HalfKay …\nPress white button if LED does not flash.', 'info');
+  };
+  ge('btn-flash').onclick = doFlash;
 
-  ge('btn-connect').onclick  = () => S.connected ? doDisconnect() : doConnect();
-  ge('btn-download').onclick = () => S.hexUrl && window.open(S.hexUrl, '_blank');
-
-  fetchVersionJson();
+  fetchHexUrl();
 });
 </script>
 </body>

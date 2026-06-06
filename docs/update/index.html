@@ -182,12 +182,13 @@ button{font-family:inherit;cursor:pointer}
     <div class="card-hd">ACTIONS</div>
     <div class="card-bd">
       <div class="btn-row">
-        <button class="fb warn" id="btn-flash"    disabled>⚡  Flash firmware</button>
-        <button class="fb sec"  id="btn-download" disabled>⬇  Download .hex</button>
+        <button class="fb prim" id="btn-download" disabled>⬇  Download .hex</button>
+        <button class="fb sec"  id="btn-flash"    disabled>⚡  Flash via WebHID</button>
       </div>
       <p id="action-hint" style="color:var(--dim);font-size:.76rem;padding-top:12px;line-height:1.7">
-        Flashes the device automatically via WebHID.<br>
-        Use "Download .hex" as manual fallback (requires MIM-Loader).
+        <span style="color:var(--text)">Windows:</span>
+        Download .hex → open with <strong>MIM-Loader</strong> (Teensy Loader) → flash.<br>
+        <span style="color:var(--dim2)">Flash via WebHID: experimental, works on macOS/Linux only.</span>
       </p>
     </div>
   </div>

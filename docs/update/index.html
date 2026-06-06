@@ -120,7 +120,7 @@ button{font-family:inherit;cursor:pointer}
 <div class="wrap">
 
   <div class="notice" id="notice-browser" style="display:none">
-    ⚠ WebSerial and WebHID require <strong>Chrome</strong> or <strong>Edge ≥ 89</strong> via HTTPS.<br>
+    ⚠ WebSerial requires <strong>Chrome</strong> or <strong>Edge ≥ 89</strong> via HTTPS.<br>
     Firefox and Safari are not supported.
   </div>
 
@@ -162,7 +162,7 @@ button{font-family:inherit;cursor:pointer}
     </div>
   </div>
 
-  <!-- Flash status (shown during flash) -->
+  <!-- Flash status (shown during OTA) -->
   <div class="card" id="flash-card">
     <div class="card-hd">FLASH STATUS</div>
     <div class="card-bd">
@@ -171,9 +171,6 @@ button{font-family:inherit;cursor:pointer}
         <div id="progress-track"><div id="progress-fill"></div></div>
         <span id="progress-pct">0%</span>
       </div>
-      <button class="fb warn" id="btn-bootloader-ready" style="display:none;margin-top:12px">
-        ⚡  Open device picker
-      </button>
     </div>
   </div>
 
@@ -182,11 +179,14 @@ button{font-family:inherit;cursor:pointer}
     <div class="card-hd">ACTIONS</div>
     <div class="card-bd">
       <div class="btn-row">
-        <button class="fb prim" id="btn-download" disabled>⬇  Download .hex</button>
+        <button class="fb prim" id="btn-flash-ota" disabled>⚡  Flash Firmware</button>
+        <button class="fb sec"  id="btn-download"  disabled>⬇  Download .hex</button>
       </div>
+      <!-- hidden file picker for manual .hex selection -->
+      <input type="file" id="file-hex" accept=".hex" style="display:none">
       <p id="action-hint" style="color:var(--dim);font-size:.76rem;padding-top:12px;line-height:1.7">
-        Download .hex → open with <strong>Teensy Loader</strong> → flash.<br>
-        <span style="color:var(--dim2)">Manueller Flash als Fallback verfügbar.</span>
+        Connect device → click <strong>Flash Firmware</strong> for automatic OTA update.<br>
+        <span style="color:var(--dim2)">Manual fallback: Download .hex → open with Teensy Loader.</span>
       </p>
     </div>
   </div>
@@ -196,13 +196,20 @@ button{font-family:inherit;cursor:pointer}
 <script>
 'use strict';
 
+// ── OTA-Konstanten (müssen mit config.h übereinstimmen) ───────────────────────
+const OTA_BLOCK_SIZE   = 256;   // muss == OTA_BLOCK_SIZE in firmware
+const OTA_TIMEOUT_MS   = 8000;  // pro Block: grosszügig (Sector-Erase ~100ms)
+const OTA_REBOOT_WAIT  = 5000;  // Wartezeit nach Reboot vor Reconnect-Versuch
+
 // ── State ─────────────────────────────────────────────────────────────────────
 const S = {
   connected:   false,
   fwInstalled: null,
   hexUrl:      null,
+  otaRunning:  false,
 };
 let _port = null, _writer = null, _rxBuf = '';
+let _otaResolve = null;   // wird von handleLine() aufgerufen wenn OTA-Nachricht ankommt
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────
 const ge = id => document.getElementById(id);
@@ -231,9 +238,7 @@ async function fetchVersionJson() {
       });
     }
 
-    if (S.hexUrl) {
-      ge('btn-download').disabled = false;
-    }
+    if (S.hexUrl) ge('btn-download').disabled = false;
     compareVersions(data.version);
   } catch (err) {
     ge('ver-available').textContent = 'Error';
@@ -274,8 +279,9 @@ async function doConnect() {
 async function doDisconnect() {
   setConnected(false);
   try { if (_writer) { _writer.releaseLock(); _writer = null; } } catch (_) {}
-  try { if (_port)   { await _port.close();   _port   = null; } } catch (_) {}
+  try { if (_port)   { await _port.close();                    } } catch (_) {}
   _rxBuf = '';
+  // _port intentionally not nulled — needed for auto-reconnect after OTA
 }
 
 async function _startRead() {
@@ -306,6 +312,16 @@ async function sendJson(obj) {
 function handleLine(ln) {
   if (!ln.startsWith('{')) return;
   let r; try { r = JSON.parse(ln); } catch (_) { return; }
+
+  // OTA-Protokoll-Antworten: an wartende doOtaFlash()-Promise weiterleiten
+  if (r.ota !== undefined && _otaResolve) {
+    const resolve = _otaResolve;
+    _otaResolve = null;
+    resolve(r);
+    return;
+  }
+
+  // Standard: ping-Antwort → Firmware-Version auslesen
   if (r.status !== 'ok') return;
   if (r.fw_version) {
     S.fwInstalled = r.fw_version;
@@ -316,8 +332,24 @@ function handleLine(ln) {
   }
 }
 
+// Wartet auf die nächste OTA-Nachricht von der Firmware (Promise-basiert).
+function waitOta(timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => {
+      _otaResolve = null;
+      reject(new Error('OTA timeout after ' + timeoutMs + ' ms'));
+    }, timeoutMs);
+    _otaResolve = (msg) => {
+      clearTimeout(t);
+      resolve(msg);
+    };
+  });
+}
+
 // ── Intel HEX parser ──────────────────────────────────────────────────────────
-// Returns Map<blockAddress, Uint8Array(HK_BLOCK)>, skipping 0xFF-only blocks.
+// Gibt Map<blockAddress, Uint8Array(OTA_BLOCK_SIZE)> zurück.
+// Reine 0xFF-Blöcke werden übersprungen (Blank-Flash).
+// Teensy 4.1 FlexSPI-Remap: 0x60xxxxxx → 0x00xxxxxx
 function parseHex(text) {
   const blocks = new Map();
   let extAddr = 0;
@@ -325,28 +357,28 @@ function parseHex(text) {
   for (const raw of text.split('\n')) {
     const l = raw.trim();
     if (!l.startsWith(':')) continue;
-    const len  = parseInt(l.slice(1,  3), 16);
-    const addr = parseInt(l.slice(3,  7), 16);
-    const type = parseInt(l.slice(7,  9), 16);
+    const len  = parseInt(l.slice(1, 3),  16);
+    const addr = parseInt(l.slice(3, 7),  16);
+    const type = parseInt(l.slice(7, 9),  16);
 
-    if (type === 0x01) break;
+    if (type === 0x01) break;   // EOF record
 
     if (type === 0x04) {
+      // Extended Linear Address Record
       const seg = parseInt(l.slice(9, 13), 16) << 16;
-      // Teensy 4.1 FlexSPI remap: 0x60xxxxxx → 0x00xxxxxx
       extAddr = (seg & 0xFF000000) === 0x60000000 ? seg - 0x60000000 : seg;
       continue;
     }
 
-    if (type !== 0x00) continue;
+    if (type !== 0x00) continue;   // nur Data-Records verarbeiten
 
     for (let i = 0; i < len; i++) {
       const byteAddr  = (extAddr + addr + i) >>> 0;
-      const blockAddr = byteAddr & ~(HK_BLOCK - 1);
+      const blockAddr = byteAddr & ~(OTA_BLOCK_SIZE - 1);   // 256B-ausgerichtet
       const offset    = byteAddr - blockAddr;
 
       if (!blocks.has(blockAddr)) {
-        const b = new Uint8Array(HK_BLOCK);
+        const b = new Uint8Array(OTA_BLOCK_SIZE);
         b.fill(0xFF);
         blocks.set(blockAddr, b);
       }
@@ -354,7 +386,7 @@ function parseHex(text) {
     }
   }
 
-  // Remove blocks that are entirely 0xFF (blank — bootloader skips them)
+  // Reine 0xFF-Blöcke entfernen (Bootloader/Flash schreibt diese nicht)
   for (const [addr, data] of blocks) {
     if (data.every(b => b === 0xFF)) blocks.delete(addr);
   }
@@ -362,8 +394,124 @@ function parseHex(text) {
   return blocks;
 }
 
-// ── Flash-Hilfsfunktionen (für OTA WebSerial — wird in OTA6 befüllt) ──────────
-// parseHex() bleibt erhalten — wird für WebSerial OTA benötigt.
+// ── Base64-Encoder ────────────────────────────────────────────────────────────
+// Enkodiert ein Uint8Array als Base64-String (für ota_block "data"-Feld).
+function toBase64(bytes) {
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+// ── CRC32 (IEEE 802.3, Poly 0xEDB88320) ──────────────────────────────────────
+// Muss identisch zur Firmware-Implementierung in ota_handler.cpp sein.
+function crc32(data) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < data.length; i++) {
+    crc ^= data[i];
+    for (let b = 0; b < 8; b++) {
+      crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+    }
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+// ── OTA Flash Flow ────────────────────────────────────────────────────────────
+async function doOtaFlash(hexText) {
+  S.otaRunning = true;
+  ge('btn-flash-ota').disabled = true;
+  ge('btn-download').disabled  = true;
+  ge('btn-connect').disabled   = true;
+  ge('flash-card').style.display    = 'block';
+  ge('progress-wrap').style.display = 'flex';
+  setProgress(0);
+
+  try {
+    // 1. HEX parsen → nach Adresse sortiert
+    setFlashMsg('Parsing firmware …', 'info');
+    const blockMap = parseHex(hexText);
+    const sorted   = [...blockMap.entries()].sort((a, b) => a[0] - b[0]);
+    if (sorted.length === 0) throw new Error('No valid data in .hex file');
+
+    const totalBlocks = sorted.length;
+    const totalBytes  = totalBlocks * OTA_BLOCK_SIZE;
+
+    // 2. CRC32 über alle Block-Daten in Adress-Reihenfolge berechnen
+    //    (muss identisch zur Firmware-Akkumulation sein)
+    const allBytes = new Uint8Array(totalBytes);
+    sorted.forEach(([, data], i) => allBytes.set(data, i * OTA_BLOCK_SIZE));
+    const checksum = crc32(allBytes);
+
+    setFlashMsg(
+      'Ready: ' + totalBlocks + ' blocks, ' +
+      (totalBytes / 1024).toFixed(1) + ' KB, CRC32=0x' + checksum.toString(16).toUpperCase(),
+      'info'
+    );
+
+    // 3. ota_start → warten auf {"ota":"ready"}
+    await sendJson({ cmd: 'ota_start', total_bytes: totalBytes, block_size: OTA_BLOCK_SIZE });
+    const startResp = await waitOta(5000);
+    if (startResp.ota !== 'ready') throw new Error('ota_start rejected: ' + JSON.stringify(startResp));
+
+    // 4. Blöcke senden — einen nach dem anderen (ACK abwarten)
+    for (let i = 0; i < totalBlocks; i++) {
+      const [addr, data] = sorted[i];
+
+      await sendJson({
+        cmd:  'ota_block',
+        seq:  i,
+        addr: addr,
+        data: toBase64(data),
+      });
+
+      const ackResp = await waitOta(OTA_TIMEOUT_MS);
+      if (ackResp.ota === 'nack')  throw new Error('Block ' + i + ' NACK: ' + ackResp.msg);
+      if (ackResp.ota !== 'ack')   throw new Error('Block ' + i + ' unexpected: ' + JSON.stringify(ackResp));
+
+      const pct = Math.round((i + 1) / totalBlocks * 95);  // bis 95% — finish ist die letzten 5%
+      setProgress(pct);
+      setFlashMsg('Block ' + (i + 1) + ' / ' + totalBlocks + ' …', 'info');
+    }
+
+    // 5. ota_finish → CRC32 prüfen, Sector 0 schreiben, Reboot
+    setFlashMsg('Verifying CRC32 …', 'info');
+    await sendJson({ cmd: 'ota_finish', crc32: checksum });
+    const finResp = await waitOta(10000);
+    if (finResp.ota !== 'ok') throw new Error('ota_finish failed: ' + JSON.stringify(finResp));
+
+    // 6. Erfolg — Gerät rebooted jetzt
+    setProgress(100);
+    setFlashMsg('Flash OK — device rebooting …', 'ok');
+    const savedPort = _port;   // Port-Referenz vor Disconnect sichern
+    await doDisconnect();
+
+    // 7. Auto-Reconnect nach Reboot
+    await sleep(OTA_REBOOT_WAIT);
+    setFlashMsg('Reconnecting …', 'info');
+    try {
+      await savedPort.open({ baudRate: 115200 });
+      _port   = savedPort;
+      _writer = savedPort.writable.getWriter();
+      setConnected(true);
+      _startRead();
+      setTimeout(() => sendJson({ cmd: 'ping' }), 300);
+      setFlashMsg('Reconnected — verifying version …', 'ok');
+    } catch (_) {
+      // Gerät auf anderem Port neu aufgetaucht → manuell verbinden
+      setFlashMsg('Flash OK — click Connect to verify new version.', 'ok');
+    }
+
+  } catch (err) {
+    // Fehlerfall: Abort senden, UI zurücksetzen
+    setFlashMsg('Error: ' + err.message, 'err');
+    await sendJson({ cmd: 'ota_abort', reason: 'browser_error' });
+    _otaResolve = null;
+  } finally {
+    S.otaRunning = false;
+    ge('btn-flash-ota').disabled = !S.connected;
+    ge('btn-download').disabled  = !S.hexUrl;
+    ge('btn-connect').disabled   = false;
+  }
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -376,7 +524,7 @@ function setFlashMsg(text, cls) {
 
 function setProgress(pct) {
   ge('progress-fill').style.width = pct + '%';
-  ge('progress-pct').textContent  = pct + '%';
+  ge('progress-pct').textContent  = Math.round(pct) + '%';
 }
 
 // ── UI state ──────────────────────────────────────────────────────────────────
@@ -386,6 +534,7 @@ function setConnected(v) {
   if (v) {
     btn.textContent = '⏻  Disconnect'; btn.classList.add('disc');
     dot.classList.add('on'); st.textContent = 'Connected';
+    ge('btn-flash-ota').disabled = false;
   } else {
     btn.textContent = '⏻  Connect'; btn.classList.remove('disc');
     dot.classList.remove('on'); st.textContent = 'Not connected';
@@ -394,6 +543,30 @@ function setConnected(v) {
     S.fwInstalled = null;
     ge('status-pill').textContent = 'connect device';
     ge('status-pill').className   = '';
+    ge('btn-flash-ota').disabled = true;
+  }
+}
+
+// ── Flash-Button Handler ──────────────────────────────────────────────────────
+// Wenn hex_url bekannt: auto-fetch. Sonst: Datei-Picker.
+async function onFlashClick() {
+  if (!S.connected || S.otaRunning) return;
+
+  if (S.hexUrl) {
+    // Automatisch herunterladen und flashen
+    ge('flash-card').style.display = 'block';
+    setFlashMsg('Downloading firmware …', 'info');
+    try {
+      const r = await fetch(S.hexUrl);
+      if (!r.ok) throw new Error('Download failed: HTTP ' + r.status);
+      const hexText = await r.text();
+      await doOtaFlash(hexText);
+    } catch (err) {
+      setFlashMsg('Download error: ' + err.message, 'err');
+    }
+  } else {
+    // Kein hex_url → lokale Datei wählen
+    ge('file-hex').click();
   }
 }
 
@@ -404,8 +577,18 @@ document.addEventListener('DOMContentLoaded', () => {
     ge('btn-connect').disabled = true;
   }
 
-  ge('btn-connect').onclick  = () => S.connected ? doDisconnect() : doConnect();
-  ge('btn-download').onclick = () => S.hexUrl && window.open(S.hexUrl, '_blank');
+  ge('btn-connect').onclick    = () => S.connected ? doDisconnect() : doConnect();
+  ge('btn-download').onclick   = () => S.hexUrl && window.open(S.hexUrl, '_blank');
+  ge('btn-flash-ota').onclick  = onFlashClick;
+
+  // Lokale .hex-Datei ausgewählt → direkt flashen
+  ge('file-hex').onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';   // reset so same file can be selected again
+    const hexText = await file.text();
+    await doOtaFlash(hexText);
+  };
 
   fetchVersionJson();
 });

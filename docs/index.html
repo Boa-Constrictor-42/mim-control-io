@@ -231,7 +231,7 @@ input{font-family:inherit}
   cursor:pointer;transition:background .15s,color .15s;white-space:nowrap}
 .save-slot:hover{background:var(--green);color:#000}
 /* Aktiver Modus-Button: Text grün, Umrandung bleibt grau */
-#main.on .mb:disabled{color:var(--green)}
+.mb.mb-active{color:var(--green)}
 .pslot-name-input{background:transparent;border:none;border-bottom:1px solid var(--blue);
   color:var(--text);font-family:inherit;font-size:.78rem;width:70px;outline:none}
 
@@ -904,6 +904,9 @@ function setActiveMode(mode) {
   const isJoypad = mode === 'AIM' || mode === 'CIM';
   if(joypad) joypad.disabled = !S.connected || isJoypad;
   if(mnk)    mnk.disabled    = !S.connected || (!isJoypad && mode !== 'unknown');
+  // Aktiver Modus: Text grün; inaktiv oder getrennt: Text grau
+  if(joypad) joypad.classList.toggle('mb-active', S.connected && isJoypad);
+  if(mnk)    mnk.classList.toggle('mb-active',    S.connected && !isJoypad && mode !== 'unknown');
   // Tabs aktivieren
   activateTab(mode);
 }

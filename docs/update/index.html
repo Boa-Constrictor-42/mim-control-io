@@ -390,19 +390,24 @@ async function flashHalfKay(blocks, onProgress) {
   const outReport = col?.outputReports?.[0];
   let reportSize = HK_REPORT; // Fallback
 
+  let reportId = 0;
   if (outReport) {
     const fromDescriptor = (outReport.items || [])
       .reduce((sum, it) => sum + Math.ceil((it.reportCount ?? 0) * (it.reportSize ?? 0) / 8), 0);
+    reportId = outReport.reportId ?? 0;
     console.log('[HalfKay] usagePage=0x' + (col.usagePage ?? 0).toString(16)
       + ' usage=0x' + (col.usage ?? 0).toString(16));
+    console.log('[HalfKay] reportId:', reportId);
     console.log('[HalfKay] Descriptor report size:', fromDescriptor, 'bytes');
     console.log('[HalfKay] Our HK_REPORT constant:', HK_REPORT, 'bytes');
+    console.log('[HalfKay] Full collections dump:', JSON.stringify(dev.collections));
     if (fromDescriptor > 0) reportSize = fromDescriptor;
   } else {
     console.warn('[HalfKay] No outputReports in descriptor — using default', HK_REPORT);
+    console.log('[HalfKay] Full collections dump:', JSON.stringify(dev.collections));
   }
 
-  setFlashMsg(`Flashing … (report size: ${reportSize} bytes)`, 'info');
+  setFlashMsg(`Flashing … (reportId:${reportId}, size:${reportSize}b)`, 'info');
 
   const sorted = [...blocks.entries()].sort((a, b) => a[0] - b[0]);
   const total  = sorted.length;
@@ -414,11 +419,10 @@ async function flashHalfKay(blocks, onProgress) {
     report[0] = addr         & 0xFF;
     report[1] = (addr >> 8)  & 0xFF;
     report[2] = (addr >> 16) & 0xFF;
-    // bytes 3–63: padding zeros
     const dataLen = Math.min(data.length, reportSize - 64);
     report.set(data.subarray(0, dataLen), 64);
 
-    await dev.sendReport(0, report);
+    await dev.sendReport(reportId, report);
     onProgress(i + 1, total);
     await new Promise(r => setTimeout(r, 5));
   }
@@ -426,7 +430,7 @@ async function flashHalfKay(blocks, onProgress) {
   // Reboot command: address 0xFFFFFF
   const reboot = new Uint8Array(reportSize);
   reboot[0] = 0xFF; reboot[1] = 0xFF; reboot[2] = 0xFF;
-  await dev.sendReport(0, reboot);
+  await dev.sendReport(reportId, reboot);
 
   await dev.close();
 }

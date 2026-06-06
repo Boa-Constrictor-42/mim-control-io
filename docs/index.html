@@ -60,7 +60,7 @@ input{font-family:inherit}
 .mb:disabled{opacity:.3;cursor:not-allowed}
 .mb-sub{font-size:.63rem;color:var(--dim2);letter-spacing:.04em;pointer-events:none;
   white-space:nowrap}
-#s-mode{font-size:.78rem;color:var(--text);font-weight:bold;min-width:44px;
+#s-mode{font-size:.78rem;color:var(--green);font-weight:bold;min-width:44px;
   text-align:left;letter-spacing:.06em}
 #no-ws{display:none;margin:16px;padding:14px;border:1px solid #552200;
   border-radius:4px;color:#cc6633;font-size:.83rem;text-align:center;line-height:1.6}
@@ -1964,6 +1964,12 @@ document.addEventListener('DOMContentLoaded',()=>{
       document.querySelectorAll('.kim-type-btn').forEach(x=>x.classList.remove('active'));
       b.classList.add('active');
       KIM._showFields(type);
+      // Steps für das neu angezeigte Feld rendern
+      const e = KIM.editIdx >= 0
+        ? KIM.profile.entries[KIM.editIdx]
+        : KIM._def();
+      if(type===1) _kimRenderSteps('kim-steps-seq',   e.steps);
+      if(type===3) _kimRenderSteps('kim-steps-chord', e.steps);
     };
   });
 

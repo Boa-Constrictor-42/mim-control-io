@@ -486,10 +486,10 @@ input{font-family:inherit}
     <div class="sec" style="margin-top:12px">
       <div class="sec-hd" style="display:flex;align-items:center;justify-content:space-between">
         KIM — Keyboard Input Modifier
-        <label class="kim-sw-wrap" title="KIM aktivieren / deaktivieren">
+        <label class="kim-sw-wrap" title="Enable / disable KIM">
           <input type="checkbox" id="kim-active-chk">
           <span class="kim-sw-track"><span class="kim-sw-thumb"></span></span>
-          <span id="kim-active-lbl" style="font-size:.8rem;color:var(--dim)">inaktiv</span>
+          <span id="kim-active-lbl" style="font-size:.8rem;color:var(--dim)">inactive</span>
         </label>
       </div>
     </div>
@@ -498,22 +498,22 @@ input{font-family:inherit}
     <div class="sec">
       <div class="sec-hd" style="display:flex;align-items:center">
         Entries
-        <button class="fb" id="kim-add-btn" style="margin-left:auto;padding:3px 12px">+ Neu</button>
+        <button class="fb" id="kim-add-btn" style="margin-left:auto;padding:3px 12px">+ New</button>
       </div>
       <div class="sec-bd">
-        <div id="kim-empty-msg" style="color:var(--dim);font-size:.82rem;padding:6px 0">Keine Entries konfiguriert.</div>
+        <div id="kim-empty-msg" style="color:var(--dim);font-size:.82rem;padding:6px 0">No entries configured.</div>
         <div id="kim-entry-list"></div>
       </div>
     </div>
 
     <!-- Inline Editor (hidden until opened) -->
     <div class="sec" id="kim-editor" style="display:none">
-      <div class="sec-hd" id="kim-editor-title">Entry bearbeiten</div>
+      <div class="sec-hd" id="kim-editor-title">Edit Entry</div>
       <div class="sec-bd">
 
         <!-- Type selector -->
         <div class="kim-row">
-          <span class="kim-lbl">Typ</span>
+          <span class="kim-lbl">Type</span>
           <div class="kim-type-wrap">
             <button class="kim-type-btn active" data-type="1">Key Sequence</button>
             <button class="kim-type-btn"        data-type="2">Double-Tap</button>
@@ -526,11 +526,11 @@ input{font-family:inherit}
           <div class="kim-row">
             <span class="kim-lbl">Trigger</span>
             <button class="kim-bind-btn" id="kim-seq-trigger" data-code="0"
-                    onclick="KIM.bind('kim-seq-trigger')">— leer —</button>
+                    onclick="KIM.bind('kim-seq-trigger')">— empty —</button>
           </div>
           <div id="kim-steps-seq"></div>
           <div class="kim-row">
-            <span class="kim-lbl">Auslösung</span>
+            <span class="kim-lbl">Trigger mode</span>
             <div class="kim-tmode-grp" id="kim-seq-tmode" data-mode="0">
               <button class="kim-tmode-btn active" data-mode="0" onclick="KIM.setTMode('kim-seq-tmode',0)">Tap</button>
               <button class="kim-tmode-btn"         data-mode="1" onclick="KIM.setTMode('kim-seq-tmode',1)">Hold</button>
@@ -544,36 +544,36 @@ input{font-family:inherit}
           <div class="kim-row">
             <span class="kim-lbl">Trigger</span>
             <button class="kim-bind-btn" id="kim-dtap-trigger" data-code="0"
-                    onclick="KIM.bind('kim-dtap-trigger')">— leer —</button>
+                    onclick="KIM.bind('kim-dtap-trigger')">— empty —</button>
           </div>
           <div class="kim-row">
-            <span class="kim-lbl">Max. Abstand</span>
+            <span class="kim-lbl">Max. Gap</span>
             <input type="number" id="kim-dtap-gap" class="kim-ms" min="50" max="500" value="250">
             <span class="kim-unit">ms</span>
           </div>
           <div class="kim-row">
-            <span class="kim-lbl">Aktion</span>
+            <span class="kim-lbl">Action</span>
             <button class="kim-bind-btn" id="kim-dtap-action" data-code="0"
-                    onclick="KIM.bind('kim-dtap-action')">— leer —</button>
-            <span class="kim-dimtxt">Taste die bei Doppel-Tap ausgegeben wird</span>
+                    onclick="KIM.bind('kim-dtap-action')">— empty —</button>
+            <span class="kim-dimtxt">Key output on double-tap</span>
           </div>
         </div>
 
         <!-- Chord fields -->
         <div id="kim-f-chord" style="display:none">
           <div class="kim-row">
-            <span class="kim-lbl">Taste 1</span>
+            <span class="kim-lbl">Key 1</span>
             <button class="kim-bind-btn" id="kim-chord-t1" data-code="0"
-                    onclick="KIM.bind('kim-chord-t1')">— leer —</button>
+                    onclick="KIM.bind('kim-chord-t1')">— empty —</button>
           </div>
           <div class="kim-row">
-            <span class="kim-lbl">Taste 2</span>
+            <span class="kim-lbl">Key 2</span>
             <button class="kim-bind-btn" id="kim-chord-t2" data-code="0"
-                    onclick="KIM.bind('kim-chord-t2')">— leer —</button>
+                    onclick="KIM.bind('kim-chord-t2')">— empty —</button>
           </div>
           <div id="kim-steps-chord"></div>
           <div class="kim-row">
-            <span class="kim-lbl">Auslösung</span>
+            <span class="kim-lbl">Trigger mode</span>
             <div class="kim-tmode-grp" id="kim-chord-tmode" data-mode="1">
               <button class="kim-tmode-btn"         data-mode="0" onclick="KIM.setTMode('kim-chord-tmode',0)">Tap</button>
               <button class="kim-tmode-btn active"  data-mode="1" onclick="KIM.setTMode('kim-chord-tmode',1)">Hold</button>
@@ -584,9 +584,9 @@ input{font-family:inherit}
 
         <!-- Editor buttons -->
         <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
-          <button class="fb prim" id="kim-save-btn">Speichern</button>
-          <button class="fb"      id="kim-cancel-btn">Abbrechen</button>
-          <button class="fb dang" id="kim-del-btn" style="margin-left:auto;display:none">Löschen</button>
+          <button class="fb prim" id="kim-save-btn">Save</button>
+          <button class="fb"      id="kim-cancel-btn">Cancel</button>
+          <button class="fb dang" id="kim-del-btn" style="margin-left:auto;display:none">Delete</button>
         </div>
       </div>
     </div><!-- #kim-editor -->
@@ -595,13 +595,13 @@ input{font-family:inherit}
     <div class="sec">
       <div class="sec-bd">
         <div class="kim-row">
-          <span class="kim-lbl">Streuung σ</span>
+          <span class="kim-lbl">Spread σ</span>
           <input type="range" id="kim-sigma-sl" min="0" max="50" step="0.5" value="5"
                  style="flex:1;max-width:200px;accent-color:var(--green)">
           <span id="kim-sigma-val" class="kim-unit" style="min-width:42px">5.0 %</span>
         </div>
         <div style="font-size:.72rem;color:var(--dim2);padding-left:98px;margin-top:1px">
-          Gaußsche Streuung für alle Halte- und Pause-Zeiten (analog MIM)
+          Gaussian spread applied to all hold and pause timings (same as MIM)
         </div>
       </div>
     </div>
@@ -1577,7 +1577,7 @@ function doImport(file){
 
 // ── KIM ───────────────────────────────────────────────────────────────────────
 const KIM_KEYS = [
-  {c:0x00,l:'— leer —'},
+  {c:0x00,l:'— empty —'},
   {c:0x04,l:'A'},{c:0x05,l:'B'},{c:0x06,l:'C'},{c:0x07,l:'D'},
   {c:0x08,l:'E'},{c:0x09,l:'F'},{c:0x0A,l:'G'},{c:0x0B,l:'H'},
   {c:0x0C,l:'I'},{c:0x0D,l:'J'},{c:0x0E,l:'K'},{c:0x0F,l:'L'},
@@ -1623,7 +1623,7 @@ function _kimSetBind(btnId, code) {
   const btn = ge(btnId); if(!btn) return;
   btn.dataset.code = code;
   btn.classList.remove('waiting');
-  btn.textContent = code ? _kimKeyLabel(code) : '— leer —';
+  btn.textContent = code ? _kimKeyLabel(code) : '— empty —';
 }
 
 function _kimRenderSteps(containerId, steps) {
@@ -1632,10 +1632,10 @@ function _kimRenderSteps(containerId, steps) {
     const d=document.createElement('div');
     d.className='kim-row kim-step-row'; d.dataset.idx=i;
     const btnId=`${containerId}-step-${i}`;
-    d.innerHTML=`<span class="kim-lbl" style="font-size:.78rem">Schritt ${i+1}</span>
+    d.innerHTML=`<span class="kim-lbl" style="font-size:.78rem">Step ${i+1}</span>
       <button class="kim-bind-btn kim-step-key" id="${btnId}" data-code="${st.key}"
-              onclick="KIM.bind('${btnId}')">${_kimKeyLabel(st.key)||'— leer —'}</button>
-      <span class="kim-unit">Halten</span>
+              onclick="KIM.bind('${btnId}')">${_kimKeyLabel(st.key)||'— empty —'}</button>
+      <span class="kim-unit">Hold</span>
       <input type="number" class="kim-ms kim-step-hold" min="1" max="2000" value="${st.hold}">
       <span class="kim-unit">ms &nbsp; Pause</span>
       <input type="number" class="kim-ms kim-step-pause" min="0" max="2000" value="${st.pause}">
@@ -1651,7 +1651,8 @@ const KIM = {
 
   _def() {
     return {type:1,trigger0:0,trigger1:0,trigger_mode:0,gap_ms:250,
-      steps:[{key:0,hold:80,pause:60},{key:0,hold:80,pause:60},{key:0,hold:80,pause:60}]};
+      steps:[{key:0,hold:80,pause:60},{key:0,hold:80,pause:60},
+             {key:0,hold:80,pause:60},{key:0,hold:80,pause:60}]};
   },
 
   // Map firmware field names → internal (trigger0/trigger1 → trigger0/trigger1, keycode → key, etc.)
@@ -1698,7 +1699,7 @@ const KIM = {
     const chk = ge('kim-active-chk');
     chk.checked = !!this.profile.kim_active;
     const lbl = ge('kim-active-lbl');
-    lbl.textContent = chk.checked ? 'aktiv' : 'inaktiv';
+    lbl.textContent = chk.checked ? 'active' : 'inactive';
     lbl.style.color  = chk.checked ? 'var(--green)' : 'var(--dim)';
 
     const sig = this.profile.sigma_pct;
@@ -1729,7 +1730,7 @@ const KIM = {
     this.editIdx = idx;
     const isNew = idx<0;
     const e = isNew ? this._def() : JSON.parse(JSON.stringify(this.profile.entries[idx]));
-    ge('kim-editor-title').textContent = isNew ? 'Neuer Entry' : `Entry ${idx+1} bearbeiten`;
+    ge('kim-editor-title').textContent = isNew ? 'New Entry' : `Edit Entry ${idx+1}`;
     ge('kim-del-btn').style.display = isNew ? 'none' : '';
 
     this.curType = e.type;
@@ -1828,11 +1829,11 @@ const KIM = {
     const btn=ge(btnId);
     if(!btn) return;
     btn.classList.add('waiting');
-    btn.textContent='← Taste drücken…';
+    btn.textContent='← Press a key…';
     if(S.connected) {
       sendJson({cmd:'set_kim_config', data:{start_bind:true}});
     } else {
-      clog('[KIM] NICHT gesendet — nicht verbunden');
+      clog('[KIM] NOT sent — not connected');
     }
   },
 

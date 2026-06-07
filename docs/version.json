@@ -1,9 +1,8 @@
 ﻿{
-    "version":  "2.3.2-alpha",
+    "version":  "2.3.3-alpha",
     "date":  "2026-06-07",
     "changelog":  [
-                      "(nothing)",
-                      "Compiled with improved toolchain"
+                      "OTA-Flash hängt beim ersten Block — Firmware-Update über den Browser funktioniert jetzt"
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.3.2-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.3.3-alpha.hex"
 }

@@ -1,8 +1,9 @@
 ﻿{
-    "version":  "2.3.4-alpha",
+    "version":  "2.3.5-alpha",
     "date":  "2026-06-07",
     "changelog":  [
-                      "OTA-Flash hängt beim ersten Block (echte Ursache) — Firmware-Update über"
+                      "User defined Sigmas now get a small Chi-Quadrat offset",
+                      "serial monitor output is now cleaned up"
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.3.4-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.3.5-alpha.hex"
 }

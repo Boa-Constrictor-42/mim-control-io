@@ -98,6 +98,20 @@ button{font-family:inherit;cursor:pointer}
 .notice{border:1px solid #332200;border-radius:4px;background:#0f0900;
   color:#aa7733;font-size:.78rem;padding:10px 14px;line-height:1.7;margin-bottom:12px}
 
+/* Confirm modal */
+#modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);
+  z-index:200;align-items:center;justify-content:center}
+#modal-overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;
+  max-width:440px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.modal-hd{padding:12px 18px;font-size:.95rem;color:var(--text);letter-spacing:.04em;
+  border-bottom:1px solid var(--border);background:var(--bg3)}
+.modal-bd{padding:18px}
+.modal-warn{color:var(--orange);font-size:.86rem;line-height:1.6;font-weight:bold}
+.modal-sub{color:var(--dim);font-size:.8rem;line-height:1.6;margin-top:12px}
+.modal-ft{display:flex;gap:10px;justify-content:flex-end;padding:14px 18px;
+  border-top:1px solid var(--border)}
+
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:#111}
@@ -180,17 +194,29 @@ button{font-family:inherit;cursor:pointer}
     <div class="card-bd">
       <div class="btn-row">
         <button class="fb prim" id="btn-flash-ota" disabled>⚡  Flash Firmware</button>
-        <button class="fb sec"  id="btn-download"  disabled>⬇  Download .hex</button>
       </div>
-      <!-- hidden file picker for manual .hex selection -->
-      <input type="file" id="file-hex" accept=".hex" style="display:none">
       <p id="action-hint" style="color:var(--dim);font-size:.76rem;padding-top:12px;line-height:1.7">
-        Connect device → click <strong>Flash Firmware</strong> for automatic OTA update.<br>
-        <span style="color:var(--dim2)">Manual fallback: Download .hex → open with Teensy Loader.</span>
+        Connect device → click <strong>Flash Firmware</strong>. The latest firmware is
+        downloaded and installed automatically — no manual file selection needed.
       </p>
     </div>
   </div>
 
+</div>
+
+<!-- Confirm Firmware Update modal -->
+<div id="modal-overlay">
+  <div class="modal">
+    <div class="modal-hd">Confirm Firmware Update</div>
+    <div class="modal-bd">
+      <div class="modal-warn">⚠  Do not disconnect your MIM device during the update!</div>
+      <div id="modal-detail" class="modal-sub"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="fb sec"  id="btn-cancel">Cancel</button>
+      <button class="fb prim" id="btn-confirm">⚡  Update now</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -238,7 +264,6 @@ async function fetchVersionJson() {
       });
     }
 
-    if (S.hexUrl) ge('btn-download').disabled = false;
     compareVersions(data.version);
   } catch (err) {
     ge('ver-available').textContent = 'Error';
@@ -439,7 +464,6 @@ function crc32(data) {
 async function doOtaFlash(hexText) {
   S.otaRunning = true;
   ge('btn-flash-ota').disabled = true;
-  ge('btn-download').disabled  = true;
   ge('btn-connect').disabled   = true;
   ge('flash-card').style.display    = 'block';
   ge('progress-wrap').style.display = 'flex';
@@ -528,7 +552,6 @@ async function doOtaFlash(hexText) {
   } finally {
     S.otaRunning = false;
     ge('btn-flash-ota').disabled = !S.connected;
-    ge('btn-download').disabled  = !S.hexUrl;
     ge('btn-connect').disabled   = false;
   }
 }
@@ -568,11 +591,46 @@ function setConnected(v) {
 }
 
 // ── Flash-Button Handler ──────────────────────────────────────────────────────
-// Öffnet immer den Datei-Picker — zuverlässig, kein CORS/Fetch-Problem.
-// Download-Button bleibt für den direkten Hex-Download via hex_url.
+// Zeigt das Bestätigungs-Modal. Nach Bestätigung wird die aktuelle Firmware
+// automatisch von hex_url (same-origin, GitHub-Pages-gehostet) geladen und geflasht.
 function onFlashClick() {
   if (!S.connected || S.otaRunning) return;
-  ge('file-hex').click();
+  if (!S.hexUrl) {
+    ge('flash-card').style.display = 'block';
+    setFlashMsg('No firmware available (version.json could not be loaded).', 'err');
+    return;
+  }
+  showConfirm();
+}
+
+function showConfirm() {
+  const ver = ge('ver-available').textContent;
+  ge('modal-detail').textContent =
+    (ver && ver !== '—' ? 'Version ' + ver + ' will be downloaded and installed.' : '') +
+    ' The update takes about a minute.';
+  ge('modal-overlay').classList.add('show');
+}
+
+function hideConfirm() {
+  ge('modal-overlay').classList.remove('show');
+}
+
+// Bestätigt → Firmware von hex_url laden und OTA-Flash starten.
+async function startFlashFromUrl() {
+  hideConfirm();
+  if (!S.connected || S.otaRunning || !S.hexUrl) return;
+  ge('flash-card').style.display = 'block';
+  setFlashMsg('Downloading firmware …', 'info');
+  let hexText;
+  try {
+    const r = await fetch(S.hexUrl, { cache: 'no-store' });
+    if (!r.ok) throw new Error('Download failed: HTTP ' + r.status);
+    hexText = await r.text();
+  } catch (err) {
+    setFlashMsg('Error: ' + err.message, 'err');
+    return;
+  }
+  await doOtaFlash(hexText);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -583,17 +641,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   ge('btn-connect').onclick    = () => S.connected ? doDisconnect() : doConnect();
-  ge('btn-download').onclick   = () => S.hexUrl && window.open(S.hexUrl, '_blank');
   ge('btn-flash-ota').onclick  = onFlashClick;
-
-  // Lokale .hex-Datei ausgewählt → direkt flashen
-  ge('file-hex').onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    e.target.value = '';   // reset so same file can be selected again
-    const hexText = await file.text();
-    await doOtaFlash(hexText);
-  };
+  ge('btn-confirm').onclick    = startFlashFromUrl;
+  ge('btn-cancel').onclick     = hideConfirm;
+  ge('modal-overlay').onclick  = (e) => { if (e.target === ge('modal-overlay')) hideConfirm(); };
 
   fetchVersionJson();
 });

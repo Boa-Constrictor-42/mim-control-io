@@ -84,6 +84,11 @@ button{font-family:inherit;cursor:pointer}
   color:var(--dim);font-size:.78rem;padding:10px 14px;line-height:1.7;margin-top:10px}
 .notice.warn{border-color:#332200;background:#0f0900;color:#aa7733}
 
+/* Version select (rollback download) */
+.ver-select{font-family:inherit;font-size:.84rem;background:var(--bg3);color:var(--text);
+  border:1px solid var(--border2);border-radius:3px;padding:7px 10px;min-width:240px}
+.dl-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
 /* Placeholder / todo sections */
 .todo-section{border:1px dashed var(--border2);border-radius:4px;padding:14px 16px;
   color:var(--dim2);font-size:.78rem;line-height:1.8;margin-bottom:12px}
@@ -157,7 +162,30 @@ button{font-family:inherit;cursor:pointer}
   </div>
 
   <!-- ══════════════════════════════════════════════════════════
-       Abschnitt 2 — Platzhalter für künftige Dev-Tools
+       Abschnitt 2 — Firmware Download / Rollback
+       ══════════════════════════════════════════════════════════ -->
+
+  <div class="card">
+    <div class="card-hd">FIRMWARE DOWNLOAD (ROLLBACK)</div>
+    <div class="card-bd">
+      <div class="dl-row">
+        <select id="ver-select" class="ver-select">
+          <option value="">Loading versions …</option>
+        </select>
+        <button class="fb prim" id="btn-dl-version" disabled>⬇  Download .hex</button>
+      </div>
+      <div class="notice">
+        Download any released firmware version for manual flashing
+        (<strong>Teensy Loader</strong>) or rollback to an older build.
+        The newest version is marked <strong>(latest)</strong>.<br>
+        For normal OTA updates use
+        <a href="/update/" style="color:var(--dim);text-decoration:underline">mim-control.com/update</a>.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       Abschnitt 3 — Platzhalter für künftige Dev-Tools
        ══════════════════════════════════════════════════════════ -->
 
   <div class="todo-section">
@@ -446,8 +474,37 @@ function setConnected(v) {
   }
 }
 
+// ── Firmware-Versionsliste (Rollback-Download) ───────────────────────────────
+async function loadVersions() {
+  const sel = ge('ver-select');
+  try {
+    const r = await fetch('/versions.json?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const list   = Array.isArray(data.versions) ? data.versions : [];
+    const latest = data.latest || (list[0] && list[0].version);
+    if (!list.length) { sel.innerHTML = '<option value="">No versions found</option>'; return; }
+    sel.innerHTML = '';
+    list.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v.hex;
+      o.textContent = v.version + (v.version === latest ? '  (latest)' : '');
+      sel.appendChild(o);
+    });
+    ge('btn-dl-version').disabled = false;
+  } catch (e) {
+    sel.innerHTML = '<option value="">Failed to load versions.json</option>';
+  }
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  ge('btn-dl-version').onclick = () => {
+    const hex = ge('ver-select').value;
+    if (hex) window.open('/firmware/' + hex, '_blank');
+  };
+  loadVersions();
+
   ge('btn-connect').onclick   = () => S.connected ? doDisconnect() : doConnect();
   ge('btn-reboot-hk').onclick = async () => {
     await sendJson({ cmd: 'reboot_bootloader' });

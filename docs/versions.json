@@ -1,0 +1,11 @@
+{
+    "latest": "2.3.4-alpha",
+    "versions": [
+        { "version": "2.3.4-alpha", "hex": "mim_firmware_v2.3.4-alpha.hex" },
+        { "version": "2.3.3-alpha", "hex": "mim_firmware_v2.3.3-alpha.hex" },
+        { "version": "2.3.2-alpha", "hex": "mim_firmware_v2.3.2-alpha.hex" },
+        { "version": "2.3.1", "hex": "mim_firmware_v2.3.1.hex" },
+        { "version": "2.3.0", "hex": "mim_firmware_v2.3.0.hex" },
+        { "version": "2.2.0-alpha", "hex": "mim_firmware_v2.2.0-alpha.hex" }
+    ]
+}

@@ -89,6 +89,23 @@ button{font-family:inherit;cursor:pointer}
   border:1px solid var(--border2);border-radius:3px;padding:7px 10px;min-width:240px}
 .dl-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 
+/* Serial monitor / console */
+.mon-out{height:260px;overflow-y:auto;background:#070707;border:1px solid var(--border);
+  border-radius:3px;padding:8px 10px;font-size:.8rem;line-height:1.5;white-space:pre-wrap;
+  word-break:break-word;color:var(--text)}
+.mon-line{padding:1px 0}
+.mon-line.tx{color:var(--blue)}
+.mon-line.rx{color:var(--text)}
+.mon-line.sys{color:var(--dim);font-style:italic}
+.mon-input-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.mon-prompt{color:var(--green);font-weight:bold}
+.mon-input{flex:1;font-family:inherit;font-size:.84rem;background:var(--bg3);color:var(--text);
+  border:1px solid var(--border2);border-radius:3px;padding:7px 10px}
+.mon-input:disabled{opacity:.4}
+
+/* Separator before legacy block at the very bottom */
+.legacy-sep{height:1px;background:var(--border);margin:30px 0 18px}
+
 /* Placeholder / todo sections */
 .todo-section{border:1px dashed var(--border2);border-radius:4px;padding:14px 16px;
   color:var(--dim2);font-size:.78rem;line-height:1.8;margin-bottom:12px}
@@ -120,7 +137,7 @@ button{font-family:inherit;cursor:pointer}
   </div>
 
   <!-- ══════════════════════════════════════════════════════════
-       Abschnitt 1 — WebHID Flash (Legacy / macOS + Linux only)
+       Abschnitt 1 — Device connection
        ══════════════════════════════════════════════════════════ -->
 
   <!-- Device connection -->
@@ -131,32 +148,6 @@ button{font-family:inherit;cursor:pointer}
         <div id="dot"></div>
         <span id="conn-status">Not connected</span>
         <button id="btn-connect">⏻  Connect via WebSerial</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- WebHID Flash -->
-  <div class="card">
-    <div class="card-hd">WEBHID FLASH (LEGACY)</div>
-    <div class="card-bd">
-      <div id="flash-msg" class="info"></div>
-      <div id="progress-wrap">
-        <div id="progress-track"><div id="progress-fill"></div></div>
-        <span id="progress-pct">0%</span>
-      </div>
-      <button class="fb warn" id="btn-bootloader-ready" style="display:none;margin-bottom:10px">
-        ⚡  Open device picker
-      </button>
-      <div class="btn-row">
-        <button class="fb prim" id="btn-reboot-hk" disabled>↩  Restart device → HalfKay</button>
-        <button class="fb warn" id="btn-flash"     disabled>⚡  Flash via WebHID</button>
-      </div>
-      <div class="notice warn">
-        ⚠ WebHID Flash funktioniert <strong>nicht auf Windows</strong> (OS-Inkompatibilität —
-        Chrome nutzt Control Transfer, HalfKay erwartet Interrupt OUT).<br>
-        Für Windows: OTA WebSerial auf
-        <a href="/update/" style="color:var(--orange)">mim-control.com/update</a> verwenden,
-        oder .hex manuell mit <strong>Teensy Loader</strong> flashen.
       </div>
     </div>
   </div>
@@ -185,17 +176,58 @@ button{font-family:inherit;cursor:pointer}
   </div>
 
   <!-- ══════════════════════════════════════════════════════════
-       Abschnitt 3 — Platzhalter für künftige Dev-Tools
+       Abschnitt 3 — Serial Monitor / Console
        ══════════════════════════════════════════════════════════ -->
 
-  <div class="todo-section">
-    <!-- TODO: Raw Serial Console -->
-    // TODO: Raw Serial Console — Direktzugriff auf Serial-Stream ohne JSON-Parsing
+  <div class="card">
+    <div class="card-hd">SERIAL MONITOR / CONSOLE</div>
+    <div class="card-bd">
+      <div id="mon-out" class="mon-out"></div>
+      <div class="mon-input-row">
+        <span class="mon-prompt">›</span>
+        <input id="mon-input" class="mon-input" type="text" autocomplete="off" spellcheck="false"
+               placeholder='Type a command, press Enter — e.g.  p  or  {"cmd":"ping"}' disabled>
+        <button class="fb sec" id="mon-send"  disabled>Send</button>
+        <button class="fb sec" id="mon-clear">Clear</button>
+      </div>
+      <div class="notice">
+        Connect the device first. Sends raw, newline-terminated lines over WebSerial (115200 baud)
+        and shows everything the device prints. Accepts JSON commands
+        (<code>{"cmd":"ping"}</code>) and legacy text commands (<code>p</code>, <code>t</code>, …).
+      </div>
+    </div>
   </div>
 
-  <div class="todo-section">
-    <!-- TODO: TEST_MODE Trigger -->
-    // TODO: TEST_MODE Trigger — smoke_test_MIM_FW Befehle direkt aus dem Browser auslösen
+  <!-- ══════════════════════════════════════════════════════════
+       Abschnitt 4 — WebHID Flash (Legacy) — bewusst ganz unten
+       ══════════════════════════════════════════════════════════ -->
+
+  <div class="legacy-sep"></div>
+
+  <!-- WebHID Flash -->
+  <div class="card">
+    <div class="card-hd">WEBHID FLASH (LEGACY)</div>
+    <div class="card-bd">
+      <div id="flash-msg" class="info"></div>
+      <div id="progress-wrap">
+        <div id="progress-track"><div id="progress-fill"></div></div>
+        <span id="progress-pct">0%</span>
+      </div>
+      <button class="fb warn" id="btn-bootloader-ready" style="display:none;margin-bottom:10px">
+        ⚡  Open device picker
+      </button>
+      <div class="btn-row">
+        <button class="fb prim" id="btn-reboot-hk" disabled>↩  Restart device → HalfKay</button>
+        <button class="fb warn" id="btn-flash"     disabled>⚡  Flash via WebHID</button>
+      </div>
+      <div class="notice warn">
+        ⚠ WebHID Flash funktioniert <strong>nicht auf Windows</strong> (OS-Inkompatibilität —
+        Chrome nutzt Control Transfer, HalfKay erwartet Interrupt OUT).<br>
+        Für Windows: OTA WebSerial auf
+        <a href="/update/" style="color:var(--orange)">mim-control.com/update</a> verwenden,
+        oder .hex manuell mit <strong>Teensy Loader</strong> flashen.
+      </div>
+    </div>
   </div>
 
 </div>
@@ -269,7 +301,7 @@ async function _startRead() {
       while ((nl = _rxBuf.indexOf('\n')) !== -1) {
         const ln = _rxBuf.slice(0, nl).trim();
         _rxBuf   = _rxBuf.slice(nl + 1);
-        if (ln) console.log('[DEV]', ln);
+        if (ln) { console.log('[DEV]', ln); monAppend(ln, 'rx'); }
       }
     }
   } catch (_) { if (S.connected) doDisconnect(); }
@@ -459,6 +491,34 @@ function setProgress(pct) {
   ge('progress-pct').textContent  = pct + '%';
 }
 
+// ── Serial Monitor / Console ──────────────────────────────────────────────────
+// Hängt eine Zeile an die Konsole an. cls: 'rx' (Gerät→Browser), 'tx'
+// (Browser→Gerät), 'sys' (lokale Statusmeldung). Auto-Scroll nur wenn der
+// Nutzer bereits am unteren Rand ist, damit Hochscrollen nicht unterbrochen wird.
+function monAppend(text, cls) {
+  const out = ge('mon-out');
+  if (!out) return;
+  const atBottom = out.scrollHeight - out.scrollTop - out.clientHeight < 30;
+  const div = document.createElement('div');
+  div.className = 'mon-line ' + (cls || 'rx');
+  div.textContent = (cls === 'tx' ? '› ' : '') + text;
+  out.appendChild(div);
+  while (out.childElementCount > 600) out.removeChild(out.firstChild);
+  if (atBottom) out.scrollTop = out.scrollHeight;
+}
+
+// Sendet den Inhalt des Eingabefelds als newline-terminierte Zeile ans Gerät.
+async function monSend() {
+  const inp = ge('mon-input');
+  const line = inp.value;
+  if (!line.trim()) return;
+  if (!_writer) { monAppend('not connected', 'sys'); return; }
+  monAppend(line, 'tx');
+  try { await _writer.write(new TextEncoder().encode(line + '\n')); }
+  catch (e) { monAppend('write error: ' + (e.message || e), 'sys'); }
+  inp.value = '';
+}
+
 // ── UI state ──────────────────────────────────────────────────────────────────
 function setConnected(v) {
   S.connected = v;
@@ -467,10 +527,14 @@ function setConnected(v) {
     btn.textContent = '⏻  Disconnect'; btn.classList.add('disc');
     dot.classList.add('on'); st.textContent = 'Connected';
     ge('btn-reboot-hk').disabled = false;
+    ge('mon-input').disabled = false; ge('mon-send').disabled = false;
+    monAppend('connected', 'sys');
   } else {
     btn.textContent = '⏻  Connect via WebSerial'; btn.classList.remove('disc');
     dot.classList.remove('on'); st.textContent = 'Not connected';
     ge('btn-reboot-hk').disabled = true;
+    ge('mon-input').disabled = true; ge('mon-send').disabled = true;
+    monAppend('disconnected', 'sys');
   }
 }
 
@@ -504,6 +568,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hex) window.open('/firmware/' + hex, '_blank');
   };
   loadVersions();
+
+  // Serial Monitor
+  ge('mon-send').onclick  = monSend;
+  ge('mon-clear').onclick = () => { ge('mon-out').innerHTML = ''; };
+  ge('mon-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); monSend(); }
+  });
 
   ge('btn-connect').onclick   = () => S.connected ? doDisconnect() : doConnect();
   ge('btn-reboot-hk').onclick = async () => {

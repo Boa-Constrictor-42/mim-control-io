@@ -296,7 +296,7 @@ input{font-family:inherit}
 <!-- Header -->
 <header id="hdr">
   <div id="hdr-inner">
-    <img id="logo-img" src="mim_logo.png" alt="MIM Logo" onerror="this.style.display='none'">
+    <a href="/" style="line-height:0"><img id="logo-img" src="mim_logo.png" alt="MIM Logo" onerror="this.style.display='none'"></a>
     <div id="hdr-center">
       <span id="logo">MIM</span>
       <span id="logo-sub">release alpha 0.2</span>
@@ -1985,9 +1985,4 @@ document.addEventListener('DOMContentLoaded',()=>{
       document.querySelectorAll('.pg-btn').forEach(x=>x.classList.remove('act'));
       b.classList.add('act');
       drawOled();
-    };
-  });
-});
-</script>
-</body>
-</html>
+    }

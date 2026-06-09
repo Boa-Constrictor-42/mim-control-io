@@ -1,9 +1,8 @@
 ﻿{
-    "version":  "2.3.5-alpha",
-    "date":  "2026-06-07",
+    "version":  "2.3.6-alpha",
+    "date":  "2026-06-09",
     "changelog":  [
-                      "User defined Sigmas now get a small Chi-Quadrat offset",
-                      "serial monitor output is now cleaned up"
+                      "Added external reset button"
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.3.5-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.3.6-alpha.hex"
 }

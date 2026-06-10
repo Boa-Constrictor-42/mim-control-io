@@ -1,8 +1,10 @@
 ﻿{
-    "version":  "2.3.6-alpha",
-    "date":  "2026-06-09",
+    "version":  "2.3.7-alpha",
+    "date":  "2026-06-10",
     "changelog":  [
-                      "Added external reset button"
+                      "Boot-Anzeige zeigt im CIM/KIM-Modus jetzt das richtige Modus-Label",
+                      "Bootscreen zeigt die tatsächliche Firmware-Version",
+                      "Stoerende Debug-Ausgabe bei jedem Tastendruck (KIM) entfernt"
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.3.6-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.3.7-alpha.hex"
 }

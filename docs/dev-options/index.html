@@ -19,8 +19,8 @@ button{font-family:inherit;cursor:pointer}
 /* Header */
 #hdr{background:var(--bg2);border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:100}
-#hdr-inner{display:flex;align-items:center;padding:0 20px;height:57px}
-#hdr-title{flex:1;font-size:.78rem;letter-spacing:.1em;color:var(--dim)}
+#hdr-inner{display:flex;align-items:center;justify-content:center;height:57px}
+#hdr-logo{height:34px;width:auto;object-fit:contain;display:block}
 #logo{font-size:1.7rem;letter-spacing:.22em;color:#fff;font-weight:bold}
 #logo-sub{font-size:.75rem;color:var(--dim);letter-spacing:.08em}
 /* ── Sidebar navigation ───────────────────────────────────────────────────── */
@@ -159,7 +159,7 @@ body{transition:margin-left .2s ease}
 
 <header id="hdr">
   <div id="hdr-inner">
-    <span id="hdr-title">developer options</span>
+    <img id="hdr-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='../mim_logo_v6.svg'">
   </div>
 </header>
 

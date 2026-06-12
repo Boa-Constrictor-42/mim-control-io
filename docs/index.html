@@ -26,9 +26,8 @@ input{font-family:inherit}
 /* ── Header ──────────────────────────────────────────────────────────────── */
 #hdr{background:var(--bg2);border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:100}
-#hdr-inner{display:flex;align-items:center;padding:0 20px;height:57px}
-#hdr-title{flex:1;font-size:.78rem;letter-spacing:.1em;color:var(--dim)}
-#hdr-right{display:flex;align-items:center;justify-content:flex-end;gap:14px}
+#hdr-inner{display:flex;align-items:center;justify-content:center;height:57px}
+#hdr-logo{height:34px;width:auto;object-fit:contain;display:block}
 #logo{font-size:1.7rem;letter-spacing:.22em;color:#fff;font-weight:bold}
 #logo-sub{font-size:.75rem;color:var(--dim);letter-spacing:.08em}
 #status-bar{display:flex;align-items:center;gap:14px;font-size:.76rem}
@@ -48,7 +47,8 @@ input{font-family:inherit}
 #conn-btn:hover{background:var(--green);color:#000}
 #conn-btn.disc{border-color:var(--red);color:var(--red)}
 #conn-btn.disc:hover{background:var(--red);color:#000}
-#mode-btns{flex:1;display:flex;justify-content:flex-end;align-items:center;gap:8px}
+#mode-btns{flex:1;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+#mode-row{display:flex;justify-content:flex-end;align-items:center;gap:8px}
 .mb-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
 .mb{font-size:.74rem;padding:5px 11px;border:1px solid var(--border2);
   background:transparent;color:var(--dim);border-radius:3px;letter-spacing:.04em;
@@ -339,12 +339,7 @@ body{transition:margin-left .2s ease}
 <!-- Header -->
 <header id="hdr">
   <div id="hdr-inner">
-    <div id="status-bar">
-      <div id="dot"></div>
-      <span id="s-text">Disconnected</span>
-      <span id="s-fw"></span>
-      <span id="s-lat"></span>
-    </div>
+    <img id="hdr-logo" src="mim_logo_v6.png" alt="MIM" onerror="this.src='mim_logo_v6.svg'">
   </div>
 </header>
 
@@ -353,15 +348,23 @@ body{transition:margin-left .2s ease}
   <div id="conn-spacer"></div>
   <button id="conn-btn">⏻  Connect</button>
   <div id="mode-btns">
-    <div class="mb-wrap">
-      <button class="mb" id="btn-out-joypad" disabled title="Switch to Joypad output mode">Joypad output mode</button>
-      <span class="mb-sub">[CIM / AIM]</span>
+    <div id="status-bar">
+      <div id="dot"></div>
+      <span id="s-text">Disconnected</span>
+      <span id="s-fw"></span>
+      <span id="s-lat"></span>
     </div>
-    <div class="mb-wrap">
-      <button class="mb" id="btn-out-mnk" disabled title="Switch to Mouse &amp; Keyboard output mode">MnK output mode</button>
-      <span class="mb-sub">[MIM / KIM]</span>
+    <div id="mode-row">
+      <div class="mb-wrap">
+        <button class="mb" id="btn-out-joypad" disabled title="Switch to Joypad output mode">Joypad output mode</button>
+        <span class="mb-sub">[CIM / AIM]</span>
+      </div>
+      <div class="mb-wrap">
+        <button class="mb" id="btn-out-mnk" disabled title="Switch to Mouse &amp; Keyboard output mode">MnK output mode</button>
+        <span class="mb-sub">[MIM / KIM]</span>
+      </div>
+      <span id="s-mode"></span>
     </div>
-    <span id="s-mode"></span>
   </div>
 </div>
 

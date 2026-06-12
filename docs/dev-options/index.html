@@ -13,7 +13,7 @@
   --green:#00cc66; --blue:#0088cc; --orange:#cc6600; --red:#cc3333;
 }
 body{background:var(--bg);color:var(--text);font-family:"Consolas","Courier New",monospace;
-  font-size:13px;min-width:640px}
+  font-size:13px;min-width:640px;margin-left:152px}
 button{font-family:inherit;cursor:pointer}
 
 /* Header */
@@ -26,8 +26,21 @@ button{font-family:inherit;cursor:pointer}
   display:flex;align-items:baseline;gap:10px;white-space:nowrap;pointer-events:none}
 #logo{font-size:1.7rem;letter-spacing:.22em;color:#fff;font-weight:bold}
 #logo-sub{font-size:.75rem;color:var(--dim);letter-spacing:.08em}
-#nav-back{font-size:.78rem;color:var(--dim);text-decoration:none;letter-spacing:.04em}
-#nav-back:hover{color:var(--text)}
+/* ── Sidebar navigation ───────────────────────────────────────────────────── */
+#sidebar{position:fixed;left:0;top:0;bottom:0;width:152px;
+  background:var(--bg2);border-right:1px solid var(--border);
+  z-index:150;display:flex;flex-direction:column}
+#sb-top{height:57px;display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--border);
+  font-size:.72rem;letter-spacing:.3em;color:var(--dim2);font-weight:bold}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 16px;
+  text-decoration:none;color:var(--dim);font-size:.74rem;letter-spacing:.07em;
+  border-left:2px solid transparent;
+  transition:color .15s,background .15s,border-color .15s;white-space:nowrap}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--text);border-left-color:var(--green);background:var(--bg3)}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 
 /* Page wrapper */
 .wrap{max-width:860px;margin:0 auto;padding:28px 16px}
@@ -117,6 +130,21 @@ button{font-family:inherit;cursor:pointer}
 </style>
 </head>
 <body>
+<nav id="sidebar">
+  <div id="sb-top">MIM</div>
+  <a class="nav-item" href="/">
+    <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+    Control
+  </a>
+  <a class="nav-item" href="/update/">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Update
+  </a>
+  <a class="nav-item active" href="/dev-options/">
+    <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    Dev Options
+  </a>
+</nav>
 
 <header id="hdr">
   <div id="hdr-inner">
@@ -125,7 +153,6 @@ button{font-family:inherit;cursor:pointer}
       <span id="logo">MIM</span>
       <span id="logo-sub">developer options</span>
     </div>
-    <a id="nav-back" href="/update/">← firmware update</a>
   </div>
 </header>
 

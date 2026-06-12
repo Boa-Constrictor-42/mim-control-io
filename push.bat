@@ -1,6 +1,6 @@
 @echo off
 cd /d C:\Projects\MIM\web
 git add -A
-git commit -m "feat: collapse at 1100px, status bar header right, logo as link, no sidebar logo"
+git commit -m "fix: status bar margin-left auto, sticks to header right edge"
 git push origin main
 pause

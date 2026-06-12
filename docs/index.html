@@ -170,6 +170,7 @@ input{font-family:inherit}
 .fb.prim:hover{background:var(--green);color:#000}
 .fb.dang{border-color:#441111;color:var(--red)}
 .fb.dang:hover{background:var(--red);color:#fff}
+#btn-set-default.active{border-color:var(--blue);color:var(--text)}
 
 /* Modal */
 #modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;
@@ -1456,10 +1457,10 @@ const PM = {
     clog('[MIM] ' + this.getName(n) + ' loaded');
   },
 
-  // Default setzen → UI updaten → einmal ans Gerät senden → kein Slot highlighted
+  // Default setzen → UI updaten → einmal ans Gerät senden → Default-Button highlighted
   applyDefault() {
-    this._setHighlight(-1);
-    this.active = -1;
+    this._setHighlight(0);
+    this.active = 0;
     this.apply(this.defaultData());
     sendAll();
     clog('[MIM] Default applied');
@@ -1476,9 +1477,9 @@ const PM = {
     clog('[MIM] ' + this.getName(n) + ' saved');
   },
 
-  // Parameteränderung durch User → aktiver Slot verliert Highlight
+  // Parameteränderung durch User → aktiver Slot / Default verliert Highlight
   markChanged() {
-    if(this.active < 1) return;
+    if(this.active === -1) return;
     this._setHighlight(-1);
     this.active = -1;
   },
@@ -1494,6 +1495,8 @@ const PM = {
       const s = ge('pslot-'+i);
       if(s) s.classList.toggle('active', i===n);
     }
+    const d = ge('btn-set-default');
+    if(d) d.classList.toggle('active', n===0);
   },
 
   getName(n) {

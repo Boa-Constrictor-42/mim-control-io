@@ -20,6 +20,7 @@ button{font-family:inherit;cursor:pointer}
 #hdr{background:var(--bg2);border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:100}
 #hdr-inner{display:flex;align-items:center;justify-content:center;height:57px}
+#hdr-logo-wrap{display:flex;align-items:center;text-decoration:none}
 #hdr-logo{height:34px;width:auto;object-fit:contain;display:block}
 #logo{font-size:1.7rem;letter-spacing:.22em;color:#fff;font-weight:bold}
 #logo-sub{font-size:.75rem;color:var(--dim);letter-spacing:.08em}
@@ -41,9 +42,8 @@ button{font-family:inherit;cursor:pointer}
   stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 #sidebar{transition:width .2s ease}
 body{transition:margin-left .2s ease}
-@media(max-width:900px){
+@media(max-width:1100px){
   #sidebar{width:48px !important}
-  #sb-logo-link{display:none !important}
   .nav-label{display:none !important}
   .nav-item{padding:11px 0 !important;justify-content:center !important}
   body{margin-left:48px !important}
@@ -138,11 +138,7 @@ body{transition:margin-left .2s ease}
 </head>
 <body>
 <nav id="sidebar">
-  <div id="sb-top">
-    <a href="/" id="sb-logo-link">
-      <img id="sb-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='/mim_logo_v6.svg'">
-    </a>
-  </div>
+  <div id="sb-top"></div>
   <a class="nav-item" href="/">
     <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
     <span class="nav-label">Control</span>
@@ -159,7 +155,9 @@ body{transition:margin-left .2s ease}
 
 <header id="hdr">
   <div id="hdr-inner">
-    <img id="hdr-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='../mim_logo_v6.svg'">
+    <a id="hdr-logo-wrap" href="/">
+      <img id="hdr-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='../mim_logo_v6.svg'">
+    </a>
   </div>
 </header>
 

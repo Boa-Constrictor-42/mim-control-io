@@ -26,7 +26,8 @@ input{font-family:inherit}
 /* ── Header ──────────────────────────────────────────────────────────────── */
 #hdr{background:var(--bg2);border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:100}
-#hdr-inner{display:flex;align-items:center;justify-content:center;height:57px}
+#hdr-inner{display:flex;align-items:center;height:57px;padding:0 20px;position:relative}
+#hdr-logo-wrap{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;text-decoration:none}
 #hdr-logo{height:34px;width:auto;object-fit:contain;display:block}
 #logo{font-size:1.7rem;letter-spacing:.22em;color:#fff;font-weight:bold}
 #logo-sub{font-size:.75rem;color:var(--dim);letter-spacing:.08em}
@@ -47,8 +48,7 @@ input{font-family:inherit}
 #conn-btn:hover{background:var(--green);color:#000}
 #conn-btn.disc{border-color:var(--red);color:var(--red)}
 #conn-btn.disc:hover{background:var(--red);color:#000}
-#mode-btns{flex:1;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
-#mode-row{display:flex;justify-content:flex-end;align-items:center;gap:8px}
+#mode-btns{flex:1;display:flex;justify-content:flex-end;align-items:center;gap:8px}
 .mb-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
 .mb{font-size:.74rem;padding:5px 11px;border:1px solid var(--border2);
   background:transparent;color:var(--dim);border-radius:3px;letter-spacing:.04em;
@@ -189,9 +189,8 @@ input{font-family:inherit}
   stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 #sidebar{transition:width .2s ease}
 body{transition:margin-left .2s ease}
-@media(max-width:900px){
+@media(max-width:1100px){
   #sidebar{width:48px !important}
-  #sb-logo-link{display:none !important}
   #sb-subtitle{display:none !important}
   .nav-label{display:none !important}
   .nav-item{padding:11px 0 !important;justify-content:center !important}
@@ -320,11 +319,7 @@ body{transition:margin-left .2s ease}
 </head>
 <body>
 <nav id="sidebar">
-  <div id="sb-top">
-    <a href="/" id="sb-logo-link">
-      <img id="sb-logo" src="mim_logo_v6.png" alt="MIM" onerror="this.src='mim_logo_v6.svg'">
-    </a>
-  </div>
+  <div id="sb-top"></div>
   <div id="sb-subtitle">release alpha 0.2</div>
   <a class="nav-item active" href="/">
     <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
@@ -339,7 +334,15 @@ body{transition:margin-left .2s ease}
 <!-- Header -->
 <header id="hdr">
   <div id="hdr-inner">
-    <img id="hdr-logo" src="mim_logo_v6.png" alt="MIM" onerror="this.src='mim_logo_v6.svg'">
+    <a id="hdr-logo-wrap" href="/">
+      <img id="hdr-logo" src="mim_logo_v6.png" alt="MIM" onerror="this.src='mim_logo_v6.svg'">
+    </a>
+    <div id="status-bar">
+      <div id="dot"></div>
+      <span id="s-text">Disconnected</span>
+      <span id="s-fw"></span>
+      <span id="s-lat"></span>
+    </div>
   </div>
 </header>
 
@@ -348,23 +351,15 @@ body{transition:margin-left .2s ease}
   <div id="conn-spacer"></div>
   <button id="conn-btn">⏻  Connect</button>
   <div id="mode-btns">
-    <div id="status-bar">
-      <div id="dot"></div>
-      <span id="s-text">Disconnected</span>
-      <span id="s-fw"></span>
-      <span id="s-lat"></span>
+    <div class="mb-wrap">
+      <button class="mb" id="btn-out-joypad" disabled title="Switch to Joypad output mode">Joypad output mode</button>
+      <span class="mb-sub">[CIM / AIM]</span>
     </div>
-    <div id="mode-row">
-      <div class="mb-wrap">
-        <button class="mb" id="btn-out-joypad" disabled title="Switch to Joypad output mode">Joypad output mode</button>
-        <span class="mb-sub">[CIM / AIM]</span>
-      </div>
-      <div class="mb-wrap">
-        <button class="mb" id="btn-out-mnk" disabled title="Switch to Mouse &amp; Keyboard output mode">MnK output mode</button>
-        <span class="mb-sub">[MIM / KIM]</span>
-      </div>
-      <span id="s-mode"></span>
+    <div class="mb-wrap">
+      <button class="mb" id="btn-out-mnk" disabled title="Switch to Mouse &amp; Keyboard output mode">MnK output mode</button>
+      <span class="mb-sub">[MIM / KIM]</span>
     </div>
+    <span id="s-mode"></span>
   </div>
 </div>
 

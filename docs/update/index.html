@@ -27,10 +27,16 @@ button{font-family:inherit;cursor:pointer}
 #sidebar{position:fixed;left:0;top:0;bottom:0;width:152px;
   background:var(--bg2);border-right:1px solid var(--border);
   z-index:150;display:flex;flex-direction:column;overflow:hidden}
-#sb-top{height:57px;display:flex;align-items:center;justify-content:center;
-  border-bottom:1px solid var(--border);padding:8px 16px;
-  text-decoration:none;flex-shrink:0}
-#sb-logo{height:36px;width:auto;object-fit:contain;display:block}
+#sb-top{height:57px;display:flex;align-items:center;
+  border-bottom:1px solid var(--border);padding:0 8px;gap:8px;flex-shrink:0}
+#sb-toggle{flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:none;border:none;border-radius:4px;
+  color:var(--dim);cursor:pointer;transition:color .15s,background .15s;padding:0}
+#sb-toggle:hover{color:var(--text);background:var(--bg3)}
+#sb-toggle svg{width:16px;height:16px;stroke:currentColor;fill:none;
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+#sb-logo-link{display:flex;align-items:center;text-decoration:none;flex:1;overflow:hidden}
+#sb-logo{height:32px;width:auto;object-fit:contain;display:block}
 .nav-item{display:flex;align-items:center;gap:10px;padding:11px 16px;
   text-decoration:none;color:var(--dim);font-size:.74rem;letter-spacing:.07em;
   border-left:2px solid transparent;
@@ -41,21 +47,11 @@ button{font-family:inherit;cursor:pointer}
   stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 #sidebar{transition:width .2s ease}
 #sidebar.collapsed{width:48px}
-#sidebar.collapsed #sb-logo{display:none}
+#sidebar.collapsed #sb-logo-link{display:none}
 #sidebar.collapsed .nav-label{display:none}
 #sidebar.collapsed .nav-item{padding:11px 0;justify-content:center}
-#sidebar.collapsed #sb-top{padding:4px;justify-content:center}
 body{transition:margin-left .2s ease}
 body.sb-collapsed{margin-left:48px}
-#sb-toggle{width:100%;display:flex;align-items:center;justify-content:center;
-  background:none;border:none;border-top:1px solid var(--border);
-  color:var(--dim);cursor:pointer;padding:10px 0;margin-top:auto;
-  transition:color .15s}
-#sb-toggle:hover{color:var(--text)}
-#sb-toggle svg{width:15px;height:15px;stroke:currentColor;fill:none;
-  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
-  transition:transform .2s}
-#sidebar.collapsed #sb-toggle svg{transform:rotate(180deg)}
 
 /* Page wrapper */
 .wrap{max-width:860px;margin:0 auto;padding:28px 16px}
@@ -148,7 +144,14 @@ body.sb-collapsed{margin-left:48px}
 </head>
 <body>
 <nav id="sidebar">
-  <a href="/" id="sb-top"><img id="sb-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='/mim_logo_v6.svg'"></a>
+  <div id="sb-top">
+    <button id="sb-toggle" onclick="toggleSidebar()" title="Sidebar ein/ausklappen">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <a href="/" id="sb-logo-link">
+      <img id="sb-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='/mim_logo_v6.svg'">
+    </a>
+  </div>
   <a class="nav-item" href="/">
     <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
     <span class="nav-label">Control</span>
@@ -157,9 +160,6 @@ body.sb-collapsed{margin-left:48px}
     <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
     <span class="nav-label">Update</span>
   </a>
-  <button id="sb-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
-    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-  </button>
 </nav>
 
 <header id="hdr">

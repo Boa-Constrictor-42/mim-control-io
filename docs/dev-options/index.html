@@ -46,12 +46,12 @@ button{font-family:inherit;cursor:pointer}
 .nav-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;
   stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 #sidebar{transition:width .2s ease}
-#sidebar.collapsed{width:48px}
-#sidebar.collapsed #sb-logo-link{display:none}
-#sidebar.collapsed .nav-label{display:none}
-#sidebar.collapsed .nav-item{padding:11px 0;justify-content:center}
+#sidebar.collapsed{width:48px !important}
+#sidebar.collapsed #sb-logo-link{display:none !important}
+#sidebar.collapsed .nav-label{display:none !important}
+#sidebar.collapsed .nav-item{padding:11px 0 !important;justify-content:center !important}
 body{transition:margin-left .2s ease}
-body.sb-collapsed{margin-left:48px}
+body.sb-collapsed{margin-left:48px !important}
 
 /* Page wrapper */
 .wrap{max-width:860px;margin:0 auto;padding:28px 16px}
@@ -632,15 +632,25 @@ document.addEventListener('DOMContentLoaded', () => {
 <script>
 function toggleSidebar(){
   var sb=document.getElementById('sidebar');
-  var collapsed=sb.classList.toggle('collapsed');
-  document.body.classList.toggle('sb-collapsed',collapsed);
-  try{localStorage.setItem('sb_collapsed',collapsed?'1':'0');}catch(e){}
+  if(!sb) return;
+  var isCollapsed=sb.classList.toggle('collapsed');
+  document.body.classList.toggle('sb-collapsed',isCollapsed);
+  sb.style.width=isCollapsed?'48px':'';
+  document.body.style.marginLeft=isCollapsed?'48px':'';
+  try{localStorage.setItem('sb_collapsed',isCollapsed?'1':'0');}catch(e){}
 }
 (function(){
-  try{if(localStorage.getItem('sb_collapsed')==='1'){
-    document.getElementById('sidebar').classList.add('collapsed');
-    document.body.classList.add('sb-collapsed');
-  }}catch(e){}
+  try{
+    if(localStorage.getItem('sb_collapsed')==='1'){
+      var sb=document.getElementById('sidebar');
+      if(sb){
+        sb.classList.add('collapsed');
+        sb.style.width='48px';
+        document.body.classList.add('sb-collapsed');
+        document.body.style.marginLeft='48px';
+      }
+    }
+  }catch(e){}
 })();
 </script>
 </body>

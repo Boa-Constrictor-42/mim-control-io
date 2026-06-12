@@ -1,6 +1,6 @@
 @echo off
 cd /d C:\Projects\MIM\web
 git add -A
-git commit -m "feat: hamburger toggle in header, version under logo, status bar left"
+git commit -m "fix: robust sidebar collapse with inline styles + important"
 git push origin main
 pause

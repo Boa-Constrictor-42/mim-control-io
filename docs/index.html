@@ -173,15 +173,9 @@ input{font-family:inherit}
 #sidebar{position:fixed;left:0;top:0;bottom:0;width:152px;
   background:var(--bg2);border-right:1px solid var(--border);
   z-index:150;display:flex;flex-direction:column;overflow:hidden}
-#sb-top{height:57px;display:flex;align-items:center;
-  border-bottom:1px solid var(--border);padding:0 8px;gap:8px;flex-shrink:0}
-#sb-toggle{flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  width:32px;height:32px;background:none;border:none;border-radius:4px;
-  color:var(--dim);cursor:pointer;transition:color .15s,background .15s;padding:0}
-#sb-toggle:hover{color:var(--text);background:var(--bg3)}
-#sb-toggle svg{width:16px;height:16px;stroke:currentColor;fill:none;
-  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-#sb-logo-link{display:flex;align-items:center;text-decoration:none;flex:1;overflow:hidden}
+#sb-top{height:57px;display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--border);padding:0 16px;flex-shrink:0}
+#sb-logo-link{display:flex;align-items:center;text-decoration:none;overflow:hidden}
 #sb-logo{height:32px;width:auto;object-fit:contain;display:block}
 #sb-subtitle{padding:5px 16px 6px;font-size:.65rem;color:var(--dim);letter-spacing:.08em;
   border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;flex-shrink:0}
@@ -194,13 +188,15 @@ input{font-family:inherit}
 .nav-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;
   stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 #sidebar{transition:width .2s ease}
-#sidebar.collapsed{width:48px !important}
-#sidebar.collapsed #sb-logo-link{display:none !important}
-#sidebar.collapsed #sb-subtitle{display:none !important}
-#sidebar.collapsed .nav-label{display:none !important}
-#sidebar.collapsed .nav-item{padding:11px 0 !important;justify-content:center !important}
 body{transition:margin-left .2s ease}
-body.sb-collapsed{margin-left:48px !important}
+@media(max-width:900px){
+  #sidebar{width:48px !important}
+  #sb-logo-link{display:none !important}
+  #sb-subtitle{display:none !important}
+  .nav-label{display:none !important}
+  .nav-item{padding:11px 0 !important;justify-content:center !important}
+  body{margin-left:48px !important}
+}
 
 /* Modal */
 #modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;
@@ -325,9 +321,6 @@ body.sb-collapsed{margin-left:48px !important}
 <body>
 <nav id="sidebar">
   <div id="sb-top">
-    <button id="sb-toggle" onclick="toggleSidebar()" title="Sidebar ein/ausklappen">
-      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
     <a href="/" id="sb-logo-link">
       <img id="sb-logo" src="mim_logo_v6.png" alt="MIM" onerror="this.src='mim_logo_v6.svg'">
     </a>
@@ -2061,30 +2054,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     };
   });
 });
-</script>
-<script>
-function toggleSidebar(){
-  var sb=document.getElementById('sidebar');
-  if(!sb) return;
-  var isCollapsed=sb.classList.toggle('collapsed');
-  document.body.classList.toggle('sb-collapsed',isCollapsed);
-  sb.style.width=isCollapsed?'48px':'';
-  document.body.style.marginLeft=isCollapsed?'48px':'';
-  try{localStorage.setItem('sb_collapsed',isCollapsed?'1':'0');}catch(e){}
-}
-(function(){
-  try{
-    if(localStorage.getItem('sb_collapsed')==='1'){
-      var sb=document.getElementById('sidebar');
-      if(sb){
-        sb.classList.add('collapsed');
-        sb.style.width='48px';
-        document.body.classList.add('sb-collapsed');
-        document.body.style.marginLeft='48px';
-      }
-    }
-  }catch(e){}
-})();
 </script>
 </body>
 </html>

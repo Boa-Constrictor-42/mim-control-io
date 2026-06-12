@@ -26,12 +26,12 @@ input{font-family:inherit}
 /* ── Header ──────────────────────────────────────────────────────────────── */
 #hdr{background:var(--bg2);border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:100}
-#hdr-inner{display:flex;align-items:center;justify-content:space-between;
-  padding:6px 20px}
-#hdr-inner{position:relative}
+#hdr-inner{display:flex;align-items:center;padding:6px 20px}
+#hdr-left{flex:1;display:flex;align-items:center}
 #logo-img{height:44px;width:auto;object-fit:contain;display:block}
-#hdr-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  display:flex;align-items:baseline;gap:10px;white-space:nowrap;pointer-events:none}
+#hdr-center{display:flex;align-items:baseline;gap:10px;white-space:nowrap;flex-shrink:0;
+  text-decoration:none}
+#hdr-right{flex:1;display:flex;align-items:center;justify-content:flex-end;gap:14px}
 #logo{font-size:1.7rem;letter-spacing:.22em;color:#fff;font-weight:bold}
 #logo-sub{font-size:.75rem;color:var(--dim);letter-spacing:.08em}
 #status-bar{display:flex;align-items:center;gap:14px;font-size:.76rem}
@@ -324,16 +324,20 @@ input{font-family:inherit}
 <!-- Header -->
 <header id="hdr">
   <div id="hdr-inner">
-    <a href="/" style="line-height:0"><img id="logo-img" src="mim_logo_v6.png" alt="MIM Logo" onerror="this.src='mim_logo_v6.svg'"></a>
-    <a href="/" id="hdr-center" style="text-decoration:none">
+    <div id="hdr-left">
+      <a href="/" style="line-height:0"><img id="logo-img" src="mim_logo_v6.png" alt="MIM Logo" onerror="this.src='mim_logo_v6.svg'"></a>
+    </div>
+    <a href="/" id="hdr-center">
       <span id="logo">MIM</span>
       <span id="logo-sub">release alpha 0.2</span>
     </a>
-    <div id="status-bar">
-      <div id="dot"></div>
-      <span id="s-text">Disconnected</span>
-      <span id="s-fw"></span>
-      <span id="s-lat"></span>
+    <div id="hdr-right">
+      <div id="status-bar">
+        <div id="dot"></div>
+        <span id="s-text">Disconnected</span>
+        <span id="s-fw"></span>
+        <span id="s-lat"></span>
+      </div>
     </div>
   </div>
 </header>

@@ -38,6 +38,23 @@ button{font-family:inherit;cursor:pointer}
 .nav-item.active{color:var(--text);border-left-color:var(--green);background:var(--bg3)}
 .nav-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;
   stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+#sidebar{transition:width .2s ease}
+#sidebar.collapsed{width:48px}
+#sidebar.collapsed #sb-logo{display:none}
+#sidebar.collapsed .nav-label{display:none}
+#sidebar.collapsed .nav-item{padding:11px 0;justify-content:center}
+#sidebar.collapsed #sb-top{padding:4px;justify-content:center}
+body{transition:margin-left .2s ease}
+body.sb-collapsed{margin-left:48px}
+#sb-toggle{width:100%;display:flex;align-items:center;justify-content:center;
+  background:none;border:none;border-top:1px solid var(--border);
+  color:var(--dim);cursor:pointer;padding:10px 0;margin-top:auto;
+  transition:color .15s}
+#sb-toggle:hover{color:var(--text)}
+#sb-toggle svg{width:15px;height:15px;stroke:currentColor;fill:none;
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+  transition:transform .2s}
+#sidebar.collapsed #sb-toggle svg{transform:rotate(180deg)}
 
 /* Page wrapper */
 .wrap{max-width:860px;margin:0 auto;padding:28px 16px}
@@ -130,15 +147,18 @@ button{font-family:inherit;cursor:pointer}
 </head>
 <body>
 <nav id="sidebar">
-  <div id="sb-top"><img id="sb-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='/mim_logo_v6.svg'"></div>
+  <a href="/" id="sb-top"><img id="sb-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='/mim_logo_v6.svg'"></a>
   <a class="nav-item" href="/">
     <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-    Control
+    <span class="nav-label">Control</span>
   </a>
   <a class="nav-item active" href="/update/">
     <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    Update
+    <span class="nav-label">Update</span>
   </a>
+  <button id="sb-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
 </nav>
 
 <header id="hdr">
@@ -664,6 +684,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   fetchVersionJson();
 });
+</script>
+<script>
+function toggleSidebar(){
+  var sb=document.getElementById('sidebar');
+  var collapsed=sb.classList.toggle('collapsed');
+  document.body.classList.toggle('sb-collapsed',collapsed);
+  try{localStorage.setItem('sb_collapsed',collapsed?'1':'0');}catch(e){}
+}
+(function(){
+  try{if(localStorage.getItem('sb_collapsed')==='1'){
+    document.getElementById('sidebar').classList.add('collapsed');
+    document.body.classList.add('sb-collapsed');
+  }}catch(e){}
+})();
 </script>
 </body>
 </html>

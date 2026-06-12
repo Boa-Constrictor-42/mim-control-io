@@ -707,6 +707,7 @@ const S = {
   timSend:    null,       // debounce for slider-to-send
   hwSync:     null,
   activeMode: 'unknown',  // 'MIM' | 'AIM' | 'unknown'
+  _pingRetry: null,
 };
 
 // ── Serial ────────────────────────────────────────────────────────────────────
@@ -724,21 +725,45 @@ async function doConnect() {
     setConnected(true);
     _startRead();
     clog('[MIM] Connected @ 115200 baud');
-    setTimeout(()=>sendJson({cmd:'ping'}),        200);
+
+    // ── Ping + Retry-Strategie (fix/mouse-recognition) ───────────────────────
+    // Funk-Dongles (z.B. Razer DeathAdder V3 Pro) brauchen länger zur USB-
+    // Enumeration. Deshalb: 1. Ping früh senden, bei Ausbleiben nach 1.5 s
+    // erneut pingen, erst nach 4 s Gesamtwartezeit als AIM/XInput klassifizieren.
+    const _sendPingInit = () => {
+      const el = ge('s-mode');
+      if(el && S.activeMode === 'unknown') el.textContent = '…';
+      clog('[MIM] Ping gesendet (Modus-Erkennung …)');
+      sendJson({cmd:'ping'});
+    };
+
+    setTimeout(_sendPingInit, 200);
     setTimeout(()=>sendJson({cmd:'get_status'}, true), 350);  // check initial sleep state
     setTimeout(()=>sendJson({cmd:'get_config'}),  550);
-    // Ping timeout: if no mode response in 2.5s → device is likely in AIM/XInput mode (no serial)
+
+    // Retry-Ping nach 1500 ms falls noch keine Antwort (Dongle-Enumeration dauert länger)
+    S._pingRetry = setTimeout(() => {
+      if (S.connected && S.activeMode === 'unknown') {
+        clog('[MIM] Kein Ping-ACK — Retry (Dongle noch in Enumeration?)');
+        sendJson({cmd:'ping'});
+      }
+    }, 1500);
+
+    // Endgültiger Timeout nach 4000 ms (statt 2500) — Dongle braucht mehr Zeit
     S._pingTimeout = setTimeout(() => {
       if (S.connected && S.activeMode === 'unknown') {
         const el = ge('s-mode');
         if(el) el.textContent = 'AIM?';
         S.activeMode = 'AIM?';
-        clog('[MIM] Keine Ping-Antwort — Gerät wahrscheinlich im AIM/XInput-Mode (kein Serial)');
-        clog('[MIM] Zum Wechseln nach MIM: E2-Encoder lang drücken (> 1s) auf dem Gerät');
+        clog('[MIM] Keine Ping-Antwort nach 4 s — Gerät wahrscheinlich im AIM/XInput-Mode');
+        clog('[MIM] HINWEIS: Bei Funk-Dongle (z.B. Razer) und Firmware < 2.4.0 kann dies');
+        clog('[MIM]          beim PC-Neustart auftreten → Firmware auf 2.4.0-alpha updaten!');
+        clog('[MIM] Zum manuellen Wechsel nach MIM: E2-Encoder lang drücken (> 1s)');
         const btnMim = ge('btn-mode-mim');
         if(btnMim) btnMim.disabled = false;  // Modeswitch-Versuch trotzdem erlauben
       }
-    }, 2500);
+    }, 4000);
+
     S.hwSync = setInterval(()=>{ if(S.connected && !S.sleeping) sendJson({cmd:'get_config'}, true); }, 3000);
   } catch(e) {
     if (e.name !== 'NotFoundError') clog('[ERR] '+e.message);
@@ -748,6 +773,7 @@ async function doConnect() {
 async function doDisconnect() {
   if (S.hwSync) { clearInterval(S.hwSync); S.hwSync=null; }
   if (S._pingTimeout) { clearTimeout(S._pingTimeout); S._pingTimeout = null; }
+  if (S._pingRetry)   { clearTimeout(S._pingRetry);   S._pingRetry   = null; }
   S.sleeping = false;
   setConnected(false);
   // pipeTo-Lock freigeben bevor Port geschlossen wird

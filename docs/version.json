@@ -1,9 +1,8 @@
 ﻿{
-    "version":  "2.4.0-alpha",
-    "date":  "2026-06-11",
+    "version":  "2.4.1-alpha",
+    "date":  "2026-06-14",
     "changelog":  [
-                      "Gaming-Maus per Funk-Dongle (z. B. Razer DeathAdder V3 Pro) wird beim Boot nicht mehr fälschlich als Tastatur/Controller erkannt — das Gerät bootet jetzt zuverlässig im MIM-Modus",
-                      "Nach PC-Neustart oder Power-Cycle startet das Gerät wieder per Auto-Erkennung im MIM-Modus, statt einen alten AIM-Modus wiederherzustellen (Maus blieb dadurch funktionslos)"
+                      "Gerät ohne angeschlossene Encoder schaltet nicht mehr von selbst in den AIM-Modus (Maus reagierte dann nicht mehr) — schwebende Encoder-Taster-Pins lösen keinen Phantom-Tastendruck mehr aus"
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.4.0-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.4.1-alpha.hex"
 }

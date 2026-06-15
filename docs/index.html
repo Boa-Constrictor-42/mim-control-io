@@ -198,10 +198,17 @@ body{transition:margin-left .2s ease}
 }
 
 /* Modal */
-#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;
+#modal-overlay,#mnk-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;
   display:flex;align-items:center;justify-content:center}
 #modal{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;
   width:440px;max-width:95vw;font-size:13px}
+#mnk-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;
+  width:400px;max-width:95vw;font-size:13px}
+#mnk-modal-hd{padding:8px 16px;font-size:.7rem;color:var(--dim);letter-spacing:.1em;
+  border-bottom:1px solid var(--border)}
+#mnk-modal-body{padding:18px 18px 10px}
+#mnk-modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px;
+  border-top:1px solid var(--border)}
 #modal-hd{padding:8px 16px;font-size:.7rem;color:var(--dim);letter-spacing:.1em;
   border-bottom:1px solid var(--border)}
 #modal-body{padding:18px 18px 10px}
@@ -357,7 +364,7 @@ body{transition:margin-left .2s ease}
     </div>
     <div class="mb-wrap">
       <button class="mb" id="btn-out-mnk" disabled title="Switch to Mouse &amp; Keyboard output mode">MnK output mode</button>
-      <span class="mb-sub">[MIM / KIM]</span>
+      <span class="mb-sub">[MIM / KIM / Kombi]</span>
     </div>
     <span id="s-mode"></span>
   </div>
@@ -417,6 +424,34 @@ body{transition:margin-left .2s ease}
     </div>
   </div>
 </div>
+<!-- MnK Output Modal -->
+<div id="mnk-overlay" style="display:none">
+  <div id="mnk-modal">
+    <div id="mnk-modal-hd">MNK OUTPUT MODE</div>
+    <div id="mnk-modal-body">
+      <div class="step-choices">
+        <button class="mnk-choice choice-btn" data-mode="MIM">
+          <span class="choice-title">Mouse only</span>
+          <span class="choice-sub">Mouse input → modified mouse output (MIM)</span>
+        </button>
+        <button class="mnk-choice choice-btn" data-mode="KIM">
+          <span class="choice-title">Keyboard only</span>
+          <span class="choice-sub">Keyboard → remapped keyboard output (KIM)</span>
+        </button>
+        <button class="mnk-choice choice-btn" data-mode="MKCOMBO">
+          <span class="choice-title">Mouse + Keyboard Kombi</span>
+          <span class="choice-sub">Both inputs simultaneously via USB hub (MIM+KIM)</span>
+        </button>
+      </div>
+      <div style="color:var(--orange);font-size:.76rem;padding-top:12px">Device will reboot and reconnect in the new mode.</div>
+    </div>
+    <div id="mnk-modal-footer">
+      <button class="fb" id="mnk-cancel">Cancel</button>
+      <button class="fb prim" id="mnk-confirm" disabled>Confirm &amp; Reboot</button>
+    </div>
+  </div>
+</div>
+
 <div id="no-ws">
   WebSerial API not available.<br>
   Use <strong>Chrome</strong> or <strong>Edge ≥ 89</strong> via HTTPS or localhost.<br>
@@ -961,41 +996,49 @@ function sendModeSwitch(target) {
 function setActiveMode(mode) {
   S.activeMode = mode || 'unknown';
   const el = ge('s-mode');
-  if(el) el.textContent = mode ? mode : (S.connected ? '?' : '');
+  const isCombo  = mode === 'MKCOMBO';
+  if(el) el.textContent = isCombo ? 'MIM+KIM' : (mode ? mode : (S.connected ? '?' : ''));
   const joypad = ge('btn-out-joypad'), mnk = ge('btn-out-mnk');
   const isJoypad = mode === 'AIM' || mode === 'CIM';
+  const isMnK    = !isJoypad && mode !== 'unknown';
   if(joypad) joypad.disabled = !S.connected || isJoypad;
-  if(mnk)    mnk.disabled    = !S.connected || (!isJoypad && mode !== 'unknown');
+  if(mnk)    mnk.disabled    = !S.connected || isMnK;
   // Aktiver Modus: Text grün; inaktiv oder getrennt: Text grau
   if(joypad) joypad.classList.toggle('mb-active', S.connected && isJoypad);
-  if(mnk)    mnk.classList.toggle('mb-active',    S.connected && !isJoypad && mode !== 'unknown');
+  if(mnk)    mnk.classList.toggle('mb-active',    S.connected && isMnK);
   // Tabs aktivieren
   activateTab(mode);
 }
 
 function activateTab(mode) {
-  const tabs   = ['mim','kim','cim'];
-  const panels = ['mim','kim','cim'];
-
   // Alle Tabs deaktivieren
-  tabs.forEach(t => {
+  ['mim','kim','cim'].forEach(t => {
     const tab = ge('tab-'+t), panel = ge('panel-'+t);
     if(tab)   { tab.classList.remove('active'); tab.disabled = true; }
     if(panel)  panel.classList.remove('active');
   });
 
-  // Passenden Tab aktivieren
-  let activeId = 'mim'; // Default
-  if(mode === 'CIM') activeId = 'cim';
-  else if(mode === 'KIM') activeId = 'kim';
+  if(mode === 'MKCOMBO') {
+    // Kombi: MIM- und KIM-Tab entsperren, MIM-Panel standardmäßig anzeigen
+    const tabMim = ge('tab-mim'), tabKim = ge('tab-kim');
+    if(tabMim) { tabMim.classList.add('active'); tabMim.disabled = false; }
+    if(tabKim) { tabKim.disabled = false; }
+    const panelMim = ge('panel-mim');
+    if(panelMim) panelMim.classList.add('active');
+    if(S.connected) setTimeout(()=>KIM.load(), 150);
+  } else {
+    // Einzelmodus: passenden Tab aktivieren
+    let activeId = 'mim';
+    if(mode === 'CIM') activeId = 'cim';
+    else if(mode === 'KIM') activeId = 'kim';
 
-  const activeTab = ge('tab-'+activeId);
-  const activePanel = ge('panel-'+activeId);
-  if(activeTab)   { activeTab.classList.add('active'); activeTab.disabled = false; }
-  if(activePanel)  activePanel.classList.add('active');
+    const activeTab = ge('tab-'+activeId);
+    const activePanel = ge('panel-'+activeId);
+    if(activeTab)   { activeTab.classList.add('active'); activeTab.disabled = false; }
+    if(activePanel)  activePanel.classList.add('active');
 
-  // KIM-Konfig laden sobald KIM-Tab aktiv wird
-  if(activeId === 'kim' && S.connected) setTimeout(()=>KIM.load(), 150);
+    if(activeId === 'kim' && S.connected) setTimeout(()=>KIM.load(), 150);
+  }
 
   // Hint anzeigen wenn Gerät verbunden
   const hint = ge('tab-hint');
@@ -1089,6 +1132,33 @@ const Modal = {
   confirm() {
     this.close();
     sendModeSwitch(this.subMode);
+  }
+};
+
+// ── MnK Modal ─────────────────────────────────────────────────────────────────
+const MnKModal = {
+  selected: null,
+
+  open() {
+    this.selected = null;
+    document.querySelectorAll('.mnk-choice').forEach(b => b.classList.remove('selected'));
+    ge('mnk-confirm').disabled = true;
+    ge('mnk-overlay').style.display = 'flex';
+  },
+
+  close() { ge('mnk-overlay').style.display = 'none'; },
+
+  select(mode) {
+    this.selected = mode;
+    document.querySelectorAll('.mnk-choice').forEach(b => b.classList.remove('selected'));
+    document.querySelector(`.mnk-choice[data-mode="${mode}"]`).classList.add('selected');
+    ge('mnk-confirm').disabled = false;
+  },
+
+  confirm() {
+    if(!this.selected) return;
+    this.close();
+    sendModeSwitch(this.selected);
   }
 };
 
@@ -1996,13 +2066,19 @@ document.addEventListener('DOMContentLoaded',()=>{
   ge('btn-all').onclick=sendAll;
   ge('btn-rst').onclick=()=>{ sendRaw('r\n'); clog('[MIM] Reset sent'); };
   ge('btn-out-joypad').onclick=()=>Modal.open();
-  ge('btn-out-mnk').onclick=()=>sendModeSwitch('MIM');
+  ge('btn-out-mnk').onclick=()=>MnKModal.open();
   ge('choice-cim').onclick=()=>Modal.selectSub('CIM');
   ge('choice-aim').onclick=()=>Modal.selectSub('AIM');
   ge('modal-next').onclick=()=>Modal.next();
   ge('modal-back').onclick=()=>Modal.back();
   ge('modal-cancel').onclick=()=>Modal.close();
   ge('modal-overlay').onclick=e=>{ if(e.target===ge('modal-overlay')) Modal.close(); };
+  document.querySelectorAll('.mnk-choice').forEach(b=>{
+    b.onclick=()=>MnKModal.select(b.dataset.mode);
+  });
+  ge('mnk-confirm').onclick=()=>MnKModal.confirm();
+  ge('mnk-cancel').onclick=()=>MnKModal.close();
+  ge('mnk-overlay').onclick=e=>{ if(e.target===ge('mnk-overlay')) MnKModal.close(); };
   ge('btn-exp').onclick=doExport;
   ge('btn-imp').onclick=()=>ge('file-imp').click();
   ge('file-imp').onchange=e=>{ if(e.target.files[0]){doImport(e.target.files[0]);} e.target.value=''; };

@@ -168,12 +168,25 @@ Font: `"Consolas", "Courier New", monospace` — konsistent auf allen Seiten.
     </div>
     <div class="mb-wrap">
       <button class="mb" id="btn-out-mnk" disabled>MnK output mode</button>
-      <span class="mb-sub">[MIM / KIM]</span>
+      <span class="mb-sub">[MIM / KIM / Kombi]</span>
     </div>
     <span id="s-mode"></span>
   </div>
 </div>
 ```
+
+**MnK-Button Verhalten:**
+- `btn-out-joypad` → öffnet Joypad-Modal (AIM / CIM Auswahl)
+- `btn-out-mnk` → öffnet MnK-Modal (`MnKModal.open()`) mit 3 Optionen:
+  - Mouse only (MIM)
+  - Keyboard only (KIM)
+  - Mouse + Keyboard Kombi (MKCOMBO — Hub mit Maus + Tastatur)
+
+**MKCOMBO-Modus (`mode === 'MKCOMBO'`):**
+- `#s-mode` zeigt `"MIM+KIM"`
+- Beide Tabs (MIM + KIM) entsperrt; MIM-Panel als Standard sichtbar
+- User kann per Tab zwischen MIM- und KIM-Einstellungen wechseln
+- `btn-out-mnk` bleibt aktiv (grün), `btn-out-joypad` wechselbar
 
 ---
 

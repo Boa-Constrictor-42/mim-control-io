@@ -1,8 +1,11 @@
 ﻿{
-    "version":  "2.4.1-alpha",
-    "date":  "2026-06-14",
+    "version":  "2.4.2-alpha",
+    "date":  "2026-06-15",
     "changelog":  [
-                      "Gerät ohne angeschlossene Encoder schaltet nicht mehr von selbst in den AIM-Modus (Maus reagierte dann nicht mehr) — schwebende Encoder-Taster-Pins lösen keinen Phantom-Tastendruck mehr aus"
+                      "CIM mode now supports Xbox One/Series controllers connected via USB — analog sticks, triggers, D-pad and buttons are passed through",
+                      "New MODE_MKCOMBO: simultaneous mouse + keyboard input through a USB hub",
+                      "CIM: Xbox analog sticks are now centered when idle instead of drifting to extreme values",
+                      "CIM: removed a phantom D-pad \"up\" that kept a controller button permanently pressed"
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.4.1-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.4.2-alpha.hex"
 }

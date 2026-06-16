@@ -322,6 +322,33 @@ body{transition:margin-left .2s ease}
 .kim-tmode-btn:last-child{border-right:none}
 .kim-tmode-btn:hover{background:var(--bg4,#3a3a3a);color:var(--text)}
 .kim-tmode-btn.active{background:var(--accent,#0078d4);color:#fff;font-weight:600}
+
+/* ── AIM tab ──────────────────────────────────────────────────────────────── */
+#aim-layout{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+#aim-pad-col{flex:0 0 auto}
+#aim-pad-svg{display:block;background:var(--bg3);border:1px solid var(--border);
+  border-radius:4px}
+#aim-pad-svg .pad-body{fill:#181818;stroke:#3a3a3a;stroke-width:2}
+#aim-pad-svg .pad-el{fill:#222;stroke:#444;stroke-width:1.5}
+#aim-pad-svg .pad-num{fill:var(--green);font:bold 11px "Consolas",monospace}
+#aim-pad-svg .pad-lbl{fill:var(--dim);font:9px "Consolas",monospace}
+#aim-map-col{flex:1;min-width:300px}
+.aim-map-row{display:flex;align-items:center;gap:8px;padding:4px 0;
+  border-bottom:1px solid #161616}
+.aim-map-row:last-child{border-bottom:none}
+.aim-map-num{width:24px;font-size:.82rem;color:var(--green);text-align:right;
+  font-weight:bold}
+.aim-map-name{width:96px;font-size:.82rem;color:var(--text)}
+.aim-map-sel{flex:1;background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text);padding:3px 6px;border-radius:2px;font-family:inherit;font-size:.82rem}
+.aim-stick-grp{display:flex;gap:0;border:1px solid var(--border2);border-radius:3px;
+  overflow:hidden}
+.aim-stick-btn{background:var(--bg3);border:none;border-right:1px solid var(--border2);
+  color:var(--dim);font-size:.8rem;padding:5px 18px;cursor:pointer;
+  transition:background .15s,color .15s}
+.aim-stick-btn:last-child{border-right:none}
+.aim-stick-btn:hover{color:var(--text)}
+.aim-stick-btn.active{background:#1a3a1a;color:var(--green);font-weight:600}
 </style>
 </head>
 <body>
@@ -465,6 +492,9 @@ body{transition:margin-left .2s ease}
     <button class="tab"        id="tab-kim" disabled>KIM</button>
     <span id="tab-cim-wrap" title="Requires Joypad output mode + connected controller" style="display:inline-block">
       <button class="tab" id="tab-cim" disabled>CIM</button>
+    </span>
+    <span id="tab-aim-wrap" title="Requires Joypad output mode (Mouse → Stick)" style="display:inline-block">
+      <button class="tab" id="tab-aim" disabled>AIM</button>
     </span>
   </div>
   <div class="tab-hint" id="tab-hint">
@@ -700,30 +730,130 @@ body{transition:margin-left .2s ease}
 
   </div><!-- #panel-kim -->
 
-  <!-- Tab: CIM (Platzhalter) -->
+  <!-- Tab: CIM -->
   <div class="tab-panel" id="panel-cim">
 
-    <!-- Step Wizard Platzhalter -->
+    <!-- Stick / Button Mapping -->
     <div class="sec" style="margin-top:12px">
-      <div class="sec-hd">AXIS &amp; BUTTON MAPPING</div>
-      <div class="sec-bd" style="color:var(--dim);font-size:.82rem;padding:16px;line-height:1.9">
-        <span style="color:var(--text)">Controller pass-through active.</span><br>
-        Axis assignment and Rapid-Fire configuration will be available in a later phase.<br>
-        <span style="color:var(--dim2);font-size:.75rem">
-          Planned: Stick X/Y axis select · Fire button assign · Spline curve editor · RF with spread
-        </span>
+      <div class="sec-hd">CIM — Controller Input Modifier <span style="color:var(--dim2);font-size:.66rem">— right-stick correction</span></div>
+      <div class="sec-bd">
+        <div class="pr">
+          <div class="pr-name" style="width:96px">Stick X axis</div>
+          <input type="number" id="cim-axis-lx" class="pr-en" min="0" max="9" step="1" value="0">
+          <span style="color:var(--dim2);font-size:.72rem;flex:1">Left-stick X axis index (0..9)</span>
+        </div>
+        <div class="pr">
+          <div class="pr-name" style="width:96px">Stick Y axis</div>
+          <input type="number" id="cim-axis-ly" class="pr-en" min="0" max="9" step="1" value="1">
+          <span style="color:var(--dim2);font-size:.72rem;flex:1">Left-stick Y axis index (0..9)</span>
+        </div>
+        <div class="pr">
+          <div class="pr-name" style="width:96px">Fire button</div>
+          <input type="number" id="cim-fire-btn" class="pr-en" min="0" max="31" step="1" value="0">
+          <span style="color:var(--dim2);font-size:.72rem;flex:1">Trigger button index (0..31)</span>
+        </div>
       </div>
     </div>
 
-    <!-- Slider-Bereich Platzhalter -->
+    <!-- Correction sensitivity -->
     <div class="sec">
-      <div class="sec-hd">CIM PARAMETERS <span style="color:var(--dim2);font-size:.66rem">— coming soon</span></div>
-      <div class="sec-bd" style="color:var(--dim2);font-size:.78rem;padding:12px">
-        vX · vY spline · X/Y-Delay · Sigma · Rapid-Fire · T-End
+      <div class="sec-hd">Correction Sensitivity</div>
+      <div class="sec-bd" id="cim-sens-bd"></div>
+    </div>
+
+    <!-- Velocity Spline (right stick) -->
+    <div class="sec">
+      <div class="sec-hd">Velocity Spline (Right Stick)  <span style="color:var(--dim2);font-size:.66rem">vX0–vX6 (blue) · vY0–vY6 (orange) · px/s</span></div>
+      <div class="sec-bd"><div id="spline-row-cim"></div></div>
+    </div>
+
+    <!-- Parameters -->
+    <div class="sec">
+      <div class="sec-hd">Parameters</div>
+      <div class="sec-bd" id="cim-params-bd"></div>
+    </div>
+
+  </div><!-- #panel-cim -->
+
+  <!-- Tab: AIM -->
+  <div class="tab-panel" id="panel-aim">
+
+    <!-- Mouse → Stick selector -->
+    <div class="sec" style="margin-top:12px">
+      <div class="sec-hd">AIM — Mouse → Stick</div>
+      <div class="sec-bd">
+        <div class="kim-row">
+          <span class="kim-lbl" style="width:140px">Mouse drives</span>
+          <div class="aim-stick-grp" id="aim-stick-grp" data-stick="1">
+            <button class="aim-stick-btn" data-stick="0">Left stick</button>
+            <button class="aim-stick-btn active" data-stick="1">Right stick</button>
+          </div>
+          <span style="color:var(--dim2);font-size:.72rem;margin-left:8px">Which joystick the mouse aim controls</span>
+        </div>
       </div>
     </div>
 
-  </div>
+    <!-- Controller graphic + button assignment -->
+    <div class="sec">
+      <div class="sec-hd">Button Mapping <span style="color:var(--dim2);font-size:.66rem">— assign keyboard / mouse input to each controller button</span></div>
+      <div class="sec-bd">
+        <div id="aim-layout">
+          <div id="aim-pad-col">
+            <!-- Xbox-style schematic; numbered callouts 0..15 -->
+            <svg id="aim-pad-svg" width="300" height="220" viewBox="0 0 300 220">
+              <!-- body -->
+              <path class="pad-body" d="M40,70 Q150,40 260,70 Q290,90 280,150 Q270,190 235,185
+                Q200,175 180,170 L120,170 Q100,175 65,185 Q30,190 20,150 Q10,90 40,70 Z"/>
+              <!-- left stick (L3 = 14) -->
+              <circle class="pad-el" cx="80" cy="110" r="18"/>
+              <text class="pad-num" x="80" y="114" text-anchor="middle">14</text>
+              <!-- right stick (R3 = 15) -->
+              <circle class="pad-el" cx="185" cy="138" r="18"/>
+              <text class="pad-num" x="185" y="142" text-anchor="middle">15</text>
+              <!-- dpad (8 up,9 down,10 left,11 right) -->
+              <rect class="pad-el" x="113" y="118" width="14" height="14"/>
+              <text class="pad-num" x="120" y="128" text-anchor="middle">8</text>
+              <rect class="pad-el" x="113" y="146" width="14" height="14"/>
+              <text class="pad-num" x="120" y="156" text-anchor="middle">9</text>
+              <rect class="pad-el" x="99" y="132" width="14" height="14"/>
+              <text class="pad-num" x="106" y="142" text-anchor="middle">10</text>
+              <rect class="pad-el" x="127" y="132" width="14" height="14"/>
+              <text class="pad-num" x="134" y="142" text-anchor="middle">11</text>
+              <!-- ABXY (0 A bottom,1 B right,2 X left,3 Y top) -->
+              <circle class="pad-el" cx="230" cy="125" r="11"/>
+              <text class="pad-num" x="230" y="129" text-anchor="middle">0</text>
+              <circle class="pad-el" cx="252" cy="103" r="11"/>
+              <text class="pad-num" x="252" y="107" text-anchor="middle">1</text>
+              <circle class="pad-el" cx="208" cy="103" r="11"/>
+              <text class="pad-num" x="208" y="107" text-anchor="middle">2</text>
+              <circle class="pad-el" cx="230" cy="81" r="11"/>
+              <text class="pad-num" x="230" y="85" text-anchor="middle">3</text>
+              <!-- bumpers (4 LB,5 RB) -->
+              <rect class="pad-el" x="55" y="55" width="40" height="12" rx="5"/>
+              <text class="pad-num" x="75" y="64" text-anchor="middle">4</text>
+              <rect class="pad-el" x="205" y="55" width="40" height="12" rx="5"/>
+              <text class="pad-num" x="225" y="64" text-anchor="middle">5</text>
+              <!-- triggers (6 LT,7 RT) -->
+              <rect class="pad-el" x="55" y="38" width="40" height="12" rx="5"/>
+              <text class="pad-num" x="75" y="47" text-anchor="middle">6</text>
+              <rect class="pad-el" x="205" y="38" width="40" height="12" rx="5"/>
+              <text class="pad-num" x="225" y="47" text-anchor="middle">7</text>
+              <!-- view/back 12, menu/start 13 -->
+              <circle class="pad-el" cx="132" cy="100" r="8"/>
+              <text class="pad-num" x="132" y="104" text-anchor="middle">12</text>
+              <circle class="pad-el" cx="168" cy="100" r="8"/>
+              <text class="pad-num" x="168" y="104" text-anchor="middle">13</text>
+              <!-- labels -->
+              <text class="pad-lbl" x="75" y="205" text-anchor="middle">LT/LB</text>
+              <text class="pad-lbl" x="225" y="205" text-anchor="middle">RT/RB</text>
+            </svg>
+          </div>
+          <div id="aim-map-col"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- #panel-aim -->
 
 </div></div><!-- .wrap / #main -->
 
@@ -972,6 +1102,18 @@ function handleLine(ln) {
     return;
   }
 
+  // ── get_aim_mapping response (map + mouse_stick) ────────────────
+  if(Array.isArray(r.map) && typeof r.mouse_stick !== 'undefined') {
+    AIM.apply(r);
+    return;
+  }
+
+  // ── get_cim_config response (vX + sensitivity, top-level) ───────
+  if(Array.isArray(r.vX) && typeof r.sensitivity !== 'undefined') {
+    CIM.apply(r);
+    return;
+  }
+
   const cfg = r.config;
   if(cfg && typeof cfg === 'object'){
     S.depth++;
@@ -1012,7 +1154,7 @@ function setActiveMode(mode) {
 
 function activateTab(mode) {
   // Alle Tabs deaktivieren
-  ['mim','kim','cim'].forEach(t => {
+  ['mim','kim','cim','aim'].forEach(t => {
     const tab = ge('tab-'+t), panel = ge('panel-'+t);
     if(tab)   { tab.classList.remove('active'); tab.disabled = true; }
     if(panel)  panel.classList.remove('active');
@@ -1030,6 +1172,7 @@ function activateTab(mode) {
     // Einzelmodus: passenden Tab aktivieren
     let activeId = 'mim';
     if(mode === 'CIM') activeId = 'cim';
+    else if(mode === 'AIM' || mode === 'AIM?') activeId = 'aim';
     else if(mode === 'KIM') activeId = 'kim';
 
     const activeTab = ge('tab-'+activeId);
@@ -1038,6 +1181,8 @@ function activateTab(mode) {
     if(activePanel)  activePanel.classList.add('active');
 
     if(activeId === 'kim' && S.connected) setTimeout(()=>KIM.load(), 150);
+    if(activeId === 'cim' && S.connected) setTimeout(()=>CIM.load(), 150);
+    if(activeId === 'aim' && S.connected) setTimeout(()=>AIM.load(), 150);
   }
 
   // Hint anzeigen wenn Gerät verbunden
@@ -2043,6 +2188,330 @@ const KIM = {
   }
 };
 
+// ── CIM ─────────────────────────────────────────────────────────────────────
+// Eigene Parameter-Liste für CIM (Right-Stick Korrektur). vX/vY teilen sich die
+// Spline-UI-Logik mit MIM, bekommen aber eigene Element-IDs (Prefix "cim-").
+const CIM_PARAMS = [
+  {n:'vX0',k:'vx0',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:0},
+  {n:'vX1',k:'vx1',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:1},
+  {n:'vX2',k:'vx2',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:2},
+  {n:'vX3',k:'vx3',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:3},
+  {n:'vX4',k:'vx4',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:4},
+  {n:'vX5',k:'vx5',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:5},
+  {n:'vX6',k:'vx6',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'x',si:6},
+  {n:'vY0',k:'vy0',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:0},
+  {n:'vY1',k:'vy1',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:1},
+  {n:'vY2',k:'vy2',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:2},
+  {n:'vY3',k:'vy3',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:3},
+  {n:'vY4',k:'vy4',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:4},
+  {n:'vY5',k:'vy5',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:5},
+  {n:'vY6',k:'vy6',min:-500,max:500, step:1,  u:'px/s',def:0,  fl:false,sp:true, ax:'y',si:6},
+  {n:'X-Delay', k:'xd', min:0,   max:3000,  step:5,   u:'ms', def:0,    fl:false,sp:false,jk:'xDelay'},
+  {n:'Y-Delay', k:'yd', min:0,   max:3000,  step:5,   u:'ms', def:0,    fl:false,sp:false,jk:'yDelay'},
+  {n:'Sigma',   k:'s',  min:0.1, max:15,    step:0.1, u:'%',  def:1,    fl:true, sp:false,jk:'sigmaPct'},
+  {n:'RF-Hz',   k:'rf', min:0,   max:20,    step:0.1, u:'Hz', def:0,    fl:true, sp:false,jk:'rfHz'},
+  {n:'RF-Sprd', k:'rfs',min:0.1, max:15,    step:0.1, u:'%',  def:1,    fl:true, sp:false,jk:'rfSpread'},
+  {n:'RF-Duty', k:'rfd',min:5,   max:95,    step:5,   u:'%',  def:70,   fl:false,sp:false,jk:'rfDutyPct'},
+  {n:'T-End',   k:'te', min:500, max:10000, step:25,  u:'ms', def:5000, fl:false,sp:false,jk:'tEndMs'},
+];
+// Index 21: separate Sensitivity-Control (px → stick correction strength)
+const CIM_SENS = {n:'Sensitivity',k:'sens',min:1,max:512,step:1,u:'',def:64,fl:true,sp:false,jk:'sensitivity'};
+
+const CIM = {
+  vals: CIM_PARAMS.map(p=>p.def),  // index 0..20 wie MIM
+  sens: CIM_SENS.def,
+  depth: 0,
+  timSend: null,
+  loaded: false,
+
+  _fmt(p,v){ return p.fl ? parseFloat(v).toFixed(1) : String(Math.round(v)); },
+  _clamp(p,v){ return Math.max(p.min, Math.min(p.max, Number(v))); },
+
+  build() {
+    this._buildSpline();
+    this._buildParams();
+    this._buildSens();
+  },
+
+  _buildSpline() {
+    const row=ge('spline-row-cim'); if(!row) return;
+    row.innerHTML='';
+    const TICKS=[{v:'+500',pct:0},{v:'+250',pct:25},{v:'0',pct:50,zero:true},
+                 {v:'-250',pct:75},{v:'-500',pct:100}];
+    const makeAxis=side=>{
+      const col=el('div','vsl-axis '+side), inner=el('div','vsl-axis-inner');
+      TICKS.forEach(tk=>{const t=el('div','vsl-tick'+(tk.zero?' zero':''));
+        t.style.top=tk.pct+'%'; t.textContent=tk.v; inner.appendChild(t);});
+      col.appendChild(inner); return col;
+    };
+    row.appendChild(makeAxis('left'));
+    for(let i=0;i<14;i++){
+      const p=CIM_PARAMS[i], isY=i>=7, col=el('div','sc');
+      const lbl=el('div','sc-lbl '+(isY?'y':'x')); lbl.textContent=p.n; col.appendChild(lbl);
+      const wrap=el('div','vsl-wrap'); wrap.appendChild(el('div','vsl-bg'));
+      const sl=el('input'); sl.type='range'; sl.id='cim-sl'+i;
+      sl.className='vsl'+(isY?' y':''); sl.min=p.min; sl.max=p.max; sl.step=p.step; sl.value=this.vals[i];
+      sl.addEventListener('input',()=>{
+        if(this.depth>0) return;
+        this.vals[i]=Number(sl.value);
+        ge('cim-en'+i).value=this._fmt(p,sl.value);
+        this._schedSend(i);
+      });
+      wrap.appendChild(sl); col.appendChild(wrap);
+      const en=el('input'); en.type='text'; en.id='cim-en'+i;
+      en.className='sc-en'; en.value=this._fmt(p,this.vals[i]);
+      en.addEventListener('change',()=>{ this._applyEntry(i,p); this._schedSend(i); });
+      en.addEventListener('keydown',e=>{if(e.key==='Enter'){ this._applyEntry(i,p); this._schedSend(i); }});
+      col.appendChild(en);
+      const btn=el('button','sc-set'); btn.textContent='Set';
+      btn.addEventListener('click',()=>{ this._applyEntry(i,p); this._sendParam(i); });
+      col.appendChild(btn);
+      row.appendChild(col);
+    }
+    row.appendChild(makeAxis('right'));
+  },
+
+  _buildParams() {
+    const bd=ge('cim-params-bd'); if(!bd) return; bd.innerHTML='';
+    for(let i=14;i<CIM_PARAMS.length;i++){
+      const p=CIM_PARAMS[i], row=el('div','pr');
+      const nm=el('div','pr-name'); nm.textContent=p.n; row.appendChild(nm);
+      const lbl=el('div','pr-val'); lbl.id='cim-lbl'+i;
+      lbl.textContent=this._fmt(p,this.vals[i])+' '+p.u; row.appendChild(lbl);
+      const sl=el('input'); sl.type='range'; sl.id='cim-sl'+i;
+      sl.className='pr-sl'; sl.min=p.min; sl.max=p.max; sl.step=p.step; sl.value=this.vals[i];
+      sl.addEventListener('input',()=>{
+        if(this.depth>0) return;
+        const v=Number(sl.value); this.vals[i]=v;
+        ge('cim-en'+i).value=this._fmt(p,v);
+        ge('cim-lbl'+i).textContent=this._fmt(p,v)+' '+p.u;
+        this._schedSend(i);
+      });
+      row.appendChild(sl);
+      const en=el('input'); en.type='text'; en.id='cim-en'+i;
+      en.className='pr-en'; en.value=this._fmt(p,this.vals[i]);
+      en.addEventListener('change',()=>{ this._applyEntry(i,p); this._schedSend(i); });
+      en.addEventListener('keydown',e=>{if(e.key==='Enter'){ this._applyEntry(i,p); this._schedSend(i); }});
+      row.appendChild(en);
+      const btn=el('button','pr-set'); btn.textContent='Set';
+      btn.addEventListener('click',()=>{ this._applyEntry(i,p); this._sendParam(i); });
+      row.appendChild(btn);
+      bd.appendChild(row);
+    }
+  },
+
+  _buildSens() {
+    const bd=ge('cim-sens-bd'); if(!bd) return; bd.innerHTML='';
+    const p=CIM_SENS, row=el('div','pr');
+    const nm=el('div','pr-name'); nm.textContent=p.n; nm.style.width='110px'; row.appendChild(nm);
+    const lbl=el('div','pr-val'); lbl.id='cim-sens-lbl';
+    lbl.textContent=this._fmt(p,this.sens); row.appendChild(lbl);
+    const sl=el('input'); sl.type='range'; sl.id='cim-sens-sl';
+    sl.className='pr-sl'; sl.min=p.min; sl.max=p.max; sl.step=p.step; sl.value=this.sens;
+    sl.addEventListener('input',()=>{
+      if(this.depth>0) return;
+      const v=Number(sl.value); this.sens=v;
+      ge('cim-sens-en').value=this._fmt(p,v);
+      ge('cim-sens-lbl').textContent=this._fmt(p,v);
+      this._schedSendSens();
+    });
+    row.appendChild(sl);
+    const en=el('input'); en.type='text'; en.id='cim-sens-en';
+    en.className='pr-en'; en.value=this._fmt(p,this.sens);
+    const applySens=()=>{
+      const v=parseFloat(en.value.replace(',','.'));
+      if(isNaN(v)){ en.classList.add('inv'); return; }
+      en.classList.remove('inv');
+      this.sens=this._clamp(p,v);
+      ge('cim-sens-sl').value=this.sens;
+      en.value=this._fmt(p,this.sens);
+      ge('cim-sens-lbl').textContent=this._fmt(p,this.sens);
+    };
+    en.addEventListener('change',()=>{ applySens(); this._schedSendSens(); });
+    en.addEventListener('keydown',e=>{if(e.key==='Enter'){ applySens(); this._schedSendSens(); }});
+    row.appendChild(en);
+    const btn=el('button','pr-set'); btn.textContent='Set';
+    btn.addEventListener('click',()=>{ applySens(); this._sendSens(); });
+    row.appendChild(btn);
+    bd.appendChild(row);
+    const hint=el('div'); hint.style.cssText='font-size:.72rem;color:var(--dim2);padding:4px 0 0';
+    hint.textContent='Right-stick correction strength (px → stick), 1..512';
+    bd.appendChild(hint);
+  },
+
+  _applyEntry(i,p) {
+    const en=ge('cim-en'+i);
+    const v=parseFloat(en.value.replace(',','.'));
+    if(isNaN(v)){ en.classList.add('inv'); return; }
+    en.classList.remove('inv');
+    const cv=this._clamp(p,v);
+    this.vals[i]=cv;
+    const sl=ge('cim-sl'+i); if(sl) sl.value=cv;
+    en.value=this._fmt(p,cv);
+    const lbl=ge('cim-lbl'+i); if(lbl) lbl.textContent=this._fmt(p,cv)+' '+p.u;
+  },
+
+  // UI aus Firmware-Antwort setzen (depth>0 unterdrückt Send-Callbacks)
+  _setUi(i, rawVal) {
+    const p=CIM_PARAMS[i], v=this._clamp(p,rawVal);
+    this.vals[i]=v;
+    const sl=ge('cim-sl'+i), en=ge('cim-en'+i), lbl=ge('cim-lbl'+i);
+    if(sl) sl.value=v;
+    if(en && en!==document.activeElement){ en.value=this._fmt(p,v); en.classList.remove('inv'); }
+    if(lbl) lbl.textContent=this._fmt(p,v)+' '+p.u;
+  },
+
+  // ── Senden ──────────────────────────────────────────────────
+  _sendParam(i) {
+    if(i<7)      sendJson({cmd:'set_cim_config', data:{vX: this.vals.slice(0,7).map(Number)}});
+    else if(i<14)sendJson({cmd:'set_cim_config', data:{vY: this.vals.slice(7,14).map(Number)}});
+    else {
+      const p=CIM_PARAMS[i];
+      sendJson({cmd:'set_cim_config', data:{[p.jk]: p.fl ? parseFloat(this.vals[i]) : Math.round(this.vals[i])}});
+    }
+  },
+  _sendSens() {
+    sendJson({cmd:'set_cim_config', data:{sensitivity: parseFloat(this.sens)}});
+  },
+  _sendMap() {
+    sendJson({cmd:'set_cim_config', data:{
+      axis_lx: parseInt(ge('cim-axis-lx').value)||0,
+      axis_ly: parseInt(ge('cim-axis-ly').value)||0,
+      fire_btn: parseInt(ge('cim-fire-btn').value)||0
+    }});
+  },
+  _schedSend(i) {
+    if(this.timSend) clearTimeout(this.timSend);
+    this.timSend=setTimeout(()=>{ this.timSend=null; this._sendParam(i); }, 120);
+  },
+  _schedSendSens() {
+    if(this.timSend) clearTimeout(this.timSend);
+    this.timSend=setTimeout(()=>{ this.timSend=null; this._sendSens(); }, 120);
+  },
+
+  // ── Empfang (get_cim_config Antwort) ───────────────────────
+  apply(r) {
+    this.depth++;
+    try {
+      (r.vX||[]).forEach((v,i)=>{ if(i<7) this._setUi(i, v); });
+      (r.vY||[]).forEach((v,i)=>{ if(i<7) this._setUi(7+i, v); });
+      for(let i=14;i<CIM_PARAMS.length;i++){
+        const jk=CIM_PARAMS[i].jk;
+        if(jk in r) this._setUi(i, r[jk]);
+      }
+      if('sensitivity' in r){
+        this.sens=this._clamp(CIM_SENS, r.sensitivity);
+        const sl=ge('cim-sens-sl'), en=ge('cim-sens-en'), lbl=ge('cim-sens-lbl');
+        if(sl) sl.value=this.sens;
+        if(en && en!==document.activeElement){ en.value=this._fmt(CIM_SENS,this.sens); en.classList.remove('inv'); }
+        if(lbl) lbl.textContent=this._fmt(CIM_SENS,this.sens);
+      }
+      if('axis_lx' in r)  ge('cim-axis-lx').value = r.axis_lx;
+      if('axis_ly' in r)  ge('cim-axis-ly').value = r.axis_ly;
+      if('fire_btn' in r) ge('cim-fire-btn').value = r.fire_btn;
+    } finally { this.depth--; }
+    this.loaded=true;
+  },
+
+  load() { if(S.connected) sendJson({cmd:'get_cim_config'}); }
+};
+
+// ── AIM ─────────────────────────────────────────────────────────────────────
+// Mouse → Stick Button-Mapping. 16 Controller-Buttons → Keyboard/Maus-Codes.
+const AIM_BTN_NAMES = ['A','B','X','Y','LB','RB','LT','RT',
+  'Dpad ↑','Dpad ↓','Dpad ←','Dpad →','View/Back','Menu/Start','L3','R3'];
+
+// Gemeinsame Optionsliste: "none" + Maus + Keyboard (USB HID usage codes)
+const AIM_CODES = (() => {
+  const list = [{c:0x00,l:'— none —'}];
+  // Maustasten
+  list.push({c:0xF0,l:'Mouse Left'},{c:0xF1,l:'Mouse Right'},{c:0xF2,l:'Mouse Middle'},
+            {c:0xF3,l:'Mouse Button 4'},{c:0xF4,l:'Mouse Button 5'});
+  // Buchstaben A–Z (0x04..0x1D)
+  for(let i=0;i<26;i++) list.push({c:0x04+i, l:String.fromCharCode(65+i)});
+  // Ziffern 1–9 (0x1E..0x26), 0 (0x27)
+  for(let i=1;i<=9;i++) list.push({c:0x1E+(i-1), l:String(i)});
+  list.push({c:0x27,l:'0'});
+  // Sondertasten
+  list.push({c:0x28,l:'Enter'},{c:0x29,l:'Esc'},{c:0x2A,l:'Backspace'},
+            {c:0x2B,l:'Tab'},{c:0x2C,l:'Space'});
+  // Pfeiltasten
+  list.push({c:0x4F,l:'Right →'},{c:0x50,l:'Left ←'},{c:0x51,l:'Down ↓'},{c:0x52,l:'Up ↑'});
+  // F1–F12 (0x3A..0x45)
+  for(let i=1;i<=12;i++) list.push({c:0x3A+(i-1), l:'F'+i});
+  // Modifier
+  list.push({c:0xE0,l:'LeftCtrl'},{c:0xE1,l:'LeftShift'},{c:0xE2,l:'LeftAlt'},{c:0xE3,l:'LeftGUI'},
+            {c:0xE4,l:'RightCtrl'},{c:0xE5,l:'RightShift'},{c:0xE6,l:'RightAlt'});
+  return list;
+})();
+
+const AIM = {
+  map: new Array(16).fill(0),
+  mouseStick: 1,   // 0=left, 1=right
+  depth: 0,
+  loaded: false,
+  _optsHtml: null,
+
+  _opts(sel) {
+    if(this._optsHtml===null)
+      this._optsHtml = AIM_CODES.map(k=>`<option value="${k.c}">${k.l}</option>`).join('');
+    // selektierte Option markieren
+    return this._optsHtml.replace(`value="${sel}">`, `value="${sel}" selected>`);
+  },
+
+  build() {
+    const col=ge('aim-map-col'); if(!col) return;
+    col.innerHTML = AIM_BTN_NAMES.map((name,i)=>`
+      <div class="aim-map-row">
+        <span class="aim-map-num">${i}</span>
+        <span class="aim-map-name">${name}</span>
+        <select class="aim-map-sel" id="aim-sel-${i}" data-idx="${i}">${this._opts(this.map[i])}</select>
+      </div>`).join('');
+    for(let i=0;i<16;i++){
+      ge('aim-sel-'+i).addEventListener('change', e=>{
+        if(this.depth>0) return;
+        this.map[i] = parseInt(e.target.value)||0;
+        this._send();
+      });
+    }
+    // Stick-Selector
+    ge('aim-stick-grp').querySelectorAll('.aim-stick-btn').forEach(b=>{
+      b.addEventListener('click',()=>{
+        this.mouseStick = parseInt(b.dataset.stick);
+        this._renderStick();
+        this._send();
+      });
+    });
+  },
+
+  _renderStick() {
+    const grp=ge('aim-stick-grp'); if(!grp) return;
+    grp.dataset.stick=this.mouseStick;
+    grp.querySelectorAll('.aim-stick-btn').forEach(b=>{
+      b.classList.toggle('active', parseInt(b.dataset.stick)===this.mouseStick);
+    });
+  },
+
+  _send() {
+    sendJson({cmd:'set_aim_mapping', data:{ map:this.map.slice(0,16), mouse_stick:this.mouseStick }});
+  },
+
+  // get_aim_mapping Antwort
+  apply(r) {
+    this.depth++;
+    try {
+      if(Array.isArray(r.map)) for(let i=0;i<16;i++){
+        this.map[i] = r.map[i]??0;
+        const sel=ge('aim-sel-'+i); if(sel) sel.value = this.map[i];
+      }
+      if(typeof r.mouse_stick==='number'){ this.mouseStick=r.mouse_stick; this._renderStick(); }
+    } finally { this.depth--; }
+    this.loaded=true;
+  },
+
+  load() { if(S.connected) sendJson({cmd:'get_aim_mapping'}); }
+};
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function el(tag,cls=''){
   const e=document.createElement(tag);
@@ -2058,8 +2527,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   buildSpline();
   buildParams();
+  CIM.build();
+  AIM.build();
   initCharts();
   drawOled();
+
+  // CIM axis/fire mapping inputs → senden bei Änderung
+  ['cim-axis-lx','cim-axis-ly','cim-fire-btn'].forEach(id=>{
+    const e=ge(id); if(e) e.addEventListener('change',()=>CIM._sendMap());
+  });
 
   ge('conn-btn').onclick=()=>S.connected?doDisconnect():doConnect();
   ge('btn-disc').onclick=doDisconnect;

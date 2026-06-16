@@ -198,6 +198,14 @@ Font: `"Consolas", "Courier New", monospace` — konsistent auf allen Seiten.
 - `#main{opacity:.35; pointer-events:none}` → `#main.on` bei Verbindung
 - WebSerial-basiert (`navigator.serial`)
 - Enthält: X/Y-Speed Charts, OLED-Preview, Velocity Spline Sliders, Parameter-Tabelle, KIM-Konsole, OLED-Seitenauswahl
+- **CIM-Tab (`#panel-cim`):** Velocity-Spline-Editor rechter Stick (`#spline-row-cim`),
+  Parameter (Delays/Sigma/RF/T-End), Achsen-/Fire-Inputs, Correction-Sensitivity-Regler.
+  Protokoll: `get_cim_config` / `set_cim_config` (inkl. `vX`/`vY`/`sensitivity`).
+- **AIM-Tab (`#panel-aim`):** nummerierte Xbox-SVG (16 Tasten) + Zuweisungstabelle
+  (Controller-Taste → Tastatur-/Maustaste) + globale Maus→Stick-Auswahl. Protokoll:
+  `get_aim_mapping` / `set_aim_mapping` (`map[16]`, `mouse_stick`). Antwort-Erkennung
+  über Top-Level-Keys (`vX`+`sensitivity` → CIM, `map`+`mouse_stick` → AIM); MIM
+  `get_config` liegt verschachtelt unter `r.config` → keine Kollision.
 
 ### `docs/update/index.html` — Firmware Update
 - WebSerial für Firmware-Flash

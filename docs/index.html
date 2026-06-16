@@ -341,6 +341,26 @@ body{transition:margin-left .2s ease}
 .aim-map-name{width:96px;font-size:.82rem;color:var(--text)}
 .aim-map-sel{flex:1;background:var(--bg3);border:1px solid var(--border2);
   color:var(--text);padding:3px 6px;border-radius:2px;font-family:inherit;font-size:.82rem}
+.aim-map-cur{flex:1;min-width:0;font-size:.82rem;color:var(--green);
+  font-family:"Consolas",monospace;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:2px;padding:3px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aim-map-set{background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+  border-radius:2px;padding:3px 12px;font-family:inherit;font-size:.78rem;cursor:pointer}
+.aim-map-set:hover{border-color:var(--green);color:var(--green)}
+#aim-cap-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;
+  display:flex;align-items:center;justify-content:center}
+#aim-cap-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;
+  width:360px;max-width:95vw;font-size:13px}
+#aim-cap-hd{padding:8px 16px;font-size:.7rem;color:var(--dim);letter-spacing:.1em;
+  border-bottom:1px solid var(--border)}
+#aim-cap-body{padding:18px}
+.aim-cap-tgt{font-size:.82rem;color:var(--dim);margin-bottom:12px}
+.aim-cap-tgt b{color:var(--text)}
+#aim-cap-zone{border:1px dashed var(--border2);border-radius:4px;padding:22px 12px;
+  text-align:center;color:var(--green);font-size:.9rem;background:var(--bg3);cursor:pointer}
+.aim-cap-hint{color:var(--dim2);font-size:.72rem}
+#aim-cap-footer{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px;
+  border-top:1px solid var(--border)}
 .aim-stick-grp{display:flex;gap:0;border:1px solid var(--border2);border-radius:3px;
   overflow:hidden}
 .aim-stick-btn{background:var(--bg3);border:none;border-right:1px solid var(--border2);
@@ -475,6 +495,22 @@ body{transition:margin-left .2s ease}
     <div id="mnk-modal-footer">
       <button class="fb" id="mnk-cancel">Cancel</button>
       <button class="fb prim" id="mnk-confirm" disabled>Confirm &amp; Reboot</button>
+    </div>
+  </div>
+</div>
+
+<!-- AIM Key-Capture Modal -->
+<div id="aim-cap-overlay" style="display:none">
+  <div id="aim-cap-modal">
+    <div id="aim-cap-hd">ASSIGN INPUT</div>
+    <div id="aim-cap-body">
+      <div class="aim-cap-tgt">Controller button: <b id="aim-cap-name">—</b></div>
+      <div id="aim-cap-zone">Press the key you want to assign…<br>
+        <span class="aim-cap-hint">(or click a mouse button in this box · Esc to cancel)</span></div>
+    </div>
+    <div id="aim-cap-footer">
+      <button class="fb" id="aim-cap-clear">Clear (none)</button>
+      <button class="fb" id="aim-cap-cancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -2445,18 +2481,31 @@ const AIM_CODES = (() => {
   return list;
 })();
 
+// Browser KeyboardEvent.code → HID usage (Untermenge passend zu AIM_CODES)
+const KEYCODE_TO_HID = (() => {
+  const m = {};
+  for(let i=0;i<26;i++) m['Key'+String.fromCharCode(65+i)] = 0x04+i;   // KeyA..KeyZ
+  for(let i=1;i<=9;i++) m['Digit'+i] = 0x1E+(i-1);                     // 1..9
+  m['Digit0']=0x27;
+  m['Enter']=0x28; m['Backspace']=0x2A; m['Tab']=0x2B; m['Space']=0x2C;
+  m['ArrowRight']=0x4F; m['ArrowLeft']=0x50; m['ArrowDown']=0x51; m['ArrowUp']=0x52;
+  for(let i=1;i<=12;i++) m['F'+i]=0x3A+(i-1);                          // F1..F12
+  m['ControlLeft']=0xE0; m['ShiftLeft']=0xE1; m['AltLeft']=0xE2; m['MetaLeft']=0xE3;
+  m['ControlRight']=0xE4; m['ShiftRight']=0xE5; m['AltRight']=0xE6;
+  return m;
+})();
+// MouseEvent.button → HID usage (Mouse Left/Right/Middle/B4/B5)
+const MOUSEBTN_TO_HID = {0:0xF0, 2:0xF1, 1:0xF2, 3:0xF3, 4:0xF4};
+
 const AIM = {
   map: new Array(16).fill(0),
   mouseStick: 1,   // 0=left, 1=right
   depth: 0,
   loaded: false,
-  _optsHtml: null,
 
-  _opts(sel) {
-    if(this._optsHtml===null)
-      this._optsHtml = AIM_CODES.map(k=>`<option value="${k.c}">${k.l}</option>`).join('');
-    // selektierte Option markieren
-    return this._optsHtml.replace(`value="${sel}">`, `value="${sel}" selected>`);
+  codeLabel(code) {
+    const e = AIM_CODES.find(k=>k.c===code);
+    return e ? e.l : ('0x'+(code||0).toString(16));
   },
 
   build() {
@@ -2465,15 +2514,12 @@ const AIM = {
       <div class="aim-map-row">
         <span class="aim-map-num">${i}</span>
         <span class="aim-map-name">${name}</span>
-        <select class="aim-map-sel" id="aim-sel-${i}" data-idx="${i}">${this._opts(this.map[i])}</select>
+        <span class="aim-map-cur" id="aim-cur-${i}">${this.codeLabel(this.map[i])}</span>
+        <button class="aim-map-set" data-idx="${i}">Set</button>
       </div>`).join('');
-    for(let i=0;i<16;i++){
-      ge('aim-sel-'+i).addEventListener('change', e=>{
-        if(this.depth>0) return;
-        this.map[i] = parseInt(e.target.value)||0;
-        this._send();
-      });
-    }
+    col.querySelectorAll('.aim-map-set').forEach(b=>{
+      b.addEventListener('click',()=>AIMCapture.open(parseInt(b.dataset.idx)));
+    });
     // Stick-Selector
     ge('aim-stick-grp').querySelectorAll('.aim-stick-btn').forEach(b=>{
       b.addEventListener('click',()=>{
@@ -2482,6 +2528,19 @@ const AIM = {
         this._send();
       });
     });
+  },
+
+  _renderRow(i) {
+    const cur=ge('aim-cur-'+i); if(cur) cur.textContent = this.codeLabel(this.map[i]);
+  },
+
+  // Belegung aus dem Capture-Modal übernehmen
+  setMapping(i, code) {
+    if(this.depth>0) return;
+    if(i<0 || i>=16) return;
+    this.map[i] = code|0;
+    this._renderRow(i);
+    this._send();
   },
 
   _renderStick() {
@@ -2502,7 +2561,7 @@ const AIM = {
     try {
       if(Array.isArray(r.map)) for(let i=0;i<16;i++){
         this.map[i] = r.map[i]??0;
-        const sel=ge('aim-sel-'+i); if(sel) sel.value = this.map[i];
+        this._renderRow(i);
       }
       if(typeof r.mouse_stick==='number'){ this.mouseStick=r.mouse_stick; this._renderStick(); }
     } finally { this.depth--; }
@@ -2510,6 +2569,50 @@ const AIM = {
   },
 
   load() { if(S.connected) sendJson({cmd:'get_aim_mapping'}); }
+};
+
+// Key/Maus-Capture-Modal für die AIM-Button-Belegung
+const AIMCapture = {
+  idx: -1,
+  init() {
+    const cancel=ge('aim-cap-cancel'), clear=ge('aim-cap-clear'), zone=ge('aim-cap-zone');
+    if(cancel) cancel.onclick = ()=>this.close();
+    if(clear)  clear.onclick  = ()=>this._assign(0x00);
+    if(zone){
+      zone.addEventListener('mousedown', e=>{
+        if(this.idx<0) return;
+        e.preventDefault();
+        const code = MOUSEBTN_TO_HID[e.button];
+        if(code!==undefined) this._assign(code);
+      });
+      // Rechtsklick-Kontextmenü im Capture-Feld unterdrücken (= Mouse Right zuweisen)
+      zone.addEventListener('contextmenu', e=>{ if(this.idx>=0) e.preventDefault(); });
+    }
+  },
+  // document-level keydown (this === document → AIMCapture explizit referenzieren)
+  _onKey(e) {
+    if(AIMCapture.idx<0) return;
+    e.preventDefault(); e.stopPropagation();
+    if(e.code==='Escape'){ AIMCapture.close(); return; }
+    const code = KEYCODE_TO_HID[e.code];
+    if(code!==undefined) AIMCapture._assign(code);
+    // unbekannte Taste → ignorieren, Modal bleibt offen
+  },
+  open(i) {
+    this.idx=i;
+    const nm=ge('aim-cap-name'); if(nm) nm.textContent = AIM_BTN_NAMES[i]+' (#'+i+')';
+    ge('aim-cap-overlay').style.display='flex';
+    document.addEventListener('keydown', this._onKey, true);
+  },
+  close() {
+    ge('aim-cap-overlay').style.display='none';
+    document.removeEventListener('keydown', this._onKey, true);
+    this.idx=-1;
+  },
+  _assign(code) {
+    const i=this.idx; this.close();
+    AIM.setMapping(i, code);
+  }
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -2529,6 +2632,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   buildParams();
   CIM.build();
   AIM.build();
+  AIMCapture.init();
   initCharts();
   drawOled();
 

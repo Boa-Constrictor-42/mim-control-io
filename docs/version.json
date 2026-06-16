@@ -1,11 +1,10 @@
 ﻿{
-    "version":  "2.4.2-alpha",
-    "date":  "2026-06-15",
+    "version":  "2.4.4-alpha",
+    "date":  "2026-06-16",
     "changelog":  [
-                      "CIM mode now supports Xbox One/Series controllers connected via USB — analog sticks, triggers, D-pad and buttons are passed through",
-                      "New MODE_MKCOMBO: simultaneous mouse + keyboard input through a USB hub",
-                      "CIM: Xbox analog sticks are now centered when idle instead of drifting to extreme values",
-                      "CIM: removed a phantom D-pad \"up\" that kept a controller button permanently pressed"
+                      "External reset button: a long press (~1.5 s) now reboots with an output-mode switch (Joypad ↔ MnK); a short press still performs a plain reboot",
+                      "CIM: MIM aim-assist corrections (recoil/spline, Gauss, rapid-fire) can now be applied to the right stick of a passed-through controller",
+                      "AIM: configurable key mappings and selectable mouse-to-stick assignment, saved on the device and configurable via the app"
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.4.2-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.4.4-alpha.hex"
 }

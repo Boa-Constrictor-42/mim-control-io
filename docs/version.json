@@ -1,10 +1,9 @@
-﻿{
-    "version":  "2.4.4-alpha",
+{
+    "version":  "2.4.5-alpha",
     "date":  "2026-06-16",
     "changelog":  [
-                      "External reset button: a long press (~1.5 s) now reboots with an output-mode switch (Joypad ↔ MnK); a short press still performs a plain reboot",
-                      "CIM: MIM aim-assist corrections (recoil/spline, Gauss, rapid-fire) can now be applied to the right stick of a passed-through controller",
-                      "AIM: configurable key mappings and selectable mouse-to-stick assignment, saved on the device and configurable via the app"
+                      "AIM: unused joystick sliders no longer rest at −1.0 in browser/game testers",
+                      "AIM key mapping: buttons can now be assigned by pressing the actual key or mouse button"
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.4.4-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.4.5-alpha.hex"
 }

@@ -1,9 +1,9 @@
-{
+﻿{
     "version":  "2.4.5-alpha",
     "date":  "2026-06-16",
     "changelog":  [
-                      "AIM: unused joystick sliders no longer rest at −1.0 in browser/game testers",
-                      "AIM key mapping: buttons can now be assigned by pressing the actual key or mouse button"
+                      "AIM: unused joystick sliders no longer rest at −1.0 in browser/game testers — both sliders are now initialised to centre (0.0) at startup",
+                      "AIM key mapping: buttons can now be assigned by pressing the actual key or mouse button — no more dropdown selection"
                   ],
     "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.4.5-alpha.hex"
 }

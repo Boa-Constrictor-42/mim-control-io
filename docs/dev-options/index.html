@@ -19,9 +19,16 @@ button{font-family:inherit;cursor:pointer}
 /* Header */
 #hdr{background:var(--bg2);border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:100}
-#hdr-inner{display:flex;align-items:center;justify-content:center;height:57px}
+#hdr-inner{display:flex;align-items:center;justify-content:center;height:57px;position:relative}
 #hdr-logo-wrap{display:flex;align-items:center;text-decoration:none}
 #hdr-logo{height:34px;width:auto;object-fit:contain;display:block}
+#lang-toggle{position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  display:flex;gap:5px}
+.lang-btn{background:none;border:1px solid var(--border2);border-radius:3px;
+  font-size:1.05rem;padding:3px 7px;cursor:pointer;opacity:.45;line-height:1;
+  transition:opacity .15s,border-color .15s}
+.lang-btn:hover{opacity:.85}
+.lang-btn.active{opacity:1;border-color:#555}
 #logo{font-size:1.7rem;letter-spacing:.22em;color:#fff;font-weight:bold}
 #logo-sub{font-size:.75rem;color:var(--dim);letter-spacing:.08em}
 /* ── Sidebar navigation ───────────────────────────────────────────────────── */
@@ -158,14 +165,18 @@ body{transition:margin-left .2s ease}
     <a id="hdr-logo-wrap" href="/">
       <img id="hdr-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='../mim_logo_v6.svg'">
     </a>
+    <div id="lang-toggle">
+      <button class="lang-btn active" id="btn-lang-en" onclick="setLang('en')" title="English">🇬🇧</button>
+      <button class="lang-btn"        id="btn-lang-de" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
+    </div>
   </div>
 </header>
 
 <div class="wrap">
 
-  <div class="dev-banner">
-    ⚠ <strong>Developer Options</strong> — nicht für den allgemeinen Gebrauch.<br>
-    Diese Seite ist nicht verlinkt. Nur für Entwickler und technische Tester.
+  <div class="dev-banner" data-i18n="dev_banner">
+    ⚠ <strong>Developer Options</strong> — not for general use.<br>
+    This page is not linked. For developers and technical testers only.
   </div>
 
   <!-- ══════════════════════════════════════════════════════════
@@ -178,8 +189,8 @@ body{transition:margin-left .2s ease}
     <div class="card-bd">
       <div id="conn-area">
         <div id="dot"></div>
-        <span id="conn-status">Not connected</span>
-        <button id="btn-connect">⏻  Connect via WebSerial</button>
+        <span id="conn-status" data-i18n="conn_not_connected">Not connected</span>
+        <button id="btn-connect" data-i18n="btn_connect">⏻  Connect via WebSerial</button>
       </div>
     </div>
   </div>
@@ -197,10 +208,10 @@ body{transition:margin-left .2s ease}
         </select>
         <button class="fb prim" id="btn-dl-version" disabled>⬇  Download .hex</button>
       </div>
-      <div class="notice">
+      <div class="notice" data-i18n="notice_fw_a">
         Download any released Firmware A version for manual flashing
-        (<strong>Teensy Loader</strong>) or rollback to an older build.
-        The newest version is marked <strong>(latest)</strong>.<br>
+        (<strong>Teensy Loader</strong> — <a href="https://www.pjrc.com/teensy/loader.html" target="_blank" rel="noopener" style="color:var(--dim);text-decoration:underline">pjrc.com</a>)
+        or rollback to an older build. The newest version is marked <strong>(latest)</strong>.<br>
         For normal OTA updates use
         <a href="/update/" style="color:var(--dim);text-decoration:underline">mim-control.com/update</a>.
       </div>
@@ -218,11 +229,12 @@ body{transition:margin-left .2s ease}
       <div class="mon-input-row">
         <span class="mon-prompt">›</span>
         <input id="mon-input" class="mon-input" type="text" autocomplete="off" spellcheck="false"
-               placeholder='Type a command, press Enter — e.g.  p  or  {"cmd":"ping"}' disabled>
+               placeholder='Type a command, press Enter — e.g.  p  or  {"cmd":"ping"}'
+               data-i18n-placeholder="placeholder_serial" disabled>
         <button class="fb sec" id="mon-send"  disabled>Send</button>
         <button class="fb sec" id="mon-clear">Clear</button>
       </div>
-      <div class="notice">
+      <div class="notice" data-i18n="notice_serial">
         Connect the device first. Sends raw, newline-terminated lines over WebSerial (115200 baud)
         and shows everything the device prints. Accepts JSON commands
         (<code>{"cmd":"ping"}</code>) and legacy text commands (<code>p</code>, <code>t</code>, …).
@@ -240,17 +252,17 @@ body{transition:margin-left .2s ease}
     <div class="card-hd">FIRMWARE C — XINPUT + CUSTOM HID</div>
     <div class="card-bd">
 
-      <div class="notice warn" style="margin-bottom:14px;font-size:.82rem;line-height:1.8">
-        ⚠ <strong>Nach dem Flashen von Firmware C:</strong><br>
-        Kein Web-Interface. Serial Monitor funktioniert nicht. WebSerial-Verbindung nicht möglich.<br>
-        Alle Einstellungen ausschließlich über das <strong>Python Tool (aim_control.py)</strong>.<br>
-        <span style="color:var(--dim)">Rückkehr zu Firmware A: Teensy Loader →
-        <a href="#fw-a-rollback" style="color:var(--dim);text-decoration:underline">Firmware A .hex</a>
-        oben herunterladen → flashen → Web-Interface steht wieder zur Verfügung.</span>
+      <div class="notice warn" data-i18n="warn_fw_c" style="margin-bottom:14px;font-size:.82rem;line-height:1.8">
+        ⚠ <strong>After flashing Firmware C:</strong><br>
+        No web interface. Serial Monitor unavailable. WebSerial connection not possible.<br>
+        All settings exclusively via the <strong>Python Control Interface (aim_control.py)</strong>.<br>
+        <span style="color:var(--dim)">Return to Firmware A: Teensy Loader →
+        download <a href="#fw-a-rollback" style="color:var(--dim);text-decoration:underline">Firmware A .hex</a>
+        above → flash → web interface available again.</span>
       </div>
 
       <div style="margin-bottom:14px">
-        <div style="font-size:.72rem;color:var(--dim);letter-spacing:.06em;margin-bottom:8px">FIRMWARE C DOWNLOAD</div>
+        <div style="font-size:.72rem;color:var(--dim);letter-spacing:.06em;margin-bottom:8px" data-i18n="lbl_fw_c_dl">FIRMWARE C DOWNLOAD</div>
         <div class="dl-row">
           <select id="ver-select-c" class="ver-select">
             <option value="">Loading versions …</option>
@@ -260,28 +272,27 @@ body{transition:margin-left .2s ease}
       </div>
 
       <div style="margin-bottom:14px">
-        <div style="font-size:.72rem;color:var(--dim);letter-spacing:.06em;margin-bottom:8px">PYTHON TOOL DOWNLOAD</div>
+        <div style="font-size:.72rem;color:var(--dim);letter-spacing:.06em;margin-bottom:8px" data-i18n="lbl_gui_dl">PYTHON CONTROL INTERFACE — DOWNLOAD</div>
         <div class="dl-row" style="align-items:center">
           <button class="fb prim" id="btn-dl-gui" disabled>⬇  Download aim_control (ZIP)</button>
-          <span id="gui-version-label" style="font-size:.78rem;color:var(--dim)">Loading …</span>
+          <span id="gui-version-label" data-i18n="gui_loading" style="font-size:.78rem;color:var(--dim)">Loading …</span>
         </div>
-        <div class="notice" style="margin-top:10px">
-          Enthält <code>aim_control.py</code> + <code>run.bat</code>.<br>
-          Voraussetzung: Python 3.9+ und pip.
-          <code>run.bat</code> installiert Dependencies automatisch.<br>
-          Einstellungen werden in <code>%APPDATA%\MIM\aim_settings.json</code> gespeichert.
+        <div class="notice" data-i18n="notice_gui" style="margin-top:10px">
+          Contains <code>aim_control.py</code> + <code>run.bat</code>.<br>
+          Requirement: Python 3.9+ and pip. <code>run.bat</code> installs dependencies automatically.<br>
+          Settings are stored in <code>%APPDATA%\MIM\aim_settings.json</code>.
         </div>
       </div>
 
       <div>
-        <div style="font-size:.72rem;color:var(--dim);letter-spacing:.06em;margin-bottom:8px">FLASH-ANLEITUNG</div>
-        <ol style="padding-left:1.4em;line-height:2;font-size:.82rem;color:var(--text)">
-          <li>Firmware C .hex oben herunterladen</li>
+        <div style="font-size:.72rem;color:var(--dim);letter-spacing:.06em;margin-bottom:8px" data-i18n="lbl_flash">FLASH INSTRUCTIONS</div>
+        <ol data-i18n="flash_steps" style="padding-left:1.4em;line-height:2;font-size:.82rem;color:var(--text)">
+          <li>Download Firmware C .hex above</li>
           <li><a href="https://www.pjrc.com/teensy/loader.html" target="_blank" rel="noopener"
-                 style="color:var(--blue)">Teensy Loader herunterladen</a> (pjrc.com)</li>
-          <li>.hex im Teensy Loader öffnen</li>
-          <li>Weißen Button am Teensy drücken <span style="color:var(--dim)">(oder oben: Restart → HalfKay)</span></li>
-          <li>Teensy Loader flasht automatisch</li>
+                 style="color:var(--blue)">Download Teensy Loader</a> (pjrc.com)</li>
+          <li>Open .hex in Teensy Loader</li>
+          <li>Press the white button on the Teensy <span style="color:var(--dim)">(or above: Restart → HalfKay)</span></li>
+          <li>Teensy Loader flashes automatically</li>
         </ol>
       </div>
 
@@ -310,12 +321,12 @@ body{transition:margin-left .2s ease}
         <button class="fb prim" id="btn-reboot-hk" disabled>↩  Restart device → HalfKay</button>
         <button class="fb warn" id="btn-flash"     disabled>⚡  Flash via WebHID</button>
       </div>
-      <div class="notice warn">
-        ⚠ WebHID Flash funktioniert <strong>nicht auf Windows</strong> (OS-Inkompatibilität —
-        Chrome nutzt Control Transfer, HalfKay erwartet Interrupt OUT).<br>
-        Für Windows: OTA WebSerial auf
-        <a href="/update/" style="color:var(--orange)">mim-control.com/update</a> verwenden,
-        oder .hex manuell mit <strong>Teensy Loader</strong> flashen.
+      <div class="notice warn" data-i18n="notice_webhid">
+        ⚠ WebHID Flash does <strong>not work on Windows</strong> (OS incompatibility —
+        Chrome uses Control Transfer, HalfKay expects Interrupt OUT).<br>
+        For Windows: use OTA WebSerial at
+        <a href="/update/" style="color:var(--orange)">mim-control.com/update</a>,
+        or flash .hex manually with <strong>Teensy Loader</strong>.
       </div>
     </div>
   </div>
@@ -357,7 +368,7 @@ async function fetchHexUrl() {
 // ── WebSerial ─────────────────────────────────────────────────────────────────
 async function doConnect() {
   if (!('serial' in navigator)) {
-    alert('WebSerial wird von diesem Browser nicht unterstützt. Bitte Chrome oder Edge verwenden.');
+    alert(T('webserial_unsupported'));
     return;
   }
   try {
@@ -524,28 +535,23 @@ async function doFlash() {
   ge('btn-reboot-hk').disabled = true;
 
   try {
-    setFlashMsg('Downloading firmware …', 'info');
+    setFlashMsg(T('flash_dl'), 'info');
     const hexResp = await fetch(S.hexUrl, { cache: 'no-store' });
     if (!hexResp.ok) throw new Error('Download failed: HTTP ' + hexResp.status);
     const hexText = await hexResp.text();
 
-    setFlashMsg('Parsing firmware …', 'info');
+    setFlashMsg(T('flash_parse'), 'info');
     const blocks = parseHex(hexText);
     if (blocks.size === 0) throw new Error('HEX file contains no valid data blocks.');
 
     if (S.connected) {
-      setFlashMsg('Sending reboot command to device …', 'info');
+      setFlashMsg(T('flash_reboot'), 'info');
       await sendJson({ cmd: 'reboot_bootloader' });
       await sleep(200);
       await doDisconnect();
     }
 
-    setFlashMsg(
-      'Device entering bootloader mode.\n' +
-      'If it did not reboot automatically, press the white button on the Teensy.\n' +
-      'When the LED flashes, click the button below.',
-      'info'
-    );
+    setFlashMsg(T('flash_bootloader'), 'info');
 
     await waitForBootloaderReady();
 
@@ -557,12 +563,12 @@ async function doFlash() {
     });
 
     setProgress(100);
-    setFlashMsg('Flash complete ✓ — device is restarting …', 'ok');
+    setFlashMsg(T('flash_complete'), 'ok');
     setTimeout(() => flashReset(), 4000);
 
   } catch (err) {
     const msg = err.message || String(err);
-    setFlashMsg('Flash failed: ' + msg + '\n\nThe device is not damaged — HalfKay remains active.', 'err');
+    setFlashMsg(T('flash_failed') + msg + T('flash_not_damaged'), 'err');
     flashReset();
   }
 }
@@ -614,17 +620,17 @@ function setConnected(v) {
   S.connected = v;
   const btn = ge('btn-connect'), dot = ge('dot'), st = ge('conn-status');
   if (v) {
-    btn.textContent = '⏻  Disconnect'; btn.classList.add('disc');
-    dot.classList.add('on'); st.textContent = 'Connected';
+    btn.textContent = T('btn_disconnect'); btn.classList.add('disc');
+    dot.classList.add('on'); st.textContent = T('conn_connected');
     ge('btn-reboot-hk').disabled = false;
     ge('mon-input').disabled = false; ge('mon-send').disabled = false;
-    monAppend('connected', 'sys');
+    monAppend(T('conn_connected'), 'sys');
   } else {
-    btn.textContent = '⏻  Connect via WebSerial'; btn.classList.remove('disc');
-    dot.classList.remove('on'); st.textContent = 'Not connected';
+    btn.textContent = T('btn_connect'); btn.classList.remove('disc');
+    dot.classList.remove('on'); st.textContent = T('conn_not_connected');
     ge('btn-reboot-hk').disabled = true;
     ge('mon-input').disabled = true; ge('mon-send').disabled = true;
-    monAppend('disconnected', 'sys');
+    monAppend(T('conn_disconnected'), 'sys');
   }
 }
 
@@ -637,7 +643,7 @@ async function loadVersions() {
     const data = await r.json();
     const list   = Array.isArray(data.versions) ? data.versions : [];
     const latest = data.latest || (list[0] && list[0].version);
-    if (!list.length) { sel.innerHTML = '<option value="">No versions found</option>'; return; }
+    if (!list.length) { sel.innerHTML = `<option value="">${T('ver_not_found')}</option>`; return; }
     sel.innerHTML = '';
     list.forEach(v => {
       const o = document.createElement('option');
@@ -647,7 +653,7 @@ async function loadVersions() {
     });
     ge('btn-dl-version').disabled = false;
   } catch (e) {
-    sel.innerHTML = '<option value="">Failed to load versions.json</option>';
+    sel.innerHTML = `<option value="">${T('ver_failed')}</option>`;
   }
 }
 
@@ -660,7 +666,7 @@ async function loadVersionsC() {
     const data = await r.json();
     const list   = Array.isArray(data.versions) ? data.versions : [];
     const latest = data.latest || (list[0] && list[0].version);
-    if (!list.length) { sel.innerHTML = '<option value="">No versions found</option>'; return; }
+    if (!list.length) { sel.innerHTML = `<option value="">${T('ver_not_found')}</option>`; return; }
     sel.innerHTML = '';
     list.forEach(v => {
       const o = document.createElement('option');
@@ -670,7 +676,7 @@ async function loadVersionsC() {
     });
     ge('btn-dl-version-c').disabled = false;
   } catch (e) {
-    sel.innerHTML = '<option value="">versions_c.json nicht gefunden — noch kein XInput Release</option>';
+    sel.innerHTML = `<option value="">${T('ver_failed_c')}</option>`;
   }
 }
 
@@ -688,11 +694,107 @@ async function fetchVersionC() {
     }
     const lbl = ge('gui-version-label');
     if (lbl && data.version) {
+      lbl.removeAttribute('data-i18n');
       lbl.textContent = 'v' + data.version + ' — aim_control.py + run.bat';
     }
   } catch (e) {
     const lbl = ge('gui-version-label');
-    if (lbl) lbl.textContent = 'version_c.json nicht gefunden — noch kein XInput Release';
+    if (lbl) { lbl.removeAttribute('data-i18n'); lbl.textContent = T('gui_not_found'); }
+  }
+}
+
+// ── i18n ─────────────────────────────────────────────────────────────────────
+const STRINGS = {
+  en: {
+    dev_banner:    '⚠ <strong>Developer Options</strong> — not for general use.<br>This page is not linked. For developers and technical testers only.',
+    notice_fw_a:   'Download any released Firmware A version for manual flashing (<strong>Teensy Loader</strong> — <a href="https://www.pjrc.com/teensy/loader.html" target="_blank" rel="noopener" style="color:var(--dim);text-decoration:underline">pjrc.com</a>) or rollback to an older build. The newest version is marked <strong>(latest)</strong>.<br>For normal OTA updates use <a href="/update/" style="color:var(--dim);text-decoration:underline">mim-control.com/update</a>.',
+    notice_serial: 'Connect the device first. Sends raw, newline-terminated lines over WebSerial (115200 baud) and shows everything the device prints. Accepts JSON commands (<code>{"cmd":"ping"}</code>) and legacy text commands (<code>p</code>, <code>t</code>, …).',
+    placeholder_serial: 'Type a command, press Enter — e.g.  p  or  {"cmd":"ping"}',
+    warn_fw_c:     '⚠ <strong>After flashing Firmware C:</strong><br>No web interface. Serial Monitor unavailable. WebSerial connection not possible.<br>All settings exclusively via the <strong>Python Control Interface (aim_control.py)</strong>.<br><span style="color:var(--dim)">Return to Firmware A: Teensy Loader → download <a href="#fw-a-rollback" style="color:var(--dim);text-decoration:underline">Firmware A .hex</a> above → flash → web interface available again.</span>',
+    lbl_fw_c_dl:   'FIRMWARE C DOWNLOAD',
+    lbl_gui_dl:    'PYTHON CONTROL INTERFACE — DOWNLOAD',
+    notice_gui:    'Contains <code>aim_control.py</code> + <code>run.bat</code>.<br>Requirement: Python 3.9+ and pip. <code>run.bat</code> installs dependencies automatically.<br>Settings are stored in <code>%APPDATA%\\MIM\\aim_settings.json</code>.',
+    lbl_flash:     'FLASH INSTRUCTIONS',
+    flash_steps:   '<li>Download Firmware C .hex above</li><li><a href="https://www.pjrc.com/teensy/loader.html" target="_blank" rel="noopener" style="color:var(--blue)">Download Teensy Loader</a> (pjrc.com)</li><li>Open .hex in Teensy Loader</li><li>Press the white button on the Teensy <span style="color:var(--dim)">(or above: Restart → HalfKay)</span></li><li>Teensy Loader flashes automatically</li>',
+    notice_webhid: '⚠ WebHID Flash does <strong>not work on Windows</strong> (OS incompatibility — Chrome uses Control Transfer, HalfKay expects Interrupt OUT).<br>For Windows: use OTA WebSerial at <a href="/update/" style="color:var(--orange)">mim-control.com/update</a>, or flash .hex manually with <strong>Teensy Loader</strong>.',
+    conn_not_connected: 'Not connected',
+    conn_connected:     'Connected',
+    conn_disconnected:  'disconnected',
+    btn_connect:    '⏻  Connect via WebSerial',
+    btn_disconnect: '⏻  Disconnect',
+    gui_loading:    'Loading …',
+    gui_not_found:  'version_c.json not found — no XInput release yet',
+    ver_loading:    'Loading versions …',
+    ver_not_found:  'No versions found',
+    ver_failed:     'Failed to load versions.json',
+    ver_failed_c:   'versions_c.json not found — no XInput release yet',
+    flash_dl:       'Downloading firmware …',
+    flash_parse:    'Parsing firmware …',
+    flash_reboot:   'Sending reboot command to device …',
+    flash_bootloader: 'Device entering bootloader mode.\nIf it did not reboot automatically, press the white button on the Teensy.\nWhen the LED flashes, click the button below.',
+    flash_complete: 'Flash complete ✓ — device is restarting …',
+    flash_failed:   'Flash failed: ',
+    flash_not_damaged: '\n\nThe device is not damaged — HalfKay remains active.',
+    flash_reboot_hk:   'Device rebooting into HalfKay …\nPress white button if LED does not flash.',
+    webserial_unsupported: 'WebSerial is not supported by this browser. Please use Chrome or Edge.',
+  },
+  de: {
+    dev_banner:    '⚠ <strong>Developer Options</strong> — nicht für den allgemeinen Gebrauch.<br>Diese Seite ist nicht verlinkt. Nur für Entwickler und technische Tester.',
+    notice_fw_a:   'Download einer beliebigen Firmware-A-Version zum manuellen Flashen (<strong>Teensy Loader</strong> — <a href="https://www.pjrc.com/teensy/loader.html" target="_blank" rel="noopener" style="color:var(--dim);text-decoration:underline">pjrc.com</a>) oder Rollback auf eine ältere Version. Die neueste Version ist mit <strong>(latest)</strong> markiert.<br>Für normale OTA-Updates: <a href="/update/" style="color:var(--dim);text-decoration:underline">mim-control.com/update</a>.',
+    notice_serial: 'Gerät zuerst verbinden. Sendet rohe, zeilenabgeschlossene Zeilen über WebSerial (115200 Baud) und zeigt alles, was das Gerät ausgibt. Akzeptiert JSON-Befehle (<code>{"cmd":"ping"}</code>) und Legacy-Text-Befehle (<code>p</code>, <code>t</code>, …).',
+    placeholder_serial: 'Befehl eingeben, Enter drücken — z. B.  p  oder  {"cmd":"ping"}',
+    warn_fw_c:     '⚠ <strong>Nach dem Flashen von Firmware C:</strong><br>Kein Web-Interface. Serial Monitor funktioniert nicht. WebSerial-Verbindung nicht möglich.<br>Alle Einstellungen ausschließlich über das <strong>Python Control Interface (aim_control.py)</strong>.<br><span style="color:var(--dim)">Rückkehr zu Firmware A: Teensy Loader → <a href="#fw-a-rollback" style="color:var(--dim);text-decoration:underline">Firmware A .hex</a> oben herunterladen → flashen → Web-Interface steht wieder zur Verfügung.</span>',
+    lbl_fw_c_dl:   'FIRMWARE C DOWNLOAD',
+    lbl_gui_dl:    'PYTHON CONTROL INTERFACE — DOWNLOAD',
+    notice_gui:    'Enthält <code>aim_control.py</code> + <code>run.bat</code>.<br>Voraussetzung: Python 3.9+ und pip. <code>run.bat</code> installiert Dependencies automatisch.<br>Einstellungen werden in <code>%APPDATA%\\MIM\\aim_settings.json</code> gespeichert.',
+    lbl_flash:     'FLASH-ANLEITUNG',
+    flash_steps:   '<li>Firmware C .hex oben herunterladen</li><li><a href="https://www.pjrc.com/teensy/loader.html" target="_blank" rel="noopener" style="color:var(--blue)">Teensy Loader herunterladen</a> (pjrc.com)</li><li>.hex im Teensy Loader öffnen</li><li>Weißen Button am Teensy drücken <span style="color:var(--dim)">(oder oben: Restart → HalfKay)</span></li><li>Teensy Loader flasht automatisch</li>',
+    notice_webhid: '⚠ WebHID Flash funktioniert <strong>nicht auf Windows</strong> (OS-Inkompatibilität — Chrome nutzt Control Transfer, HalfKay erwartet Interrupt OUT).<br>Für Windows: OTA WebSerial auf <a href="/update/" style="color:var(--orange)">mim-control.com/update</a> verwenden, oder .hex manuell mit <strong>Teensy Loader</strong> flashen.',
+    conn_not_connected: 'Nicht verbunden',
+    conn_connected:     'Verbunden',
+    conn_disconnected:  'getrennt',
+    btn_connect:    '⏻  Verbinden via WebSerial',
+    btn_disconnect: '⏻  Trennen',
+    gui_loading:    'Wird geladen …',
+    gui_not_found:  'version_c.json nicht gefunden — noch kein XInput Release',
+    ver_loading:    'Versionen werden geladen …',
+    ver_not_found:  'Keine Versionen gefunden',
+    ver_failed:     'versions.json konnte nicht geladen werden',
+    ver_failed_c:   'versions_c.json nicht gefunden — noch kein XInput Release',
+    flash_dl:       'Firmware wird heruntergeladen …',
+    flash_parse:    'Firmware wird verarbeitet …',
+    flash_reboot:   'Reboot-Befehl wird gesendet …',
+    flash_bootloader: 'Gerät wechselt in Bootloader-Modus.\nFalls kein automatischer Neustart: weißen Button am Teensy drücken.\nWenn die LED blinkt, unten auf den Button klicken.',
+    flash_complete: 'Flash abgeschlossen ✓ — Gerät startet neu …',
+    flash_failed:   'Flash fehlgeschlagen: ',
+    flash_not_damaged: '\n\nDas Gerät ist nicht beschädigt — HalfKay ist noch aktiv.',
+    flash_reboot_hk:   'Gerät startet in HalfKay neu …\nWeißen Button drücken falls LED nicht blinkt.',
+    webserial_unsupported: 'WebSerial wird von diesem Browser nicht unterstützt. Bitte Chrome oder Edge verwenden.',
+  },
+};
+
+let _lang = localStorage.getItem('mimLang') || 'en';
+const T = key => (STRINGS[_lang] || STRINGS.en)[key] || key;
+
+function setLang(lang) {
+  _lang = lang;
+  localStorage.setItem('mimLang', lang);
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.innerHTML = T(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = T(el.getAttribute('data-i18n-placeholder'));
+  });
+  ge('btn-lang-en').classList.toggle('active', lang === 'en');
+  ge('btn-lang-de').classList.toggle('active', lang === 'de');
+  // Update live serial state labels
+  if (S.connected) {
+    ge('conn-status').textContent = T('conn_connected');
+    ge('btn-connect').textContent = T('btn_disconnect');
+  } else {
+    ge('conn-status').textContent = T('conn_not_connected');
+    ge('btn-connect').textContent = T('btn_connect');
   }
 }
 
@@ -706,6 +808,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hex = ge('ver-select-c').value;
     if (hex) window.open('/firmware/' + hex, '_blank');
   };
+  setLang(_lang);
   Promise.all([loadVersions(), loadVersionsC(), fetchVersionC()]);
 
   // Serial Monitor
@@ -720,7 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await sendJson({ cmd: 'reboot_bootloader' });
     await sleep(200);
     await doDisconnect();
-    setFlashMsg('Device rebooting into HalfKay …\nPress white button if LED does not flash.', 'info');
+    setFlashMsg(T('flash_reboot_hk'), 'info');
   };
   ge('btn-flash').onclick = doFlash;
 

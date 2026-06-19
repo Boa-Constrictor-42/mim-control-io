@@ -942,6 +942,7 @@ const STRINGS = {
     aim_cap_zone:'Press the key you want to assign…<br><span class="aim-cap-hint">(or click a mouse button in this box \xb7 Esc to cancel)</span>',
     aim_cap_hint:'(or click a mouse button in this box \xb7 Esc to cancel)',
     confirm_overwrite:'Overwrite Profile {n}?',
+    param_rfs:'RF-Sprd', param_rfd:'RF-Duty', profile_default:'Profile {n}',
   },
   de: {
     s_disconnected:'Getrennt', s_connected:'Verbunden',
@@ -949,8 +950,8 @@ const STRINGS = {
     btn_out_joypad:'Joypad', btn_out_mnk:'MnK',
     no_ws:'WebSerial API nicht verf\xfcgbar.<br>Bitte <strong>Chrome</strong> oder <strong>Edge&nbsp;&ge;&nbsp;89</strong> \xfcber HTTPS oder localhost verwenden.<br>Flag aktivieren: <code>chrome://flags/#enable-experimental-web-platform-features</code>',
     tab_hint:'&#x21BB; Ger\xe4tewechsel erfordert Neuverbindung zum Tab-Update.',
-    sec_vel_curves:'Velocity Curves', sec_monitor:'Serieller Monitor', cls_btn:'leeren',
-    sec_spline:'Velocity Spline', sec_spline_cim:'Velocity Spline (Rechter Stick)',
+    sec_vel_curves:'Maus-Geschwindigkeit Korrekturfunktionen', sec_monitor:'Serieller Monitor', cls_btn:'leeren',
+    sec_spline:'Maus-Geschwindigkeit Splines', sec_spline_cim:'Maus-Geschwindigkeit Splines (Rechter Stick)',
     sec_params:'Parameter',
     btn_send_all:'Alle Werte senden', btn_disconnect_footer:'Disconnect',
     sec_kim:'KIM &#x2014; Keyboard Input Modifier', kim_entries_hd:'Eintr\xe4ge',
@@ -977,10 +978,12 @@ const STRINGS = {
     aim_cap_zone:'Taste dr\xfccken, die du zuweisen m\xf6chtest…<br><span class="aim-cap-hint">(oder Maustaste in diesem Feld klicken \xb7 Esc zum Abbrechen)</span>',
     aim_cap_hint:'(oder Maustaste in diesem Feld klicken \xb7 Esc zum Abbrechen)',
     confirm_overwrite:'Profile {n} \xfcberschreiben?',
+    param_rfs:'RF-Streuung', param_rfd:'RF-Dr\xfcck-Anteil', profile_default:'Profil {n}',
   }
 };
 let _lang = localStorage.getItem('mimLang') || 'en';
 function T(k){ return (STRINGS[_lang]||STRINGS.en)[k] || k; }
+function paramN(p){ return (_lang==='de' && STRINGS.de['param_'+p.k]) || p.n; }
 function setLang(lang){
   _lang = lang;
   localStorage.setItem('mimLang', lang);
@@ -999,6 +1002,22 @@ function setLang(lang){
     const on = typeof KIM !== 'undefined' && KIM.profile && KIM.profile.kim_active;
     kimLbl.textContent = T(on ? 'kim_active' : 'kim_inactive');
     kimLbl.style.color = on ? 'var(--green)' : 'var(--dim)';
+  }
+  // Re-render translated param names
+  document.querySelectorAll('[data-param-idx]').forEach(el=>{
+    const i=parseInt(el.dataset.paramIdx);
+    if(typeof PARAMS!=='undefined' && PARAMS[i]) el.textContent=paramN(PARAMS[i]);
+  });
+  document.querySelectorAll('[data-cim-param-idx]').forEach(el=>{
+    const i=parseInt(el.dataset.cimParamIdx);
+    if(typeof CIM_PARAMS!=='undefined' && CIM_PARAMS[i]) el.textContent=paramN(CIM_PARAMS[i]);
+  });
+  // Re-render default profile names (not renamed by user)
+  for(let i=1;i<=3;i++){
+    if(!localStorage.getItem('mim_profile_name_'+i)){
+      const pnEl=document.getElementById('pname-'+i);
+      if(pnEl) pnEl.textContent=T('profile_default').replace('{n}',i);
+    }
   }
 }
 'use strict';
@@ -1763,7 +1782,7 @@ function buildParams(){
     const p=PARAMS[i];
     const row=el('div','pr');
 
-    const nm=el('div','pr-name'); nm.textContent=p.n; row.appendChild(nm);
+    const nm=el('div','pr-name'); nm.textContent=paramN(p); nm.dataset.paramIdx=i; row.appendChild(nm);
 
     const lbl=el('div','pr-val'); lbl.id='lbl'+i;
     lbl.textContent=fmt(p,S.vals[i])+' '+p.u; row.appendChild(lbl);
@@ -1893,7 +1912,7 @@ const PM = {
   },
 
   getName(n) {
-    return localStorage.getItem('mim_profile_name_'+n) || 'Profile '+n;
+    return localStorage.getItem('mim_profile_name_'+n) || T('profile_default').replace('{n}',n);
   },
   setName(n, name) {
     localStorage.setItem('mim_profile_name_'+n, name);
@@ -1924,7 +1943,7 @@ const PM = {
     nameEl.replaceWith(inp);
     inp.focus(); inp.select();
     const done = () => {
-      const val = inp.value.trim() || 'Profile '+n;
+      const val = inp.value.trim() || T('profile_default').replace('{n}',n);
       this.setName(n, val);
       const span = document.createElement('span');
       span.className = 'pslot-name'; span.id = 'pname-'+n; span.textContent = val;
@@ -2418,7 +2437,7 @@ const CIM = {
     const bd=ge('cim-params-bd'); if(!bd) return; bd.innerHTML='';
     for(let i=14;i<CIM_PARAMS.length;i++){
       const p=CIM_PARAMS[i], row=el('div','pr');
-      const nm=el('div','pr-name'); nm.textContent=p.n; row.appendChild(nm);
+      const nm=el('div','pr-name'); nm.textContent=paramN(p); nm.dataset.cimParamIdx=i; row.appendChild(nm);
       const lbl=el('div','pr-val'); lbl.id='cim-lbl'+i;
       lbl.textContent=this._fmt(p,this.vals[i])+' '+p.u; row.appendChild(lbl);
       const sl=el('input'); sl.type='range'; sl.id='cim-sl'+i;

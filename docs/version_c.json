@@ -1,0 +1,12 @@
+﻿{
+    "version":  "0.1.0-alpha",
+    "date":  "2026-06-19",
+    "hex_url_c":  "https://mim-control.com/firmware/mim_firmware_c_v0.1.0-alpha.hex",
+    "python_gui_url":  "https://mim-control.com/tools/mim_xinput_tools_v0.1.0-alpha.zip",
+    "python_gui_url_latest":  "https://mim-control.com/tools/mim_xinput_tools_latest.zip",
+    "changelog":  [
+                      "AIM keyboard/mouse mapping: controller buttons can be assigned to keyboard keys or mouse buttons via aim_control.py",
+                      "aim_control.py: Settings persist across updates in %APPDATA%\\MIM\\aim_settings.json",
+                      "Release infrastructure: release_xinput.ps1, dev-options XInput block, Python GUI ZIP distribution"
+                  ]
+}

@@ -1,0 +1,9 @@
+﻿{
+    "latest":  "0.1.0-alpha",
+    "versions":  [
+                     {
+                         "version":  "0.1.0-alpha",
+                         "hex":  "mim_firmware_c_v0.1.0-alpha.hex"
+                     }
+                 ]
+}

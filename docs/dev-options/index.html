@@ -169,12 +169,12 @@ body{transition:margin-left .2s ease}
   </div>
 
   <!-- ══════════════════════════════════════════════════════════
-       Abschnitt 1 — Device connection
+       Abschnitt 1 — Device connection  (Firmware A only)
        ══════════════════════════════════════════════════════════ -->
 
   <!-- Device connection -->
   <div class="card">
-    <div class="card-hd">DEVICE CONNECTION</div>
+    <div class="card-hd">DEVICE CONNECTION — FIRMWARE A (SERIAL+HID)</div>
     <div class="card-bd">
       <div id="conn-area">
         <div id="dot"></div>
@@ -188,8 +188,8 @@ body{transition:margin-left .2s ease}
        Abschnitt 2 — Firmware Download / Rollback
        ══════════════════════════════════════════════════════════ -->
 
-  <div class="card">
-    <div class="card-hd">FIRMWARE DOWNLOAD (ROLLBACK)</div>
+  <div class="card" id="fw-a-rollback">
+    <div class="card-hd">FIRMWARE A — SERIAL+HID (ROLLBACK)</div>
     <div class="card-bd">
       <div class="dl-row">
         <select id="ver-select" class="ver-select">
@@ -198,7 +198,7 @@ body{transition:margin-left .2s ease}
         <button class="fb prim" id="btn-dl-version" disabled>⬇  Download .hex</button>
       </div>
       <div class="notice">
-        Download any released firmware version for manual flashing
+        Download any released Firmware A version for manual flashing
         (<strong>Teensy Loader</strong>) or rollback to an older build.
         The newest version is marked <strong>(latest)</strong>.<br>
         For normal OTA updates use
@@ -231,7 +231,65 @@ body{transition:margin-left .2s ease}
   </div>
 
   <!-- ══════════════════════════════════════════════════════════
-       Abschnitt 4 — WebHID Flash (Legacy) — bewusst ganz unten
+       Abschnitt 4 — Firmware C (XInput + Custom HID)
+       ══════════════════════════════════════════════════════════ -->
+
+  <div class="legacy-sep"></div>
+
+  <div class="card">
+    <div class="card-hd">FIRMWARE C — XINPUT + CUSTOM HID</div>
+    <div class="card-bd">
+
+      <div class="notice warn" style="margin-bottom:14px;font-size:.82rem;line-height:1.8">
+        ⚠ <strong>Nach dem Flashen von Firmware C:</strong><br>
+        Kein Web-Interface. Serial Monitor funktioniert nicht. WebSerial-Verbindung nicht möglich.<br>
+        Alle Einstellungen ausschließlich über das <strong>Python Tool (aim_control.py)</strong>.<br>
+        <span style="color:var(--dim)">Rückkehr zu Firmware A: Teensy Loader →
+        <a href="#fw-a-rollback" style="color:var(--dim);text-decoration:underline">Firmware A .hex</a>
+        oben herunterladen → flashen → Web-Interface steht wieder zur Verfügung.</span>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div style="font-size:.72rem;color:var(--dim);letter-spacing:.06em;margin-bottom:8px">FIRMWARE C DOWNLOAD</div>
+        <div class="dl-row">
+          <select id="ver-select-c" class="ver-select">
+            <option value="">Loading versions …</option>
+          </select>
+          <button class="fb prim" id="btn-dl-version-c" disabled>⬇  Download .hex</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div style="font-size:.72rem;color:var(--dim);letter-spacing:.06em;margin-bottom:8px">PYTHON TOOL DOWNLOAD</div>
+        <div class="dl-row" style="align-items:center">
+          <button class="fb prim" id="btn-dl-gui" disabled>⬇  Download aim_control (ZIP)</button>
+          <span id="gui-version-label" style="font-size:.78rem;color:var(--dim)">Loading …</span>
+        </div>
+        <div class="notice" style="margin-top:10px">
+          Enthält <code>aim_control.py</code> + <code>run.bat</code>.<br>
+          Voraussetzung: Python 3.9+ und pip.
+          <code>run.bat</code> installiert Dependencies automatisch.<br>
+          Einstellungen werden in <code>%APPDATA%\MIM\aim_settings.json</code> gespeichert.
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:.72rem;color:var(--dim);letter-spacing:.06em;margin-bottom:8px">FLASH-ANLEITUNG</div>
+        <ol style="padding-left:1.4em;line-height:2;font-size:.82rem;color:var(--text)">
+          <li>Firmware C .hex oben herunterladen</li>
+          <li><a href="https://www.pjrc.com/teensy/loader.html" target="_blank" rel="noopener"
+                 style="color:var(--blue)">Teensy Loader herunterladen</a> (pjrc.com)</li>
+          <li>.hex im Teensy Loader öffnen</li>
+          <li>Weißen Button am Teensy drücken <span style="color:var(--dim)">(oder oben: Restart → HalfKay)</span></li>
+          <li>Teensy Loader flasht automatisch</li>
+        </ol>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       Abschnitt 5 — WebHID Flash (Legacy) — bewusst ganz unten
        ══════════════════════════════════════════════════════════ -->
 
   <div class="legacy-sep"></div>
@@ -593,13 +651,62 @@ async function loadVersions() {
   }
 }
 
+// ── Firmware C Versionsliste ─────────────────────────────────────────────────
+async function loadVersionsC() {
+  const sel = ge('ver-select-c');
+  try {
+    const r = await fetch('/versions_c.json?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const list   = Array.isArray(data.versions) ? data.versions : [];
+    const latest = data.latest || (list[0] && list[0].version);
+    if (!list.length) { sel.innerHTML = '<option value="">No versions found</option>'; return; }
+    sel.innerHTML = '';
+    list.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v.hex;
+      o.textContent = v.version + (v.version === latest ? '  (latest)' : '');
+      sel.appendChild(o);
+    });
+    ge('btn-dl-version-c').disabled = false;
+  } catch (e) {
+    sel.innerHTML = '<option value="">versions_c.json nicht gefunden — noch kein XInput Release</option>';
+  }
+}
+
+// ── Firmware C Python GUI URL ─────────────────────────────────────────────────
+async function fetchVersionC() {
+  try {
+    const r = await fetch('/version_c.json?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const url = data.python_gui_url_latest || data.python_gui_url;
+    if (url) {
+      const btn = ge('btn-dl-gui');
+      btn.disabled = false;
+      btn.onclick = () => window.open(url, '_blank');
+    }
+    const lbl = ge('gui-version-label');
+    if (lbl && data.version) {
+      lbl.textContent = 'v' + data.version + ' — aim_control.py + run.bat';
+    }
+  } catch (e) {
+    const lbl = ge('gui-version-label');
+    if (lbl) lbl.textContent = 'version_c.json nicht gefunden — noch kein XInput Release';
+  }
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   ge('btn-dl-version').onclick = () => {
     const hex = ge('ver-select').value;
     if (hex) window.open('/firmware/' + hex, '_blank');
   };
-  loadVersions();
+  ge('btn-dl-version-c').onclick = () => {
+    const hex = ge('ver-select-c').value;
+    if (hex) window.open('/firmware/' + hex, '_blank');
+  };
+  Promise.all([loadVersions(), loadVersionsC(), fetchVersionC()]);
 
   // Serial Monitor
   ge('mon-send').onclick  = monSend;

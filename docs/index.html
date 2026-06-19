@@ -268,6 +268,14 @@ body{transition:margin-left .2s ease}
 .pslot-name-input{background:transparent;border:none;border-bottom:1px solid var(--blue);
   color:var(--text);font-family:inherit;font-size:.78rem;width:70px;outline:none}
 
+/* Lang toggle */
+#lang-toggle{display:flex;gap:5px;margin-left:12px}
+.lang-btn{background:none;border:1px solid var(--border2);border-radius:3px;
+  font-size:.78rem;padding:3px 8px;cursor:pointer;color:#fff;opacity:.55;
+  transition:opacity .15s,border-color .15s;font-family:inherit}
+.lang-btn:hover{opacity:.85}
+.lang-btn.active{opacity:1;border-color:#666}
+
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:#111}
@@ -393,9 +401,13 @@ body{transition:margin-left .2s ease}
     </a>
     <div id="status-bar">
       <div id="dot"></div>
-      <span id="s-text">Disconnected</span>
+      <span id="s-text" data-i18n="s_disconnected">Disconnected</span>
       <span id="s-fw"></span>
       <span id="s-lat"></span>
+      <div id="lang-toggle">
+        <button class="lang-btn active" id="btn-lang-en" onclick="setLang('en')" title="English">EN</button>
+        <button class="lang-btn" id="btn-lang-de" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
+      </div>
     </div>
   </div>
 </header>
@@ -406,11 +418,11 @@ body{transition:margin-left .2s ease}
   <button id="conn-btn">⏻  Connect</button>
   <div id="mode-btns">
     <div class="mb-wrap">
-      <button class="mb" id="btn-out-joypad" disabled title="Switch to Joypad output mode">Joypad output mode</button>
+      <button class="mb" id="btn-out-joypad" disabled title="Switch to Joypad output mode" data-i18n="btn_out_joypad">Joypad output mode</button>
       <span class="mb-sub">[CIM / AIM]</span>
     </div>
     <div class="mb-wrap">
-      <button class="mb" id="btn-out-mnk" disabled title="Switch to Mouse &amp; Keyboard output mode">MnK output mode</button>
+      <button class="mb" id="btn-out-mnk" disabled title="Switch to Mouse &amp; Keyboard output mode" data-i18n="btn_out_mnk">MnK output mode</button>
       <span class="mb-sub">[MIM / KIM / Kombi]</span>
     </div>
     <span id="s-mode"></span>
@@ -425,22 +437,22 @@ body{transition:margin-left .2s ease}
 
       <!-- Step 1: CIM or AIM -->
       <div class="modal-step" id="step-1">
-        <div class="step-lbl">Step 1 — Input source</div>
+        <div class="step-lbl" data-i18n="modal_step1_lbl">Step 1 — Input source</div>
         <div class="step-choices">
           <button class="choice-btn" id="choice-cim">
-            <span class="choice-title">Controller pass-through</span>
-            <span class="choice-sub">Gamepad/Controller → Joypad output (CIM)</span>
+            <span class="choice-title" data-i18n="modal_cim_title">Controller pass-through</span>
+            <span class="choice-sub" data-i18n="modal_cim_sub">Gamepad/Controller → Joypad output (CIM)</span>
           </button>
           <button class="choice-btn" id="choice-aim">
             <span class="choice-title">Mouse → Stick</span>
-            <span class="choice-sub">Mouse movement → Joystick axes (AIM)</span>
+            <span class="choice-sub" data-i18n="modal_aim_sub">Mouse movement → Joystick axes (AIM)</span>
           </button>
         </div>
       </div>
 
       <!-- Step 2: Axis assignment (CIM only) -->
       <div class="modal-step" id="step-2" style="display:none">
-        <div class="step-lbl">Step 2 — Stick axes</div>
+        <div class="step-lbl" data-i18n="modal_step2_lbl">Step 2 — Stick axes</div>
         <div class="axis-row">
           <label>Left stick X</label>
           <select id="sel-lx"><option value="0">Axis 0</option><option value="1">Axis 1</option><option value="2">Axis 2</option><option value="3">Axis 3</option></select>
@@ -458,9 +470,9 @@ body{transition:margin-left .2s ease}
 
       <!-- Step 3: Confirm -->
       <div class="modal-step" id="step-3" style="display:none">
-        <div class="step-lbl">Step 3 — Confirm</div>
+        <div class="step-lbl" data-i18n="modal_step3_lbl">Step 3 — Confirm</div>
         <div id="confirm-summary" style="color:var(--text);font-size:.85rem;padding:8px 0 14px;line-height:1.8"></div>
-        <div style="color:var(--orange);font-size:.76rem">Device will reboot and reconnect in the new mode.</div>
+        <div style="color:var(--orange);font-size:.76rem" data-i18n="modal_reboot_warn">Device will reboot and reconnect in the new mode.</div>
       </div>
 
     </div>
@@ -486,11 +498,11 @@ body{transition:margin-left .2s ease}
           <span class="choice-sub">Keyboard → remapped keyboard output (KIM)</span>
         </button>
         <button class="mnk-choice choice-btn" data-mode="MKCOMBO">
-          <span class="choice-title">Mouse + Keyboard Kombi</span>
-          <span class="choice-sub">Both inputs simultaneously via USB hub (MIM+KIM)</span>
+          <span class="choice-title" data-i18n="mnk_combo_title">Mouse + Keyboard Combo</span>
+          <span class="choice-sub" data-i18n="mnk_combo_sub">Both inputs simultaneously via USB hub (MIM+KIM)</span>
         </button>
       </div>
-      <div style="color:var(--orange);font-size:.76rem;padding-top:12px">Device will reboot and reconnect in the new mode.</div>
+      <div style="color:var(--orange);font-size:.76rem;padding-top:12px" data-i18n="modal_reboot_warn">Device will reboot and reconnect in the new mode.</div>
     </div>
     <div id="mnk-modal-footer">
       <button class="fb" id="mnk-cancel">Cancel</button>
@@ -505,8 +517,8 @@ body{transition:margin-left .2s ease}
     <div id="aim-cap-hd">ASSIGN INPUT</div>
     <div id="aim-cap-body">
       <div class="aim-cap-tgt">Controller button: <b id="aim-cap-name">—</b></div>
-      <div id="aim-cap-zone">Press the key you want to assign…<br>
-        <span class="aim-cap-hint">(or click a mouse button in this box · Esc to cancel)</span></div>
+      <div id="aim-cap-zone" data-i18n="aim_cap_zone">Press the key you want to assign…<br>
+        <span class="aim-cap-hint" data-i18n="aim_cap_hint">(or click a mouse button in this box · Esc to cancel)</span></div>
     </div>
     <div id="aim-cap-footer">
       <button class="fb" id="aim-cap-clear">Clear (none)</button>
@@ -515,7 +527,7 @@ body{transition:margin-left .2s ease}
   </div>
 </div>
 
-<div id="no-ws">
+<div id="no-ws" data-i18n="no_ws">
   WebSerial API not available.<br>
   Use <strong>Chrome</strong> or <strong>Edge ≥ 89</strong> via HTTPS or localhost.<br>
   Enable flag: <code>chrome://flags/#enable-experimental-web-platform-features</code>
@@ -533,7 +545,7 @@ body{transition:margin-left .2s ease}
       <button class="tab" id="tab-aim" disabled>AIM</button>
     </span>
   </div>
-  <div class="tab-hint" id="tab-hint">
+  <div class="tab-hint" id="tab-hint" data-i18n="tab_hint">
     ↻ Device change requires reconnect to update active tab.
   </div>
 </div>
@@ -564,7 +576,7 @@ body{transition:margin-left .2s ease}
 
   <!-- Velocity Curves -->
   <div class="sec">
-    <div class="sec-hd">Velocity Curves</div>
+    <div class="sec-hd" data-i18n="sec_vel_curves">Velocity Curves</div>
     <div class="sec-bd">
       <div id="charts-row">
         <div class="cw"><canvas id="cx"></canvas></div>
@@ -576,8 +588,8 @@ body{transition:margin-left .2s ease}
   <!-- Monitor + OLED -->
   <div class="sec">
     <div class="sec-hd">
-      Monitor
-      <button class="cls-btn" id="cls-btn">clear</button>
+      <span data-i18n="sec_monitor">Monitor</span>
+      <button class="cls-btn" id="cls-btn" data-i18n="cls_btn">clear</button>
     </div>
     <div class="sec-bd">
       <div id="mid-row">
@@ -596,24 +608,24 @@ body{transition:margin-left .2s ease}
 
   <!-- Velocity Spline -->
   <div class="sec">
-    <div class="sec-hd">Velocity Spline  <span style="color:var(--dim2);font-size:.66rem">vX0–vX6 (blue) · vY0–vY6 (orange) · px/s</span></div>
+    <div class="sec-hd"><span data-i18n="sec_spline">Velocity Spline</span>  <span style="color:var(--dim2);font-size:.66rem">vX0–vX6 (blue) · vY0–vY6 (orange) · px/s</span></div>
     <div class="sec-bd"><div id="spline-row"></div></div>
   </div>
 
   <!-- Parameters -->
   <div class="sec">
-    <div class="sec-hd">Parameters</div>
+    <div class="sec-hd" data-i18n="sec_params">Parameters</div>
     <div class="sec-bd" id="params-bd"></div>
   </div>
 
   <!-- Footer -->
   <div id="footer">
-    <button class="fb prim" id="btn-all">Send all values</button>
+    <button class="fb prim" id="btn-all" data-i18n="btn_send_all">Send all values</button>
     <button class="fb"      id="btn-rst">Reset Board</button>
     <button class="fb"      id="btn-exp">Export …</button>
     <button class="fb"      id="btn-imp">Import …</button>
     <input  type="file" id="file-imp" accept=".json" style="display:none">
-    <button class="fb dang" id="btn-disc" style="margin-left:auto">Disconnect</button>
+    <button class="fb dang" id="btn-disc" style="margin-left:auto" data-i18n="btn_disconnect_footer">Disconnect</button>
   </div>
 
   </div><!-- #panel-mim -->
@@ -624,7 +636,7 @@ body{transition:margin-left .2s ease}
     <!-- Header + Active Toggle -->
     <div class="sec" style="margin-top:12px">
       <div class="sec-hd" style="display:flex;align-items:center;justify-content:space-between">
-        KIM — Keyboard Input Modifier
+        <span data-i18n="sec_kim">KIM — Keyboard Input Modifier</span>
         <label class="kim-sw-wrap" title="Enable / disable KIM">
           <input type="checkbox" id="kim-active-chk">
           <span class="kim-sw-track"><span class="kim-sw-thumb"></span></span>
@@ -636,11 +648,11 @@ body{transition:margin-left .2s ease}
     <!-- Entry List -->
     <div class="sec">
       <div class="sec-hd" style="display:flex;align-items:center">
-        Entries
+        <span data-i18n="kim_entries_hd">Entries</span>
         <button class="fb" id="kim-add-btn" style="margin-left:auto;padding:3px 12px">+ New</button>
       </div>
       <div class="sec-bd">
-        <div id="kim-empty-msg" style="color:var(--dim);font-size:.82rem;padding:6px 0">No entries configured.</div>
+        <div id="kim-empty-msg" style="color:var(--dim);font-size:.82rem;padding:6px 0" data-i18n="kim_empty_msg">No entries configured.</div>
         <div id="kim-entry-list"></div>
       </div>
     </div>
@@ -739,7 +751,7 @@ body{transition:margin-left .2s ease}
                  style="flex:1;max-width:200px;accent-color:var(--green)">
           <span id="kim-sigma-val" class="kim-unit" style="min-width:42px">5.0 %</span>
         </div>
-        <div style="font-size:.72rem;color:var(--dim2);padding-left:98px;margin-top:1px">
+        <div style="font-size:.72rem;color:var(--dim2);padding-left:98px;margin-top:1px" data-i18n="kim_gauss_hint">
           Gaussian spread applied to all hold and pause timings (same as MIM)
         </div>
       </div>
@@ -756,8 +768,8 @@ body{transition:margin-left .2s ease}
     <!-- Serial Monitor (KIM) -->
     <div class="sec" style="max-width:1140px;margin:0 auto 18px">
       <div class="sec-hd">
-        Serial Monitor
-        <button class="cls-btn" id="kim-cls-btn">clear</button>
+        <span data-i18n="sec_monitor">Serial Monitor</span>
+        <button class="cls-btn" id="kim-cls-btn" data-i18n="cls_btn">clear</button>
       </div>
       <div class="sec-bd">
         <div id="kim-console"></div>
@@ -771,7 +783,7 @@ body{transition:margin-left .2s ease}
 
     <!-- Stick / Button Mapping -->
     <div class="sec" style="margin-top:12px">
-      <div class="sec-hd">CIM — Controller Input Modifier <span style="color:var(--dim2);font-size:.66rem">— right-stick correction</span></div>
+      <div class="sec-hd"><span data-i18n="sec_cim">CIM — Controller Input Modifier</span> <span style="color:var(--dim2);font-size:.66rem" data-i18n="sec_cim_sub">— right-stick correction</span></div>
       <div class="sec-bd">
         <div class="pr">
           <div class="pr-name" style="width:96px">Stick X axis</div>
@@ -793,19 +805,19 @@ body{transition:margin-left .2s ease}
 
     <!-- Correction sensitivity -->
     <div class="sec">
-      <div class="sec-hd">Correction Sensitivity</div>
+      <div class="sec-hd" data-i18n="sec_cim_sens">Correction Sensitivity</div>
       <div class="sec-bd" id="cim-sens-bd"></div>
     </div>
 
     <!-- Velocity Spline (right stick) -->
     <div class="sec">
-      <div class="sec-hd">Velocity Spline (Right Stick)  <span style="color:var(--dim2);font-size:.66rem">vX0–vX6 (blue) · vY0–vY6 (orange) · px/s</span></div>
+      <div class="sec-hd"><span data-i18n="sec_spline_cim">Velocity Spline (Right Stick)</span>  <span style="color:var(--dim2);font-size:.66rem">vX0–vX6 (blue) · vY0–vY6 (orange) · px/s</span></div>
       <div class="sec-bd"><div id="spline-row-cim"></div></div>
     </div>
 
     <!-- Parameters -->
     <div class="sec">
-      <div class="sec-hd">Parameters</div>
+      <div class="sec-hd" data-i18n="sec_params">Parameters</div>
       <div class="sec-bd" id="cim-params-bd"></div>
     </div>
 
@@ -816,22 +828,22 @@ body{transition:margin-left .2s ease}
 
     <!-- Mouse → Stick selector -->
     <div class="sec" style="margin-top:12px">
-      <div class="sec-hd">AIM — Mouse → Stick</div>
+      <div class="sec-hd" data-i18n="sec_aim">AIM — Mouse → Stick</div>
       <div class="sec-bd">
         <div class="kim-row">
-          <span class="kim-lbl" style="width:140px">Mouse drives</span>
+          <span class="kim-lbl" style="width:140px" data-i18n="aim_mouse_drives">Mouse drives</span>
           <div class="aim-stick-grp" id="aim-stick-grp" data-stick="1">
             <button class="aim-stick-btn" data-stick="0">Left stick</button>
             <button class="aim-stick-btn active" data-stick="1">Right stick</button>
           </div>
-          <span style="color:var(--dim2);font-size:.72rem;margin-left:8px">Which joystick the mouse aim controls</span>
+          <span style="color:var(--dim2);font-size:.72rem;margin-left:8px" data-i18n="aim_mouse_hint">Which joystick the mouse aim controls</span>
         </div>
       </div>
     </div>
 
     <!-- Controller graphic + button assignment -->
     <div class="sec">
-      <div class="sec-hd">Button Mapping <span style="color:var(--dim2);font-size:.66rem">— assign keyboard / mouse input to each controller button</span></div>
+      <div class="sec-hd">Button Mapping <span style="color:var(--dim2);font-size:.66rem" data-i18n="aim_btn_sub">— assign keyboard / mouse input to each controller button</span></div>
       <div class="sec-bd">
         <div id="aim-layout">
           <div id="aim-pad-col">
@@ -894,6 +906,101 @@ body{transition:margin-left .2s ease}
 </div></div><!-- .wrap / #main -->
 
 <script>
+// ── i18n ──────────────────────────────────────────────────────────────────────
+const STRINGS = {
+  en: {
+    s_disconnected:'Disconnected', s_connected:'Connected',
+    btn_conn_text:'Connect', btn_disc_text:'Disconnect',
+    btn_out_joypad:'Joypad', btn_out_mnk:'MnK',
+    no_ws:'WebSerial API not available.<br>Use <strong>Chrome</strong> or <strong>Edge&nbsp;&ge;&nbsp;89</strong> via HTTPS or localhost.<br>Enable flag: <code>chrome://flags/#enable-experimental-web-platform-features</code>',
+    tab_hint:'&#x21BB; Device change requires reconnect to update active tab.',
+    sec_vel_curves:'Velocity Curves', sec_monitor:'Serial Monitor', cls_btn:'clear',
+    sec_spline:'Velocity Spline', sec_spline_cim:'Velocity Spline (Right Stick)',
+    sec_params:'Parameters',
+    btn_send_all:'Send all values', btn_disconnect_footer:'Disconnect',
+    sec_kim:'KIM &#x2014; Keyboard Input Modifier', kim_entries_hd:'Entries',
+    kim_empty_msg:'No entries configured.',
+    kim_gauss_hint:'Gaussian spread applied to all hold and pause timings (same as MIM)',
+    kim_active:'active', kim_inactive:'inactive',
+    kim_edit_btn:'Edit', kim_del_title:'Delete entry',
+    kim_editor_new:'New Entry', kim_editor_edit:'Edit Entry {n}',
+    kim_bind_waiting:'&#x2190; Press a key…', step_n:'Step {n}',
+    sec_cim:'CIM &#x2014; Controller Input Modifier', sec_cim_sub:'&#x2014; right-stick correction',
+    sec_cim_sens:'Correction Sensitivity',
+    sec_aim:'AIM &#x2014; Mouse → Stick', aim_mouse_drives:'Mouse drives',
+    aim_mouse_hint:'Which joystick the mouse aim controls',
+    aim_btn_sub:'&#x2014; assign keyboard / mouse input to each controller button',
+    modal_step1_lbl:'Step 1 &#x2014; Input source',
+    modal_cim_title:'Controller pass-through',
+    modal_cim_sub:'Gamepad/Controller → Joypad output (CIM)',
+    modal_aim_sub:'Mouse movement → Joystick axes (AIM)',
+    modal_step2_lbl:'Step 2 &#x2014; Stick axes',
+    modal_step3_lbl:'Step 3 &#x2014; Confirm',
+    modal_reboot_warn:'Device will reboot and reconnect in the new mode.',
+    mnk_combo_title:'Mouse + Keyboard Combo',
+    mnk_combo_sub:'Both inputs simultaneously via USB hub (MIM+KIM)',
+    aim_cap_zone:'Press the key you want to assign…<br><span class="aim-cap-hint">(or click a mouse button in this box \xb7 Esc to cancel)</span>',
+    aim_cap_hint:'(or click a mouse button in this box \xb7 Esc to cancel)',
+    confirm_overwrite:'Overwrite Profile {n}?',
+  },
+  de: {
+    s_disconnected:'Getrennt', s_connected:'Verbunden',
+    btn_conn_text:'Connect', btn_disc_text:'Disconnect',
+    btn_out_joypad:'Joypad', btn_out_mnk:'MnK',
+    no_ws:'WebSerial API nicht verf\xfcgbar.<br>Bitte <strong>Chrome</strong> oder <strong>Edge&nbsp;&ge;&nbsp;89</strong> \xfcber HTTPS oder localhost verwenden.<br>Flag aktivieren: <code>chrome://flags/#enable-experimental-web-platform-features</code>',
+    tab_hint:'&#x21BB; Ger\xe4tewechsel erfordert Neuverbindung zum Tab-Update.',
+    sec_vel_curves:'Velocity Curves', sec_monitor:'Serieller Monitor', cls_btn:'leeren',
+    sec_spline:'Velocity Spline', sec_spline_cim:'Velocity Spline (Rechter Stick)',
+    sec_params:'Parameter',
+    btn_send_all:'Alle Werte senden', btn_disconnect_footer:'Disconnect',
+    sec_kim:'KIM &#x2014; Keyboard Input Modifier', kim_entries_hd:'Eintr\xe4ge',
+    kim_empty_msg:'Keine Eintr\xe4ge konfiguriert.',
+    kim_gauss_hint:'Gau\xdfsche Streuung f\xfcr alle Hold- und Pause-Timings (wie MIM)',
+    kim_active:'aktiv', kim_inactive:'inaktiv',
+    kim_edit_btn:'Bearb.', kim_del_title:'Entry l\xf6schen',
+    kim_editor_new:'New Entry', kim_editor_edit:'Edit Entry {n}',
+    kim_bind_waiting:'&#x2190; Taste dr\xfccken…', step_n:'Step {n}',
+    sec_cim:'CIM &#x2014; Controller Input Modifier', sec_cim_sub:'&#x2014; Rechtstick-Korrektur',
+    sec_cim_sens:'Korrektur-Empfindlichkeit',
+    sec_aim:'AIM &#x2014; Maus → Stick', aim_mouse_drives:'Maus steuert',
+    aim_mouse_hint:'Welchen Joystick die Maus steuert',
+    aim_btn_sub:'&#x2014; Tastatur- / Mauseingabe jedem Controller-Button zuweisen',
+    modal_step1_lbl:'Schritt 1 &#x2014; Eingabequelle',
+    modal_cim_title:'Controller Pass-Through',
+    modal_cim_sub:'Gamepad/Controller → Joypad-Ausgabe (CIM)',
+    modal_aim_sub:'Mausbewegung → Joystick-Achsen (AIM)',
+    modal_step2_lbl:'Schritt 2 &#x2014; Stick-Achsen',
+    modal_step3_lbl:'Schritt 3 &#x2014; Best\xe4tigen',
+    modal_reboot_warn:'Ger\xe4t wird neu gestartet und im neuen Modus verbunden.',
+    mnk_combo_title:'Mouse + Keyboard Combo',
+    mnk_combo_sub:'Beide Eingaben gleichzeitig \xfcber USB-Hub (MIM+KIM)',
+    aim_cap_zone:'Taste dr\xfccken, die du zuweisen m\xf6chtest…<br><span class="aim-cap-hint">(oder Maustaste in diesem Feld klicken \xb7 Esc zum Abbrechen)</span>',
+    aim_cap_hint:'(oder Maustaste in diesem Feld klicken \xb7 Esc zum Abbrechen)',
+    confirm_overwrite:'Profile {n} \xfcberschreiben?',
+  }
+};
+let _lang = localStorage.getItem('mimLang') || 'en';
+function T(k){ return (STRINGS[_lang]||STRINGS.en)[k] || k; }
+function setLang(lang){
+  _lang = lang;
+  localStorage.setItem('mimLang', lang);
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const v=T(el.dataset.i18n); if(v) el.innerHTML=v;
+  });
+  document.getElementById('btn-lang-en').classList.toggle('active', lang==='en');
+  document.getElementById('btn-lang-de').classList.toggle('active', lang==='de');
+  const connected = typeof S !== 'undefined' && S.connected;
+  const connBtn = document.getElementById('conn-btn');
+  const stEl   = document.getElementById('s-text');
+  if(connBtn) connBtn.textContent = '⏻  ' + T(connected ? 'btn_disc_text' : 'btn_conn_text');
+  if(stEl)   stEl.textContent   = T(connected ? 's_connected' : 's_disconnected');
+  const kimLbl = document.getElementById('kim-active-lbl');
+  if(kimLbl){
+    const on = typeof KIM !== 'undefined' && KIM.profile && KIM.profile.kim_active;
+    kimLbl.textContent = T(on ? 'kim_active' : 'kim_inactive');
+    kimLbl.style.color = on ? 'var(--green)' : 'var(--dim)';
+  }
+}
 'use strict';
 window.onerror = (msg,src,line,col,err) => console.error('[JS-ERR]',msg,'@'+line+':'+col,err);
 
@@ -1406,14 +1513,14 @@ function setConnected(v){
   if(v){
     main.classList.add('on'); btn.classList.add('disc');
     dot.classList.add('on');
-    btn.textContent='⏻  Disconnect'; st.textContent='Connected';
+    btn.textContent='⏻  '+T('btn_disc_text'); st.textContent=T('s_connected');
     ge('btn-out-joypad').disabled=false;
     ge('btn-out-mnk').disabled=false;
     PM.clearSelection();
   } else {
     main.classList.remove('on'); btn.classList.remove('disc');
     dot.classList.remove('on');
-    btn.textContent='⏻  Connect'; st.textContent='Disconnected';
+    btn.textContent='⏻  '+T('btn_conn_text'); st.textContent=T('s_disconnected');
     ge('s-fw').textContent=''; ge('s-lat').textContent='';
     ge('btn-out-joypad').disabled=true;
     ge('btn-out-mnk').disabled=true;
@@ -1952,7 +2059,7 @@ function _kimRenderSteps(containerId, steps) {
     const d=document.createElement('div');
     d.className='kim-row kim-step-row'; d.dataset.idx=i;
     const btnId=`${containerId}-step-${i}`;
-    d.innerHTML=`<span class="kim-lbl" style="font-size:.78rem">Step ${i+1}</span>
+    d.innerHTML=`<span class="kim-lbl" style="font-size:.78rem">${T('step_n').replace('{n}',i+1)}</span>
       <button class="kim-bind-btn kim-step-key" id="${btnId}" data-code="${st.key}"
               onclick="KIM.bind('${btnId}')">${_kimKeyLabel(st.key)||'— empty —'}</button>
       <span class="kim-unit">Hold</span>
@@ -2040,9 +2147,9 @@ const KIM = {
         <span class="kim-et-seq">${_kimSeqSummary(e)}</span>
         <span class="kim-et-tog">${['Tap','Hold','⟳'][e.trigger_mode??0]??''}</span>
         <button class="fb" style="padding:2px 10px;font-size:.75rem;margin-left:auto"
-                onclick="KIM.openEditor(${i})">Bearb.</button>
+                onclick="KIM.openEditor(${i})">${T('kim_edit_btn')}</button>
         <button class="fb dang" style="padding:2px 8px;font-size:.75rem"
-                onclick="KIM.deleteAt(${i})" title="Entry löschen">✕</button>
+                onclick="KIM.deleteAt(${i})" title="${T('kim_del_title')}">✕</button>
       </div>`).join('');
   },
 
@@ -2050,7 +2157,7 @@ const KIM = {
     this.editIdx = idx;
     const isNew = idx<0;
     const e = isNew ? this._def() : JSON.parse(JSON.stringify(this.profile.entries[idx]));
-    ge('kim-editor-title').textContent = isNew ? 'New Entry' : `Edit Entry ${idx+1}`;
+    ge('kim-editor-title').textContent = isNew ? T('kim_editor_new') : T('kim_editor_edit').replace('{n}',idx+1);
     ge('kim-del-btn').style.display = isNew ? 'none' : '';
 
     this.curType = e.type;
@@ -2149,7 +2256,7 @@ const KIM = {
     const btn=ge(btnId);
     if(!btn) return;
     btn.classList.add('waiting');
-    btn.textContent='← Press a key…';
+    btn.textContent=T('kim_bind_waiting');
     if(S.connected) {
       sendJson({cmd:'set_kim_config', data:{start_bind:true}});
     } else {
@@ -2169,7 +2276,7 @@ const KIM = {
     const active = ge('kim-active-chk').checked ? 1 : 0;
     this.profile.kim_active = active;
     const lbl = ge('kim-active-lbl');
-    lbl.textContent = active ? 'aktiv' : 'inaktiv';
+    lbl.textContent = T(active ? 'kim_active' : 'kim_inactive');
     lbl.style.color  = active ? 'var(--green)' : 'var(--dim)';
     sendJson({cmd:'set_kim_config', data:{kim_active:active}});
   },
@@ -2662,9 +2769,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   ge('btn-exp').onclick=doExport;
   ge('btn-imp').onclick=()=>ge('file-imp').click();
   ge('file-imp').onchange=e=>{ if(e.target.files[0]){doImport(e.target.files[0]);} e.target.value=''; };
-  ge('btn-save-1').onclick = () => { if(confirm('Overwrite Profile 1?')) PM.saveSlot(1); };
-  ge('btn-save-2').onclick = () => { if(confirm('Overwrite Profile 2?')) PM.saveSlot(2); };
-  ge('btn-save-3').onclick = () => { if(confirm('Overwrite Profile 3?')) PM.saveSlot(3); };
+  ge('btn-save-1').onclick = () => { if(confirm(T('confirm_overwrite').replace('{n}','1'))) PM.saveSlot(1); };
+  ge('btn-save-2').onclick = () => { if(confirm(T('confirm_overwrite').replace('{n}','2'))) PM.saveSlot(2); };
+  ge('btn-save-3').onclick = () => { if(confirm(T('confirm_overwrite').replace('{n}','3'))) PM.saveSlot(3); };
   ge('btn-set-default').onclick = () => PM.applyDefault();
   PM.init();
   ge('cls-btn').onclick=()=>{ ge('console').textContent=''; };
@@ -2707,6 +2814,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       drawOled();
     };
   });
+
+  setLang(_lang);
 });
 </script>
 </body>

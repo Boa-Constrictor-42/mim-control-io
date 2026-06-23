@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIM — Build Your Own</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a; --bg2:#111111; --bg3:#1a1a1a; --bg4:#222222;
+  --border:#282828; --border2:#333333;
+  --text:#cccccc; --dim:#666666; --dim2:#444444;
+  --green:#00cc66; --blue:#0088cc; --orange:#cc6600; --red:#cc3333;
+}
+body{background:var(--bg);color:var(--text);font-family:"Consolas","Courier New",monospace;
+  font-size:13px;min-width:640px;margin-left:152px}
+button{font-family:inherit;cursor:pointer}
+
+/* Sidebar */
+#sidebar{position:fixed;left:0;top:0;bottom:0;width:152px;
+  background:var(--bg2);border-right:1px solid var(--border);
+  z-index:150;display:flex;flex-direction:column;overflow:hidden}
+#sb-top{height:57px;display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--border);padding:0 16px;flex-shrink:0}
+#sb-logo-link{display:flex;align-items:center;text-decoration:none;overflow:hidden}
+#sb-logo{height:32px;width:auto;object-fit:contain;display:block}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 16px;
+  text-decoration:none;color:var(--dim);font-size:.74rem;letter-spacing:.07em;
+  border-left:2px solid transparent;
+  transition:color .15s,background .15s,border-color .15s;white-space:nowrap}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--text);border-left-color:var(--green);background:var(--bg3)}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:1100px){
+  #sidebar{width:48px}
+  .nav-label{display:none}
+  .nav-item{padding:11px 0;justify-content:center}
+  body{margin-left:48px}
+}
+
+/* Header */
+#hdr{background:var(--bg2);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100}
+#hdr-inner{display:flex;align-items:center;justify-content:center;height:57px;gap:16px}
+#hdr-logo-wrap{display:flex;align-items:center;text-decoration:none}
+#hdr-logo{height:34px;width:auto;object-fit:contain;display:block}
+
+/* Lang toggle */
+.lang-toggle{display:flex;gap:5px}
+.lang-btn{background:none;border:1px solid var(--border2);border-radius:3px;
+  font-size:.78rem;padding:3px 8px;cursor:pointer;color:#fff;opacity:.55;
+  transition:opacity .15s,border-color .15s;font-family:inherit}
+.lang-btn.active{opacity:1;border-color:#888}
+.lang-btn:hover{opacity:.85}
+
+/* Content */
+.wrap{max-width:860px;margin:0 auto;padding:28px 16px 48px}
+
+h1{font-size:1.35rem;letter-spacing:.12em;color:#fff;font-weight:bold;margin-bottom:6px}
+.subtitle{font-size:.82rem;color:var(--dim);margin-bottom:28px}
+h2{font-size:1.0rem;letter-spacing:.08em;color:#fff;margin:36px 0 12px;
+  padding-bottom:6px;border-bottom:1px solid var(--border2)}
+h3{font-size:.9rem;letter-spacing:.06em;color:var(--text);margin:22px 0 8px}
+h4{font-size:.82rem;color:var(--dim);margin:14px 0 6px;letter-spacing:.05em}
+
+p{line-height:1.7;margin-bottom:10px;font-size:.87rem}
+ul,ol{padding-left:22px;margin-bottom:10px}
+li{line-height:1.8;font-size:.87rem}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* Tier overview table */
+.tier-table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:.84rem}
+.tier-table th{text-align:left;padding:6px 12px;border-bottom:1px solid var(--border2);
+  color:var(--dim);font-weight:normal;letter-spacing:.06em}
+.tier-table td{padding:7px 12px;border-bottom:1px solid var(--border)}
+.tier-table tr:last-child td{border-bottom:none}
+.tier-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.72rem;
+  letter-spacing:.05em;font-weight:bold}
+.t1{background:#0a2a0a;color:#44cc66;border:1px solid #1a4a1a}
+.t2{background:#0a1a2a;color:#4488cc;border:1px solid #1a2a4a}
+.t3{background:#2a1a0a;color:#cc8844;border:1px solid #4a2a1a}
+
+/* Parts table */
+.parts-table{width:100%;border-collapse:collapse;margin:10px 0 18px;font-size:.84rem}
+.parts-table th{text-align:left;padding:5px 10px;border-bottom:1px solid var(--border2);
+  color:var(--dim);font-weight:normal}
+.parts-table td{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.parts-table tr:last-child td{border-bottom:none}
+
+/* Code blocks */
+pre{background:var(--bg3);border:1px solid var(--border2);border-radius:3px;
+  padding:12px 16px;overflow-x:auto;margin:10px 0 14px;font-size:.82rem;line-height:1.6}
+code{font-family:"Consolas","Courier New",monospace}
+p code,li code{background:var(--bg3);padding:1px 5px;border-radius:2px;
+  font-size:.82rem;color:#aaddff}
+
+/* Note / callout */
+.note{background:var(--bg3);border-left:3px solid var(--orange);border-radius:0 3px 3px 0;
+  padding:10px 14px;margin:12px 0;font-size:.84rem;line-height:1.6;color:var(--text)}
+.note strong{color:var(--orange)}
+
+/* Photo placeholder */
+.photo{background:#0c0c0c;border:1px dashed var(--border2);border-radius:4px;
+  padding:16px 20px;margin:14px 0;font-size:.78rem;color:#555;line-height:1.6}
+.photo::before{content:"📷  ";opacity:.5}
+
+/* Wiring image */
+.wiring-img{max-width:100%;border:1px solid var(--border2);border-radius:4px;
+  display:block;margin:14px 0 6px}
+.img-caption{font-size:.76rem;color:var(--dim);margin-bottom:14px}
+
+/* Checklist */
+.checklist{list-style:none;padding:0}
+.checklist li{padding:3px 0 3px 24px;position:relative;font-size:.84rem}
+.checklist li::before{content:"☐";position:absolute;left:0;color:var(--border2)}
+
+/* Anchor links */
+.anchor{color:var(--dim);text-decoration:none;margin-left:8px;font-size:.75rem;opacity:0}
+h2:hover .anchor,h3:hover .anchor{opacity:1}
+
+/* Section separator */
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+
+/* Step list */
+.steps{counter-reset:step-ctr;list-style:none;padding:0}
+.steps li{counter-increment:step-ctr;padding:6px 0 6px 36px;position:relative;
+  font-size:.87rem;line-height:1.7}
+.steps li::before{content:counter(step-ctr);position:absolute;left:0;
+  width:22px;height:22px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;color:var(--dim);text-align:center;line-height:22px}
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div id="sb-top">
+    <a id="sb-logo-link" href="/">
+      <img id="sb-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='../mim_logo_v6.svg'">
+    </a>
+  </div>
+  <a class="nav-item" href="/">
+    <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+    <span class="nav-label">Control</span>
+  </a>
+  <a class="nav-item" href="/update/">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <span class="nav-label">Update</span>
+  </a>
+  <a class="nav-item active" href="/build/">
+    <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+    <span class="nav-label">Build</span>
+  </a>
+</nav>
+
+<header id="hdr">
+  <div id="hdr-inner">
+    <a id="hdr-logo-wrap" href="/">
+      <img id="hdr-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='../mim_logo_v6.svg'">
+    </a>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="location.href='/build/'">EN</button>
+      <button class="lang-btn" onclick="location.href='/build/de/'">🇩🇪</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h1>Build Your Own MIM</h1>
+  <p class="subtitle">Mouse Input Modifier · DIY Guide · English</p>
+
+  <p>MIM is open hardware. Anyone can build their own device using the same firmware that runs in the finished Alpha units. This guide covers three build tiers that build on each other. Each tier is fully functional on its own.</p>
+
+  <hr>
+
+  <h2>Build Tiers Overview</h2>
+
+  <table class="tier-table">
+    <tr>
+      <th>Tier</th><th>Name</th><th>Soldering</th><th>What you get</th>
+    </tr>
+    <tr>
+      <td><span class="tier-badge t1">Tier 1</span></td>
+      <td><a href="#tier-1">Bare Bones</a></td>
+      <td>~25 min, basic skills</td>
+      <td>Fully functional, no enclosure</td>
+    </tr>
+    <tr>
+      <td><span class="tier-badge t2">Tier 2</span></td>
+      <td><a href="#tier-2">Compact Build</a></td>
+      <td>~40 min</td>
+      <td>Permanently soldered, reset button, stable</td>
+    </tr>
+    <tr>
+      <td><span class="tier-badge t3">Tier 3</span></td>
+      <td><a href="#tier-3">Full Build</a></td>
+      <td>~2 h</td>
+      <td>2× TFT, 2× encoder, aluminium enclosure</td>
+    </tr>
+  </table>
+
+  <div class="note"><strong>Firmware note:</strong> Tier 1 and Tier 2 use <code>HARDWARE_SIMPLE</code> (no displays, no encoder). Tier 3 uses <code>HARDWARE_FULL</code>. Both variants run on the same Teensy 4.1 hardware.</div>
+
+  <hr>
+
+  <h2 id="tier-1">Tier 1 — Bare Bones <a class="anchor" href="#tier-1">#</a></h2>
+  <p><strong>Goal:</strong> A working MIM device as fast as possible, minimal soldering. Ideal for trying things out before investing more time.</p>
+
+  <h3>Parts</h3>
+  <table class="parts-table">
+    <tr><th>Part</th><th>Source</th><th>Note</th></tr>
+    <tr><td>Teensy 4.1</td><td>SparkFun / DigiKey</td><td>SparkFun DEV-20360</td></tr>
+    <tr><td>Micro-USB cable</td><td>any</td><td>Teensy → PC</td></tr>
+    <tr><td>USB-A socket on breakout board</td><td>AliExpress / Amazon</td><td>for mouse connection</td></tr>
+    <tr><td>4× jumper wires (male–female)</td><td>any</td><td>10–15 cm is enough</td></tr>
+    <tr><td>Soldering iron + solder</td><td>—</td><td>Basic equipment</td></tr>
+  </table>
+
+  <h3>USB Host Pin Assignment</h3>
+  <p>The Teensy 4.1 has five pads on its <strong>bottom side</strong> for the USB host connection. This is where you connect the mouse, keyboard, or controller.</p>
+
+  <pre>Pad 2  →  +5V   (USB Pin 1)
+Pad 3  →  D−    (USB Pin 2)
+Pad 4  →  D+    (USB Pin 3)
+Pad 5  →  GND   (USB Pin 4)
+Pad 6  →  GND   (optional, can share with Pad 5)</pre>
+
+  <div class="photo">PHOTO: Teensy 4.1 bottom side — all five host pads visible and labelled. Ideally with wires already soldered, colours clearly visible (e.g. red=+5V, white=D−, green=D+, black=GND). High-contrast background, good lighting. [T1-A]</div>
+
+  <h3>Schematic</h3>
+
+  <pre>MOUSE / KEYBOARD / CONTROLLER
+        │
+  USB-A Socket (Breakout)
+  Pin 1 (+5V)  ──── Teensy bottom Pad 2
+  Pin 2 (D−)   ──── Teensy bottom Pad 3
+  Pin 3 (D+)   ──── Teensy bottom Pad 4
+  Pin 4 (GND)  ──── Teensy bottom Pad 5
+        │
+     [Teensy 4.1]
+        │
+  Micro-USB (top)
+        │
+       PC</pre>
+
+  <!-- MIM Wiring Diagram v03 — Overview -->
+  <!-- TODO: Bild wird sichtbar sobald Firmware-Repo public ist -->
+  <img class="wiring-img"
+       src="https://raw.githubusercontent.com/Boa-Constrictor-42/mim-mouse-input-modifier/main/docs/MIM_v03_Verdrahtung_A3.png"
+       alt="MIM Wiring Diagram v03 — Overview"
+       onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+  <div style="display:none" class="note">Wiring diagram image not available (firmware repo may be private).</div>
+  <p class="img-caption">MIM Wiring Diagram v03 — Overview</p>
+
+  <div class="photo">PHOTO: Finished Bare Bones build from above — Teensy with soldered USB-A socket, Micro-USB cable towards PC, mouse already connected. Important: wiring must be recognisable, no loose cables. [T1-B]</div>
+
+  <h3>Flash Firmware</h3>
+  <ol class="steps">
+    <li>Install <a href="https://www.arduino.cc/en/software" target="_blank">Arduino IDE</a> (version 2.x)</li>
+    <li>Install <a href="https://www.pjrc.com/teensy/teensyduino.html" target="_blank">Teensyduino</a> as a plugin</li>
+    <li>In Arduino IDE under <strong>Tools → USB Type</strong> set: <code>Serial + Keyboard + Mouse + Joystick</code></li>
+    <li>Download or clone the MIM firmware repository:<br>
+        <a href="https://github.com/boa-constrictor-42/mim-mouse-input-modifier" target="_blank">github.com/boa-constrictor-42/mim-mouse-input-modifier</a></li>
+    <li>Open <code>firmware/main/main_simple.ino</code> in Arduino IDE</li>
+    <li>In <code>firmware/common/config.h</code> make sure:
+<pre>#define HARDWARE_SIMPLE   // this line active
+// #define HARDWARE_FULL  // this line commented out</pre>
+    </li>
+    <li>Connect the Teensy via Micro-USB to the PC</li>
+    <li>In Arduino IDE: select <strong>Board → Teensy 4.1</strong></li>
+    <li>Click <strong>Upload</strong> (arrow icon) — Teensy Loader opens automatically and flashes</li>
+  </ol>
+
+  <div class="photo">PHOTO: Screenshot Arduino IDE with correct board selection (Teensy 4.1) and USB Type. Alternatively: Teensy Loader during flash. [T1-C]</div>
+
+  <h3>Test the Connection</h3>
+  <ol class="steps">
+    <li>Open a browser (Chrome or Edge — Firefox does not work)</li>
+    <li>Go to <a href="https://mim-control.com" target="_blank">mim-control.com</a></li>
+    <li>Click <strong>Connect</strong> — device should appear</li>
+    <li>Connect mouse — MIM tab becomes active</li>
+  </ol>
+
+  <div class="photo">PHOTO: mim-control.com in browser, connection established, MIM tab active. [T1-D]</div>
+
+  <hr>
+
+  <h2 id="tier-2">Tier 2 — Compact Build <a class="anchor" href="#tier-2">#</a></h2>
+  <p><strong>Builds on Tier 1.</strong> Permanently soldered on perfboard, with reset button and buffer capacitors. This setup runs stably even with high-resolution gaming mice (Beast X Pro, 4K polling).</p>
+
+  <h3>Additional Parts vs. Tier 1</h3>
+  <table class="parts-table">
+    <tr><th>Part</th><th>Value / Type</th><th>Source</th><th>Note</th></tr>
+    <tr><td>Perfboard</td><td>~80 × 50 mm</td><td>AliExpress / Conrad</td><td>Teensy fits on 56-pin board</td></tr>
+    <tr><td>Buffer capacitor 1</td><td>1000 µF / 16 V, Low-ESR</td><td>Conrad / Reichelt</td><td>Electrolytic, on USB host VBUS/GND</td></tr>
+    <tr><td>Buffer capacitor 2</td><td>100 nF, MLCC</td><td>Conrad / Reichelt</td><td>Ceramic, parallel to electrolytic</td></tr>
+    <tr><td>Reset button</td><td>Momentary, illuminated</td><td>AliExpress</td><td>e.g. RUNCCI-YUN 16 mm</td></tr>
+    <tr><td>USB host cable</td><td>USB-A socket with pigtail</td><td>AliExpress</td><td>instead of breakout board</td></tr>
+    <tr><td>Wire</td><td>4× 0.25 mm²</td><td>any</td><td>for USB host wiring</td></tr>
+  </table>
+
+  <h3>Why Capacitors?</h3>
+  <p>High-resolution mice (1000 Hz+) can cause brief voltage drops on the VBUS line during enumeration, leading to connection drops. The capacitors buffer these spikes directly at the Teensy's host port.</p>
+  <p><strong>Placement:</strong> both capacitors in parallel between Pad 2 (+5V) and Pad 5 (GND) on the bottom of the Teensy, as close to the pad as possible.</p>
+
+  <div class="photo">PHOTO: Teensy bottom side with both capacitors soldered — electrolytic and MLCC visibly wired in parallel on the host pads. Electrolytic polarity recognisable. [T2-A]</div>
+
+  <h3>Reset Button</h3>
+  <p>The reset button provides direct access to the HalfKay bootloader — useful when the firmware has locked up or for a manual firmware update.</p>
+  <p><strong>Connection:</strong> <code>Program</code> pad (top left on Teensy, labelled) → GND</p>
+
+  <pre>[Button] ──── Program pad (Teensy front side, top left)
+[Button] ──── GND</pre>
+
+  <div class="note">A brief press → Teensy boots into the HalfKay bootloader. Teensy Loader recognises it automatically and waits for a new firmware image.</div>
+
+  <div class="photo">PHOTO: Teensy front side, Program pad marked. Then: finished wired button, cable to Program pad and GND visible. [T2-B / T2-C]</div>
+
+  <div class="photo">PHOTO: Complete build on perfboard — Teensy, both capacitors, USB-A socket permanently soldered, button cable leaving. Neat, clear wiring. [T2-D]</div>
+
+  <h3>Assembly Order</h3>
+  <ol class="steps">
+    <li>Place Teensy on perfboard, solder pin headers</li>
+    <li>Mount USB-A socket with pigtail at the edge of the perfboard</li>
+    <li>Solder capacitors to the bottom of the Teensy (watch electrolytic polarity!)</li>
+    <li>Solder USB-A cable to host pads (pin assignment as Tier 1)</li>
+    <li>Wire reset button (Program → GND)</li>
+    <li>Double-check all connections before first power-on</li>
+  </ol>
+
+  <hr>
+
+  <h2 id="tier-3">Tier 3 — Full Build <a class="anchor" href="#tier-3">#</a></h2>
+  <p><strong>Builds on Tier 2.</strong> 2× TFT display, 2× encoder, aluminium enclosure, USB-C socket on the panel. Corresponds to the Alpha Edition build.</p>
+
+  <h3>Additional Parts vs. Tier 2</h3>
+  <table class="parts-table">
+    <tr><th>Part</th><th>Type</th><th>Source</th><th>Note</th></tr>
+    <tr><td>TFT Display 1+2</td><td>ST7789, 240×280, SPI</td><td>AliExpress</td><td>2 pieces</td></tr>
+    <tr><td>Encoder 1+2</td><td>KY-040 with button</td><td>AliExpress</td><td>2 pieces</td></tr>
+    <tr><td>Enclosure</td><td>Hammond 1455KGYBK</td><td>Mouser / RS Components</td><td>120 × 65 × 27 mm</td></tr>
+    <tr><td>End panels</td><td>ABS, matching Hammond 1455</td><td>Hammond / Mouser</td><td>or 3D print</td></tr>
+    <tr><td>USB-C Panel-Mount</td><td>CF-V8RI, 90°, 10 cm</td><td>AliExpress</td><td>Micro-B Male → USB-C Female</td></tr>
+    <tr><td>Screws / standoffs</td><td>M2.5, assortment</td><td>Amazon</td><td>for perfboard mounting inside enclosure</td></tr>
+  </table>
+
+  <h3>Encoder Assignment</h3>
+  <pre>E1 (left)   — Navigation (select parameter)
+E2 (right)  — Change value / mode toggle (LongPress)</pre>
+
+  <p>Both encoders: CLK, DT, SW pins each to free digital pins on the Teensy. Exact pin assignment is in <code>firmware/common/config.h</code>.</p>
+
+  <h3>TFT Displays (SPI)</h3>
+  <p>Both displays share the SPI bus (MOSI, SCLK, common) but each has its own CS and DC pin.</p>
+
+  <pre>Display 1: CS → Pin X, DC → Pin Y
+Display 2: CS → Pin A, DC → Pin B</pre>
+
+  <div class="note">The exact pin numbers are defined in <code>config.h</code> and can be adapted to your own wiring if needed.</div>
+
+  <div class="photo">PHOTO: Teensy with both TFT displays wired, still outside enclosure — SPI bus wiring visible, both displays active (firmware showing something). [T3-A]</div>
+  <div class="photo">PHOTO: Hammond enclosure with drilled holes — USB-C panel-mount cutout, reset button hole, encoder holes in front panel. [T3-B]</div>
+  <div class="photo">PHOTO: Interior view fully assembled — perfboard in enclosure slots, cable routing, TFTs mounted on end panels or front panel. [T3-C]</div>
+  <div class="photo">PHOTO: Finished exterior — screwed enclosure, USB-C socket visible, encoders and reset button on front panel. [T3-D]</div>
+
+  <h3>Firmware for Tier 3</h3>
+  <p>In <code>firmware/common/config.h</code>:</p>
+  <pre>// #define HARDWARE_SIMPLE   // comment out
+#define HARDWARE_FULL        // enable</pre>
+  <p>Then flash <code>firmware/main/main_full.ino</code> (instead of <code>main_simple.ino</code>).</p>
+
+  <hr>
+
+  <h2 id="update">Firmware Update</h2>
+  <p>After the first flash you can install updates directly from the browser — no need to reconnect to the Arduino IDE.</p>
+  <ol class="steps">
+    <li>Go to <a href="https://mim-control.com/update">mim-control.com/update</a></li>
+    <li>Connect the device</li>
+    <li>Current vs. installed version is shown</li>
+    <li>"Download firmware" → <code>.hex</code> file is loaded</li>
+    <li>Press reset button briefly → Teensy boots into bootloader</li>
+    <li>Teensy Loader detects the bootloader and flashes automatically</li>
+  </ol>
+
+  <hr>
+
+  <h2 id="community">Help &amp; Community</h2>
+  <p>Questions, problems, preset sharing — all in the Discord:</p>
+  <p><strong>→ <a href="https://discord.gg/PLACEHOLDER" target="_blank">Join Discord</a></strong></p>
+  <p>The full firmware and this document are public:</p>
+  <p><strong>→ <a href="https://github.com/boa-constrictor-42/mim-mouse-input-modifier" target="_blank">github.com/boa-constrictor-42/mim-mouse-input-modifier</a></strong></p>
+
+  <hr>
+
+  <h2 id="photo-checklist">Photo Checklist for the Build</h2>
+  <p style="color:var(--dim);font-size:.82rem">This list is for the author — all photos needed for this guide.</p>
+
+  <h3>Tier 1</h3>
+  <ul class="checklist">
+    <li><strong>T1-A</strong> Teensy 4.1 bottom side — host pads labelled / wires soldered</li>
+    <li><strong>T1-B</strong> Finished Bare Bones build from above (Teensy + USB-A socket + Micro-USB cable)</li>
+    <li><strong>T1-C</strong> Screenshot mim-control.com connected, MIM tab active <em>(can also be a screenshot)</em></li>
+  </ul>
+
+  <h3>Tier 2</h3>
+  <ul class="checklist">
+    <li><strong>T2-A</strong> Capacitors soldered to Teensy bottom (electrolytic + MLCC visible)</li>
+    <li><strong>T2-B</strong> Program pad of the Teensy (front side, close-up, marked)</li>
+    <li><strong>T2-C</strong> Reset button wired (cable visible)</li>
+    <li><strong>T2-D</strong> Complete build on perfboard (overview)</li>
+  </ul>
+
+  <h3>Tier 3</h3>
+  <ul class="checklist">
+    <li><strong>T3-A</strong> Both TFTs wired, outside enclosure, active</li>
+    <li><strong>T3-B</strong> Hammond enclosure with holes (before assembly)</li>
+    <li><strong>T3-C</strong> Interior view fully assembled</li>
+    <li><strong>T3-D</strong> Finished exterior</li>
+  </ul>
+
+  <p style="margin-top:36px;color:var(--dim2);font-size:.76rem">MIM · Mouse Input Modifier · github.com/boa-constrictor-42 · DIY Guide v1.0</p>
+
+</div>
+</body>
+</html>

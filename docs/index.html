@@ -391,6 +391,10 @@ body{transition:margin-left .2s ease}
     <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
     <span class="nav-label">Update</span>
   </a>
+  <a class="nav-item" href="/build/">
+    <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+    <span class="nav-label">Build</span>
+  </a>
 </nav>
 
 <!-- Header -->
@@ -569,6 +573,10 @@ body{transition:margin-left .2s ease}
     <div class="prof-col">
       <div class="pslot" id="pslot-3" data-slot="3"><span class="pslot-name" id="pname-3">Profile 3</span></div>
       <button class="save-slot" id="btn-save-3">Save Prof. 3</button>
+    </div>
+    <div class="prof-col">
+      <div class="pslot" id="pslot-4" data-slot="4"><span class="pslot-name" id="pname-4">Profile 4</span></div>
+      <button class="save-slot" id="btn-save-4">Save Prof. 4</button>
     </div>
     <div style="flex:1"></div>
     <button class="fb" id="btn-set-default" title="Reset all parameters to factory defaults">Default</button>
@@ -1013,7 +1021,7 @@ function setLang(lang){
     if(typeof CIM_PARAMS!=='undefined' && CIM_PARAMS[i]) el.textContent=paramN(CIM_PARAMS[i]);
   });
   // Re-render default profile names (not renamed by user)
-  for(let i=1;i<=3;i++){
+  for(let i=1;i<=4;i++){
     if(!localStorage.getItem('mim_profile_name_'+i)){
       const pnEl=document.getElementById('pname-'+i);
       if(pnEl) pnEl.textContent=T('profile_default').replace('{n}',i);
@@ -1903,7 +1911,7 @@ const PM = {
   },
 
   _setHighlight(n) {
-    for(let i=1; i<=3; i++){
+    for(let i=1; i<=4; i++){
       const s = ge('pslot-'+i);
       if(s) s.classList.toggle('active', i===n);
     }
@@ -1921,11 +1929,11 @@ const PM = {
   },
 
   init() {
-    for(let i=1; i<=3; i++){
+    for(let i=1; i<=4; i++){
       const el = ge('pname-'+i);
       if(el) el.textContent = this.getName(i);
     }
-    for(let i=1; i<=3; i++){
+    for(let i=1; i<=4; i++){
       const slot = ge('pslot-'+i);
       if(!slot) continue;
       slot.addEventListener('dblclick', () => this.startRename(i));
@@ -2791,6 +2799,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   ge('btn-save-1').onclick = () => { if(confirm(T('confirm_overwrite').replace('{n}','1'))) PM.saveSlot(1); };
   ge('btn-save-2').onclick = () => { if(confirm(T('confirm_overwrite').replace('{n}','2'))) PM.saveSlot(2); };
   ge('btn-save-3').onclick = () => { if(confirm(T('confirm_overwrite').replace('{n}','3'))) PM.saveSlot(3); };
+  ge('btn-save-4').onclick = () => { if(confirm(T('confirm_overwrite').replace('{n}','4'))) PM.saveSlot(4); };
   ge('btn-set-default').onclick = () => PM.applyDefault();
   PM.init();
   ge('cls-btn').onclick=()=>{ ge('console').textContent=''; };

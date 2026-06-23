@@ -243,13 +243,9 @@ Pad 6  →  GND   (optional, kann mit Pad 5 geteilt werden)</pre>
         │
        PC</pre>
 
-  <!-- MIM Verdrahtungsschema v03 — Übersicht -->
-  <!-- TODO: Bild wird sichtbar sobald Firmware-Repo public ist -->
   <img class="wiring-img"
-       src="https://raw.githubusercontent.com/Boa-Constrictor-42/mim-mouse-input-modifier/main/docs/MIM_v03_Verdrahtung_A3.png"
-       alt="MIM Verdrahtungsschema v03 — Übersicht"
-       onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-  <div style="display:none" class="note">Verdrahtungsschema nicht verfügbar (Firmware-Repo möglicherweise noch privat).</div>
+       src="../MIM_v03_Verdrahtung_A3.png"
+       alt="MIM Verdrahtungsschema v03 — Übersicht">
   <p class="img-caption">MIM Verdrahtungsschema v03 — Übersicht</p>
 
   <div class="photo">FOTO: Fertiger Bare-Bones-Aufbau von oben — Teensy mit gelöteter USB-A-Buchse, Micro-USB-Kabel Richtung PC, Maus bereits angeschlossen. Verkabelung muss erkennbar sein, keine losen Kabel. [T1-B]</div>
@@ -320,13 +316,13 @@ Pad 6  →  GND   (optional, kann mit Pad 5 geteilt werden)</pre>
   <h3>Encoder-Belegung</h3>
   <pre>E1 (links)   — Navigation (Parameter auswählen)
 E2 (rechts)  — Wert ändern / Moduswechsel (LongPress)</pre>
-  <p>Beide Encoder: CLK, DT, SW-Pins je an freie Digitalpins am Teensy. Die genaue Pin-Belegung steht in <code>firmware/common/config.h</code>.</p>
+  <p>Beide Encoder: CLK, DT, SW-Pins je an freie Digitalpins am Teensy.</p>
 
   <h3>TFT-Displays (SPI)</h3>
   <p>Beide Displays teilen sich den SPI-Bus (MOSI, SCLK, gemeinsam), haben aber je einen eigenen CS- und DC-Pin.</p>
   <pre>Display 1: CS → Pin X, DC → Pin Y
 Display 2: CS → Pin A, DC → Pin B</pre>
-  <div class="note">Die genauen Pin-Nummern sind in <code>config.h</code> definiert und können bei Bedarf an die eigene Verdrahtung angepasst werden.</div>
+
 
   <div class="photo">FOTO: Teensy mit beiden TFT-Displays verdrahtet, noch außerhalb des Gehäuses — SPI-Bus-Verdrahtung sichtbar, beide Displays aktiv. [T3-A]</div>
   <div class="photo">FOTO: Hammond-Gehäuse mit gebohrten Löchern — USB-C-Panel-Mount-Ausschnitt, Reset-Taster-Loch, Encoder-Löcher in der Frontplatte. [T3-B]</div>

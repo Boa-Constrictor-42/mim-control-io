@@ -243,13 +243,9 @@ Pad 6  →  GND   (optional, can share with Pad 5)</pre>
         │
        PC</pre>
 
-  <!-- MIM Wiring Diagram v03 — Overview -->
-  <!-- TODO: Bild wird sichtbar sobald Firmware-Repo public ist -->
   <img class="wiring-img"
-       src="https://raw.githubusercontent.com/Boa-Constrictor-42/mim-mouse-input-modifier/main/docs/MIM_v03_Verdrahtung_A3.png"
-       alt="MIM Wiring Diagram v03 — Overview"
-       onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-  <div style="display:none" class="note">Wiring diagram image not available (firmware repo may be private).</div>
+       src="MIM_v03_Verdrahtung_A3.png"
+       alt="MIM Wiring Diagram v03 — Overview">
   <p class="img-caption">MIM Wiring Diagram v03 — Overview</p>
 
   <div class="photo">PHOTO: Finished Bare Bones build from above — Teensy with soldered USB-A socket, Micro-USB cable towards PC, mouse already connected. Wiring must be recognisable, no loose cables. [T1-B]</div>
@@ -320,13 +316,13 @@ Pad 6  →  GND   (optional, can share with Pad 5)</pre>
   <h3>Encoder Assignment</h3>
   <pre>E1 (left)   — Navigation (select parameter)
 E2 (right)  — Change value / mode toggle (LongPress)</pre>
-  <p>Both encoders: CLK, DT, SW pins each to free digital pins on the Teensy. Exact pin assignment is in <code>firmware/common/config.h</code>.</p>
+  <p>Both encoders: CLK, DT, SW pins each to free digital pins on the Teensy.</p>
 
   <h3>TFT Displays (SPI)</h3>
   <p>Both displays share the SPI bus (MOSI, SCLK, common) but each has its own CS and DC pin.</p>
   <pre>Display 1: CS → Pin X, DC → Pin Y
 Display 2: CS → Pin A, DC → Pin B</pre>
-  <div class="note">The exact pin numbers are defined in <code>config.h</code> and can be adapted to your own wiring if needed.</div>
+
 
   <div class="photo">PHOTO: Teensy with both TFT displays wired, still outside enclosure — SPI bus wiring visible, both displays active. [T3-A]</div>
   <div class="photo">PHOTO: Hammond enclosure with drilled holes — USB-C panel-mount cutout, reset button hole, encoder holes in front panel. [T3-B]</div>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MIM — Selbstbau-Anleitung</title>
+<title>MIM — Selbst bauen</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -169,19 +169,17 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
 
 <div class="wrap">
 
-  <h1>MIM — Selbstbau-Anleitung</h1>
-  <p class="subtitle">Mouse Input Modifier · DIY-Guide · Deutsch</p>
+  <h1>MIM selbst bauen</h1>
+  <p class="subtitle">Mouse Input Modifier · DIY-Anleitung · Deutsch</p>
 
-  <p>MIM ist Open Hardware. Jeder kann sein eigenes Gerät mit der gleichen Firmware bauen, die auch in den fertigen Alpha-Einheiten läuft. Diese Anleitung beschreibt drei aufeinander aufbauende Ausbaustufen. Jede Stufe ist für sich vollständig funktionsfähig.</p>
+  <p>MIM ist Open Hardware. Jeder kann das Gerät selbst bauen und verwendet dabei dieselbe Firmware wie die fertigen Alpha-Einheiten. Diese Anleitung beschreibt drei Ausbaustufen, die aufeinander aufbauen — gefolgt von Firmware-Anweisungen, die für alle Stufen gleich gelten.</p>
 
   <hr>
 
-  <h2>Übersicht Ausbaustufen</h2>
+  <h2>Übersicht der Ausbaustufen</h2>
 
   <table class="tier-table">
-    <tr>
-      <th>Stufe</th><th>Name</th><th>Lötaufwand</th><th>Was du bekommst</th>
-    </tr>
+    <tr><th>Stufe</th><th>Name</th><th>Lötaufwand</th><th>Ergebnis</th></tr>
     <tr>
       <td><span class="tier-badge t1">Tier 1</span></td>
       <td><a href="#tier-1">Bare Bones</a></td>
@@ -192,7 +190,7 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
       <td><span class="tier-badge t2">Tier 2</span></td>
       <td><a href="#tier-2">Kompaktbuild</a></td>
       <td>~40 min</td>
-      <td>Fest verlötet, Reset-Button, stabil</td>
+      <td>Fest verlötet, Reset-Taster, stabil</td>
     </tr>
     <tr>
       <td><span class="tier-badge t3">Tier 3</span></td>
@@ -202,31 +200,30 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
     </tr>
   </table>
 
-  <div class="note"><strong>Firmware-Hinweis:</strong> Tier 1 und Tier 2 verwenden <code>HARDWARE_SIMPLE</code> (kein Display, kein Encoder). Tier 3 verwendet <code>HARDWARE_FULL</code>. Beide Varianten laufen auf der gleichen Teensy 4.1 Hardware.</div>
-
   <hr>
 
+  <!-- ═══════════════════════════════════════════════════════ TIER 1 -->
   <h2 id="tier-1">Tier 1 — Bare Bones <a class="anchor" href="#tier-1">#</a></h2>
-  <p><strong>Ziel:</strong> Ein funktionierendes MIM-Gerät so schnell wie möglich, minimales Löten. Ideal um auszuprobieren, bevor man mehr Zeit investiert.</p>
+  <p><strong>Ziel:</strong> Ein funktionierendes MIM-Gerät so schnell wie möglich, mit minimalem Lötaufwand. Ideal zum Ausprobieren bevor mehr Zeit investiert wird.</p>
 
   <h3>Bauteile</h3>
   <table class="parts-table">
     <tr><th>Bauteil</th><th>Bezugsquelle</th><th>Hinweis</th></tr>
     <tr><td>Teensy 4.1</td><td>SparkFun / DigiKey</td><td>SparkFun DEV-20360</td></tr>
-    <tr><td>Micro-USB Kabel</td><td>beliebig</td><td>Teensy → PC</td></tr>
-    <tr><td>USB-A Buchse auf Breakout-Board</td><td>AliExpress / Amazon</td><td>für Mausanschluss</td></tr>
-    <tr><td>4× Jumper-Kabel (male–female)</td><td>beliebig</td><td>10–15 cm reichen</td></tr>
+    <tr><td>Micro-USB-Kabel</td><td>beliebig</td><td>Teensy → PC</td></tr>
+    <tr><td>USB-A-Buchse auf Breakout-Board</td><td>AliExpress / Amazon</td><td>für Maus / Tastatur / Controller</td></tr>
+    <tr><td>4× Jumper-Kabel (Male–Female)</td><td>beliebig</td><td>10–15 cm reichen</td></tr>
     <tr><td>Lötkolben + Lötzinn</td><td>—</td><td>Grundausstattung</td></tr>
   </table>
 
-  <h3>Pinbelegung USB-Host</h3>
-  <p>Der Teensy 4.1 hat auf seiner <strong>Unterseite</strong> fünf Pads für den USB-Host-Anschluss. Hier wird die Maus, Tastatur oder Controller angesteckt.</p>
+  <h3>USB-Host-Pinbelegung</h3>
+  <p>Der Teensy 4.1 hat auf seiner <strong>Unterseite</strong> fünf Pads für die USB-Host-Verbindung. Hier wird Maus, Tastatur oder Controller angeschlossen.</p>
 
   <pre>Pad 2  →  +5V   (USB Pin 1)
 Pad 3  →  D−    (USB Pin 2)
 Pad 4  →  D+    (USB Pin 3)
 Pad 5  →  GND   (USB Pin 4)
-Pad 6  →  GND   (optional, kann mit Pad 5 zusammengefasst werden)</pre>
+Pad 6  →  GND   (optional, kann mit Pad 5 geteilt werden)</pre>
 
   <div class="photo">FOTO: Teensy 4.1 Unterseite — alle fünf Host-Pads sichtbar und beschriftet. Idealerweise mit bereits angelöteten Kabeln, Farben gut erkennbar (z.B. rot=+5V, weiß=D−, grün=D+, schwarz=GND). Kontrastreicher Hintergrund, gute Beleuchtung. [T1-A]</div>
 
@@ -234,7 +231,7 @@ Pad 6  →  GND   (optional, kann mit Pad 5 zusammengefasst werden)</pre>
 
   <pre>MAUS / TASTATUR / CONTROLLER
         │
-  USB-A Buchse (Breakout)
+  USB-A-Buchse (Breakout)
   Pin 1 (+5V)  ──── Teensy Unterseite Pad 2
   Pin 2 (D−)   ──── Teensy Unterseite Pad 3
   Pin 3 (D+)   ──── Teensy Unterseite Pad 4
@@ -246,171 +243,179 @@ Pad 6  →  GND   (optional, kann mit Pad 5 zusammengefasst werden)</pre>
         │
        PC</pre>
 
-  <!-- MIM Verdrahtungsplan v03 — Übersichtsschaltplan -->
+  <!-- MIM Verdrahtungsschema v03 — Übersicht -->
   <!-- TODO: Bild wird sichtbar sobald Firmware-Repo public ist -->
   <img class="wiring-img"
        src="https://raw.githubusercontent.com/Boa-Constrictor-42/mim-mouse-input-modifier/main/docs/MIM_v03_Verdrahtung_A3.png"
-       alt="MIM Verdrahtungsplan v03 — Übersichtsschaltplan"
+       alt="MIM Verdrahtungsschema v03 — Übersicht"
        onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-  <div style="display:none" class="note">Verdrahtungsplan-Bild nicht verfügbar (Firmware-Repo möglicherweise noch privat).</div>
-  <p class="img-caption">MIM Verdrahtungsplan v03 — Übersichtsschaltplan</p>
+  <div style="display:none" class="note">Verdrahtungsschema nicht verfügbar (Firmware-Repo möglicherweise noch privat).</div>
+  <p class="img-caption">MIM Verdrahtungsschema v03 — Übersicht</p>
 
-  <div class="photo">FOTO: Fertiger Bare-Bones-Aufbau von oben — Teensy mit angelöteter USB-A Buchse, Micro-USB-Kabel Richtung PC, Maus bereits angesteckt. Wichtig: Verkabelung muss erkennbar sein, keine losen Kabel. [T1-B]</div>
+  <div class="photo">FOTO: Fertiger Bare-Bones-Aufbau von oben — Teensy mit gelöteter USB-A-Buchse, Micro-USB-Kabel Richtung PC, Maus bereits angeschlossen. Verkabelung muss erkennbar sein, keine losen Kabel. [T1-B]</div>
 
-  <h3>Firmware flashen</h3>
+  <hr>
+
+  <!-- ═══════════════════════════════════════════════════════ TIER 2 -->
+  <h2 id="tier-2">Tier 2 — Kompaktbuild <a class="anchor" href="#tier-2">#</a></h2>
+  <p><strong>Baut auf Tier 1 auf.</strong> Fest verlötet auf Lochrasterplatine, mit Reset-Taster und Pufferkondensatoren. Dieser Aufbau läuft stabil auch bei hochauflösenden Gaming-Mäusen (Beast X Pro, 4K-Polling).</p>
+
+  <h3>Zusätzliche Bauteile gegenüber Tier 1</h3>
+  <table class="parts-table">
+    <tr><th>Bauteil</th><th>Wert / Typ</th><th>Bezugsquelle</th><th>Hinweis</th></tr>
+    <tr><td>Lochrasterplatine</td><td>~80 × 50 mm</td><td>AliExpress / Conrad</td><td>Teensy passt auf 56-Pin-Board</td></tr>
+    <tr><td>Pufferkondensator 1</td><td>1000 µF / 16 V, Low-ESR</td><td>Conrad / Reichelt</td><td>Elektrolyt, auf USB-Host VBUS/GND</td></tr>
+    <tr><td>Pufferkondensator 2</td><td>100 nF, MLCC</td><td>Conrad / Reichelt</td><td>Keramik, parallel zum Elektrolyt</td></tr>
+    <tr><td>Reset-Taster</td><td>Momentary, beleuchtet</td><td>AliExpress</td><td>z.B. RUNCCI-YUN 16 mm</td></tr>
+    <tr><td>USB-Host-Kabel</td><td>USB-A-Buchse mit Anschlussleitung</td><td>AliExpress</td><td>statt Breakout-Board</td></tr>
+    <tr><td>Kabel</td><td>4× 0,25 mm²</td><td>beliebig</td><td>für USB-Host-Verdrahtung</td></tr>
+  </table>
+
+  <h3>Warum Kondensatoren?</h3>
+  <p>Hochauflösende Mäuse (1000 Hz+) können beim Enumeration-Vorgang kurze Spannungseinbrüche auf der VBUS-Leitung verursachen, die zu Verbindungsabbrüchen führen. Die Kondensatoren puffern diese Einbrüche direkt am Host-Port des Teensy.</p>
+  <p><strong>Platzierung:</strong> Beide Kondensatoren parallel zwischen Pad 2 (+5V) und Pad 5 (GND) auf der Unterseite des Teensy, so nah wie möglich an den Pads.</p>
+
+  <div class="photo">FOTO: Teensy Unterseite mit beiden gelöteten Kondensatoren — Elektrolyt und MLCC sichtbar parallel auf den Host-Pads. Polarität des Elektrolyts erkennbar. [T2-A]</div>
+
+  <h3>Reset-Taster</h3>
+  <p>Der Reset-Taster gibt direkten Zugang zum HalfKay-Bootloader — nützlich wenn die Firmware hängt oder für ein manuelles Firmware-Update.</p>
+  <p><strong>Anschluss:</strong> <code>Program</code>-Pad (vorne links am Teensy, beschriftet) → GND</p>
+
+  <pre>[Taster] ──── Program-Pad (Teensy Vorderseite, oben links)
+[Taster] ──── GND</pre>
+
+  <div class="note">Kurzer Druck → Teensy bootet in den HalfKay-Bootloader. Teensy Loader erkennt ihn automatisch und wartet auf ein neues Firmware-Image.</div>
+
+  <div class="photo">FOTO: Teensy Vorderseite, Program-Pad markiert. Fertig verdrahteter Taster, Kabel zum Program-Pad und GND sichtbar. [T2-B / T2-C]</div>
+
+  <div class="photo">FOTO: Vollständiger Aufbau auf Lochrasterplatine — Teensy, beide Kondensatoren, USB-A-Buchse fest verlötet, Tasterkabel abgehend. Ordentliche, übersichtliche Verdrahtung. [T2-D]</div>
+
+  <h3>Aufbaureihenfolge</h3>
   <ol class="steps">
-    <li><a href="https://www.pjrc.com/teensy/loader.html" target="_blank">Teensy Loader</a> (pjrc.com) herunterladen und installieren</li>
-    <li><a href="https://mim-control.com/dev-options/" target="_blank">mim-control.com/dev-options</a> aufrufen und die aktuelle MIM <code>.hex</code>-Datei herunterladen</li>
-    <li>Die <code>.hex</code> im Teensy Loader öffnen, Teensy per Micro-USB verbinden, weißen Button am Teensy drücken — flasht automatisch</li>
+    <li>Teensy auf Lochrasterplatine platzieren, Stiftleisten anlöten</li>
+    <li>USB-A-Buchse mit Kabel am Rand der Platine befestigen</li>
+    <li>Kondensatoren auf der Unterseite des Teensy anlöten (Polarität des Elektrolyts beachten!)</li>
+    <li>USB-A-Kabel an Host-Pads anlöten (Pinbelegung wie Tier 1)</li>
+    <li>Reset-Taster verdrahten (Program → GND)</li>
+    <li>Alle Verbindungen prüfen bevor zum ersten Mal Strom anlegt wird</li>
   </ol>
 
-  <div class="photo">FOTO: Teensy Loader mit geladener .hex, Fortschrittsbalken beim Flashen. [T1-C]</div>
+  <hr>
+
+  <!-- ═══════════════════════════════════════════════════════ TIER 3 -->
+  <h2 id="tier-3">Tier 3 — Vollausbau <a class="anchor" href="#tier-3">#</a></h2>
+  <p><strong>Baut auf Tier 2 auf.</strong> 2× TFT-Display, 2× Encoder, Alu-Gehäuse, USB-C-Buchse am Panel. Entspricht dem Alpha-Edition-Aufbau.</p>
+
+  <h3>Zusätzliche Bauteile gegenüber Tier 2</h3>
+  <table class="parts-table">
+    <tr><th>Bauteil</th><th>Typ</th><th>Bezugsquelle</th><th>Hinweis</th></tr>
+    <tr><td>TFT-Display 1+2</td><td>ST7789, 240×280, SPI</td><td>AliExpress</td><td>2 Stück</td></tr>
+    <tr><td>Encoder 1+2</td><td>KY-040 mit Taster</td><td>AliExpress</td><td>2 Stück</td></tr>
+    <tr><td>Gehäuse</td><td>Hammond 1455KGYBK</td><td>Mouser / RS Components</td><td>120 × 65 × 27 mm</td></tr>
+    <tr><td>Frontplatten</td><td>ABS, passend zu Hammond 1455</td><td>Hammond / Mouser</td><td>oder 3D-Druck</td></tr>
+    <tr><td>USB-C Panel-Mount</td><td>CF-V8RI, 90°, 10 cm</td><td>AliExpress</td><td>Micro-B Male → USB-C Female</td></tr>
+    <tr><td>Schrauben / Abstandshalter</td><td>M2.5, Sortiment</td><td>Amazon</td><td>für Platinenbefestigung im Gehäuse</td></tr>
+  </table>
+
+  <h3>Encoder-Belegung</h3>
+  <pre>E1 (links)   — Navigation (Parameter auswählen)
+E2 (rechts)  — Wert ändern / Moduswechsel (LongPress)</pre>
+  <p>Beide Encoder: CLK, DT, SW-Pins je an freie Digitalpins am Teensy. Die genaue Pin-Belegung steht in <code>firmware/common/config.h</code>.</p>
+
+  <h3>TFT-Displays (SPI)</h3>
+  <p>Beide Displays teilen sich den SPI-Bus (MOSI, SCLK, gemeinsam), haben aber je einen eigenen CS- und DC-Pin.</p>
+  <pre>Display 1: CS → Pin X, DC → Pin Y
+Display 2: CS → Pin A, DC → Pin B</pre>
+  <div class="note">Die genauen Pin-Nummern sind in <code>config.h</code> definiert und können bei Bedarf an die eigene Verdrahtung angepasst werden.</div>
+
+  <div class="photo">FOTO: Teensy mit beiden TFT-Displays verdrahtet, noch außerhalb des Gehäuses — SPI-Bus-Verdrahtung sichtbar, beide Displays aktiv. [T3-A]</div>
+  <div class="photo">FOTO: Hammond-Gehäuse mit gebohrten Löchern — USB-C-Panel-Mount-Ausschnitt, Reset-Taster-Loch, Encoder-Löcher in der Frontplatte. [T3-B]</div>
+  <div class="photo">FOTO: Innenansicht vollständig montiert — Platine in Gehäuseschienen, Kabelführung, TFTs an Front-/Endplatte befestigt. [T3-C]</div>
+  <div class="photo">FOTO: Fertige Außenansicht — verschraubtes Gehäuse, USB-C-Buchse sichtbar, Encoder und Reset-Taster an der Frontplatte. [T3-D]</div>
+
+  <hr>
+
+  <!-- ═══════════════════════════════════════════════════ FIRMWARE -->
+  <h2 id="flash">Firmware erstmalig flashen</h2>
+  <p>Für alle drei Hardware-Stufen wird dieselbe Firmware verwendet — keine stufenabhängige Konfiguration notwendig.</p>
+  <ol class="steps">
+    <li><a href="https://www.pjrc.com/teensy/loader.html" target="_blank">Teensy Loader</a> (pjrc.com) herunterladen und installieren</li>
+    <li>Auf <a href="https://mim-control.com/dev-options/" target="_blank">mim-control.com/dev-options</a> die aktuelle MIM-Firmware A als <code>.hex</code>-Datei herunterladen</li>
+    <li>Die <code>.hex</code> im Teensy Loader öffnen, Teensy per Micro-USB anschließen, den weißen Knopf auf dem Teensy drücken — der Loader flasht automatisch</li>
+  </ol>
+
+  <div class="photo">FOTO: Teensy Loader mit geladener .hex, Fortschrittsanzeige beim Flashen. [T1-C]</div>
 
   <h3>Verbindung testen</h3>
   <ol class="steps">
     <li>Browser öffnen (Chrome oder Edge — Firefox funktioniert nicht)</li>
     <li><a href="https://mim-control.com" target="_blank">mim-control.com</a> aufrufen</li>
-    <li><strong>Verbinden</strong> klicken — Gerät sollte erscheinen</li>
-    <li>Maus anstecken — MIM-Tab wird aktiv</li>
+    <li><strong>Connect</strong> klicken — Gerät sollte erscheinen</li>
+    <li>Maus anschließen — MIM-Tab wird aktiv</li>
   </ol>
 
   <div class="photo">FOTO: mim-control.com im Browser, Verbindung hergestellt, MIM-Tab aktiv. [T1-D]</div>
 
   <hr>
 
-  <h2 id="tier-2">Tier 2 — Kompaktbuild <a class="anchor" href="#tier-2">#</a></h2>
-  <p><strong>Baut auf Tier 1 auf.</strong> Dauerhaft auf Lochrasterplatine verlötet, mit Reset-Button und Pufferkondensatoren. Dieser Aufbau läuft stabil auch mit hochauflösenden Gaming-Mäusen (Beast X Pro, 4K Polling).</p>
-
-  <h3>Zusätzliche Bauteile gegenüber Tier 1</h3>
-  <table class="parts-table">
-    <tr><th>Bauteil</th><th>Wert / Typ</th><th>Bezugsquelle</th><th>Hinweis</th></tr>
-    <tr><td>Lochrasterplatine</td><td>~80 × 50 mm</td><td>AliExpress / Conrad</td><td>Teensy passt auf 56-Pin-Rasterplatine</td></tr>
-    <tr><td>Pufferkondensator 1</td><td>1000 µF / 16 V, Low-ESR</td><td>Conrad / Reichelt</td><td>Elektrolyt, an USB-Host VBUS/GND</td></tr>
-    <tr><td>Pufferkondensator 2</td><td>100 nF, MLCC</td><td>Conrad / Reichelt</td><td>Keramik, parallel zum Elko</td></tr>
-    <tr><td>Reset-Button</td><td>Momentary, beleuchtet</td><td>AliExpress</td><td>z.B. RUNCCI-YUN 16 mm</td></tr>
-    <tr><td>USB-Host-Kabel</td><td>USB-A Buchse mit Pigtail</td><td>AliExpress</td><td>statt Breakout-Board</td></tr>
-    <tr><td>Schaltlitze</td><td>4× 0,25 mm²</td><td>beliebig</td><td>für USB-Host-Verdrahtung</td></tr>
-  </table>
-
-  <h3>Warum Kondensatoren?</h3>
-  <p>Hochauflösende Mäuse (1000 Hz+) können beim Einschalten kurze Spannungseinbrüche auf der VBUS-Leitung verursachen, die zu Verbindungsabbrüchen führen. Die Kondensatoren puffern diese Spitzen direkt am Host-Port des Teensy.</p>
-  <p><strong>Platzierung:</strong> Beide Kondensatoren parallel zwischen Pad 2 (+5V) und Pad 5 (GND) an der Unterseite des Teensy, so nah an den Pads wie möglich.</p>
-
-  <div class="photo">FOTO: Teensy Unterseite mit angelöteten Kondensatoren — Elko und MLCC sichtbar parallel auf den Host-Pads verdrahtet. Elko-Polarität erkennbar. [T2-A]</div>
-
-  <h3>Reset-Button</h3>
-  <p>Der Reset-Button ermöglicht den direkten Zugang zum HalfKay-Bootloader — nützlich wenn die Firmware hängt oder für ein manuelles Firmware-Update.</p>
-  <p><strong>Anschluss:</strong> <code>Program</code>-Pad (oben links am Teensy, beschriftet) → GND</p>
-
-  <pre>[Button] ──── Program-Pad (Teensy Vorderseite, oben links)
-[Button] ──── GND</pre>
-
-  <div class="note">Kurzer Druck → Teensy bootet in den HalfKay-Bootloader. Teensy Loader erkennt ihn automatisch und wartet auf ein neues Firmware-Image.</div>
-
-  <div class="photo">FOTO: Teensy Vorderseite, Program-Pad markiert. Dann: fertig verdrahteter Button, Kabel zu Program-Pad und GND sichtbar. [T2-B / T2-C]</div>
-
-  <div class="photo">FOTO: Kompletter Aufbau auf Lochrasterplatine — Teensy, beide Kondensatoren, USB-A Buchse fest verlötet, Button-Kabel herausführend. Übersichtliche, saubere Verdrahtung. [T2-D]</div>
-
-  <h3>Reihenfolge beim Aufbau</h3>
-  <ol class="steps">
-    <li>Teensy auf Lochrasterplatine platzieren, Pin-Header anlöten</li>
-    <li>USB-A Buchse mit Pigtail am Rand der Lochrasterplatine befestigen</li>
-    <li>Kondensatoren an der Teensy-Unterseite anlöten (Elko-Polarität beachten!)</li>
-    <li>USB-A Kabel an Host-Pads anlöten (Pinbelegung wie Tier 1)</li>
-    <li>Reset-Button verdrahten (Program → GND)</li>
-    <li>Alle Verbindungen nochmal prüfen bevor erstmalig Strom angelegt wird</li>
-  </ol>
-
-  <hr>
-
-  <h2 id="tier-3">Tier 3 — Vollausbau <a class="anchor" href="#tier-3">#</a></h2>
-  <p><strong>Baut auf Tier 2 auf.</strong> 2× TFT-Display, 2× Encoder, Alu-Gehäuse, USB-C Buchse auf Blende. Entspricht dem Alpha Edition Build.</p>
-
-  <h3>Zusätzliche Bauteile gegenüber Tier 2</h3>
-  <table class="parts-table">
-    <tr><th>Bauteil</th><th>Typ</th><th>Bezugsquelle</th><th>Hinweis</th></tr>
-    <tr><td>TFT-Display 1+2</td><td>ST7789, 240×280, SPI</td><td>AliExpress</td><td>2 Stück</td></tr>
-    <tr><td>Encoder 1+2</td><td>KY-040 mit Button</td><td>AliExpress</td><td>2 Stück</td></tr>
-    <tr><td>Gehäuse</td><td>Hammond 1455KGYBK</td><td>Mouser / RS Components</td><td>120 × 65 × 27 mm</td></tr>
-    <tr><td>Abschlussblenden</td><td>ABS, passend für Hammond 1455</td><td>Hammond / Mouser</td><td>oder 3D-Druck</td></tr>
-    <tr><td>USB-C Panel-Mount</td><td>CF-V8RI, 90°, 10 cm</td><td>AliExpress</td><td>Micro-B Male → USB-C Female</td></tr>
-    <tr><td>Schrauben / Abstandshalter</td><td>M2,5, Sortiment</td><td>Amazon</td><td>für Lochrasterplatine im Gehäuse</td></tr>
-  </table>
-
-  <h3>Encoder-Belegung</h3>
-  <pre>E1 (links)   — Navigation (Parameter auswählen)
-E2 (rechts)  — Wert ändern / Modus-Toggle (LongPress)</pre>
-
-  <p>Beide Encoder: CLK, DT, SW Pins jeweils an freie Digital-Pins am Teensy. Genaue Pinbelegung ist in <code>firmware/common/config.h</code> definiert.</p>
-
-  <h3>TFT-Displays (SPI)</h3>
-  <p>Beide Displays teilen den SPI-Bus (MOSI, SCLK, gemeinsam), haben aber jeweils eigene CS- und DC-Pins.</p>
-
-  <pre>Display 1: CS → Pin X, DC → Pin Y
-Display 2: CS → Pin A, DC → Pin B</pre>
-
-  <div class="note">Die genauen Pinnummern sind in <code>config.h</code> definiert und können bei Bedarf an die eigene Verdrahtung angepasst werden.</div>
-
-  <div class="photo">FOTO: Teensy mit beiden TFT-Displays verdrahtet, noch außerhalb des Gehäuses — SPI-Bus-Verkabelung sichtbar, beide Displays aktiv (Firmware zeigt etwas an). [T3-A]</div>
-  <div class="photo">FOTO: Hammond-Gehäuse mit gefrästen/gebohrten Löchern — USB-C Panel-Mount-Aussparung, Reset-Button-Loch, Encoder-Löcher in der Frontblende. [T3-B]</div>
-  <div class="photo">FOTO: Innenansicht fertig aufgebaut — Lochrasterplatine in Gehäuse-Schienen, Kabelführung, TFTs auf Abschlussblenden oder Frontblende montiert. [T3-C]</div>
-  <div class="photo">FOTO: Fertige Außenansicht — verschraubtes Gehäuse, USB-C Buchse sichtbar, Encoder und Reset-Button auf Frontblende. [T3-D]</div>
-
-  <h3>Firmware für Tier 3</h3>
-  <p>In <code>firmware/common/config.h</code>:</p>
-  <pre>// #define HARDWARE_SIMPLE   // auskommentieren
-#define HARDWARE_FULL        // aktivieren</pre>
-  <p>Dann <code>firmware/main/main_full.ino</code> flashen (statt <code>main_simple.ino</code>).</p>
-
-  <hr>
-
-  <h2 id="update">Firmware erstmalig flashen</h2>
-  <p>Firmware direkt im Browser über Teensy Loader einspielen — keine Arduino IDE nötig.</p>
+  <h2 id="update">Firmware-Update</h2>
+  <p>Nach dem ersten Flash können Updates direkt aus dem Browser eingespielt werden.</p>
   <ol class="steps">
     <li><a href="https://mim-control.com/update" target="_blank">mim-control.com/update</a> aufrufen</li>
-    <li>Aktuelle vs. verfügbare Version wird angezeigt</li>
-    <li>„Firmware herunterladen" → <code>.hex</code>-Datei wird geladen</li>
-    <li>Weißen Button am Teensy drücken → bootet in den Bootloader</li>
+    <li>Aktuelle und verfügbare Version werden angezeigt</li>
+    <li>"Firmware herunterladen" → <code>.hex</code>-Datei wird geladen</li>
+    <li>Weißen Knopf auf dem Teensy kurz drücken → bootet in den Bootloader</li>
     <li>Teensy Loader erkennt den Bootloader und flasht automatisch</li>
   </ol>
+
+  <div class="note">Tier 2 und Tier 3 haben einen dedizierten Reset-Taster — diesen statt des weißen Knopfs auf dem Teensy-Board verwenden.</div>
+
+  <hr>
+
+  <!-- ══════════════════════════════════════════════════ AIM / CIM -->
+  <h2 id="aim-cim">AIM / CIM — XInput-Modus</h2>
+  <p>AIM wandelt Mauseingaben in Joystick-Ausschläge um (XInput-Ausgabe). CIM leitet einen angeschlossenen Controller mit Korrektur durch. Beide Modi geben XInput-Signale aus anstelle von Standard-HID.</p>
+  <p>Diese Modi erfordern <strong>Firmware C</strong> — ein separates Firmware-Image, das auf <a href="https://mim-control.com/dev-options/" target="_blank">mim-control.com/dev-options</a> unter "Firmware C" verfügbar ist. Das Flashen erfolgt genauso wie bei Firmware A über den Teensy Loader.</p>
+  <p>Hinweis: mim-control.com funktioniert mit Firmware C nicht. Zur Konfiguration sind externe Tools notwendig. Für die Rückkehr zu MIM / KIM genügt es, Firmware A erneut zu flashen.</p>
 
   <hr>
 
   <h2 id="community">Hilfe &amp; Community</h2>
   <p>Fragen, Probleme, Preset-Sharing — alles im Discord:</p>
   <p><strong>→ <a href="https://discord.gg/PLACEHOLDER" target="_blank">Discord beitreten</a></strong></p>
-  <p>Die vollständige Firmware und dieses Dokument sind öffentlich verfügbar:</p>
+  <p>Die vollständige Firmware und dieses Dokument sind öffentlich:</p>
   <p><strong>→ <a href="https://github.com/boa-constrictor-42/mim-mouse-input-modifier" target="_blank">github.com/boa-constrictor-42/mim-mouse-input-modifier</a></strong></p>
 
   <hr>
 
-  <h2 id="foto-checkliste">Foto-Checkliste für den Aufbau</h2>
-  <p style="color:var(--dim);font-size:.82rem">Diese Liste ist für den Autor — alle Fotos die für diese Anleitung gebraucht werden.</p>
+  <h2 id="foto-checkliste">Foto-Checkliste für den Build</h2>
+  <p style="color:var(--dim);font-size:.82rem">Diese Liste ist für den Autor — alle Fotos, die für diese Anleitung benötigt werden.</p>
 
   <h3>Tier 1</h3>
   <ul class="checklist">
     <li><strong>T1-A</strong> Teensy 4.1 Unterseite — Host-Pads beschriftet / Kabel angelötet</li>
-    <li><strong>T1-B</strong> Fertiger Bare-Bones-Aufbau von oben (Teensy + USB-A Buchse + Micro-USB Kabel)</li>
-    <li><strong>T1-C</strong> Screenshot mim-control.com verbunden, MIM-Tab aktiv <em>(kann auch Screenshot sein)</em></li>
+    <li><strong>T1-B</strong> Fertiger Bare-Bones-Aufbau von oben (Teensy + USB-A-Buchse + Micro-USB-Kabel)</li>
+    <li><strong>T1-C</strong> Teensy Loader mit geladener .hex, Fortschrittsanzeige beim Flashen</li>
+    <li><strong>T1-D</strong> mim-control.com im Browser, Verbindung hergestellt, MIM-Tab aktiv <em>(Screenshot ok)</em></li>
   </ul>
 
   <h3>Tier 2</h3>
   <ul class="checklist">
-    <li><strong>T2-A</strong> Kondensatoren auf Teensy-Unterseite angelötet (Elko + MLCC sichtbar)</li>
+    <li><strong>T2-A</strong> Kondensatoren auf Teensy Unterseite gelötet (Elektrolyt + MLCC sichtbar)</li>
     <li><strong>T2-B</strong> Program-Pad des Teensy (Vorderseite, Nahaufnahme, markiert)</li>
-    <li><strong>T2-C</strong> Reset-Button verdrahtet (Kabel sichtbar)</li>
-    <li><strong>T2-D</strong> Kompletter Aufbau auf Lochrasterplatine (Übersicht)</li>
+    <li><strong>T2-C</strong> Reset-Taster verdrahtet (Kabel sichtbar)</li>
+    <li><strong>T2-D</strong> Vollständiger Aufbau auf Lochrasterplatine (Übersicht)</li>
   </ul>
 
   <h3>Tier 3</h3>
   <ul class="checklist">
     <li><strong>T3-A</strong> Beide TFTs verdrahtet, außerhalb Gehäuse, aktiv</li>
-    <li><strong>T3-B</strong> Hammond-Gehäuse mit Löchern (vor Montage)</li>
-    <li><strong>T3-C</strong> Innenansicht fertig aufgebaut</li>
+    <li><strong>T3-B</strong> Hammond-Gehäuse mit Bohrungen (vor Montage)</li>
+    <li><strong>T3-C</strong> Innenansicht vollständig montiert</li>
     <li><strong>T3-D</strong> Fertige Außenansicht</li>
   </ul>
 
-  <p style="margin-top:36px;color:var(--dim2);font-size:.76rem">MIM · Mouse Input Modifier · github.com/boa-constrictor-42 · Selbstbau-Anleitung v1.0</p>
+  <p style="margin-top:36px;color:var(--dim2);font-size:.76rem">MIM · Mouse Input Modifier · github.com/boa-constrictor-42 · DIY-Anleitung v1.0</p>
 
 </div>
 </body>

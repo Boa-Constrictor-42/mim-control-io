@@ -259,22 +259,12 @@ Pad 6  →  GND   (optional, kann mit Pad 5 zusammengefasst werden)</pre>
 
   <h3>Firmware flashen</h3>
   <ol class="steps">
-    <li>Arduino IDE installieren (Version 2.x): <a href="https://www.arduino.cc/en/software" target="_blank">arduino.cc/en/software</a></li>
-    <li>Teensyduino als Plugin installieren: <a href="https://www.pjrc.com/teensy/teensyduino.html" target="_blank">pjrc.com/teensy/teensyduino.html</a></li>
-    <li>In der Arduino IDE unter <strong>Tools → USB-Typ</strong> einstellen: <code>Serial + Keyboard + Mouse + Joystick</code></li>
-    <li>MIM-Firmware-Repository downloaden oder klonen:<br>
-        <a href="https://github.com/boa-constrictor-42/mim-mouse-input-modifier" target="_blank">github.com/boa-constrictor-42/mim-mouse-input-modifier</a></li>
-    <li><code>firmware/main/main_simple.ino</code> in der Arduino IDE öffnen</li>
-    <li>In <code>firmware/common/config.h</code> sicherstellen, dass steht:
-<pre>#define HARDWARE_SIMPLE   // diese Zeile aktiv
-// #define HARDWARE_FULL  // diese Zeile auskommentiert</pre>
-    </li>
-    <li>Teensy über Micro-USB mit dem PC verbinden</li>
-    <li>In der Arduino IDE: Board <strong>Teensy 4.1</strong> auswählen</li>
-    <li><strong>Hochladen</strong> klicken (Pfeil-Icon) — Teensy Loader öffnet sich automatisch und flasht</li>
+    <li><a href="https://www.pjrc.com/teensy/loader.html" target="_blank">Teensy Loader</a> (pjrc.com) herunterladen und installieren</li>
+    <li><a href="https://mim-control.com/dev-options/" target="_blank">mim-control.com/dev-options</a> aufrufen und die aktuelle MIM <code>.hex</code>-Datei herunterladen</li>
+    <li>Die <code>.hex</code> im Teensy Loader öffnen, Teensy per Micro-USB verbinden, weißen Button am Teensy drücken — flasht automatisch</li>
   </ol>
 
-  <div class="photo">FOTO: Screenshot Arduino IDE mit korrekter Board-Auswahl (Teensy 4.1) und USB-Typ. Alternativ: Teensy Loader beim Flashen. [T1-C]</div>
+  <div class="photo">FOTO: Teensy Loader mit geladener .hex, Fortschrittsbalken beim Flashen. [T1-C]</div>
 
   <h3>Verbindung testen</h3>
   <ol class="steps">

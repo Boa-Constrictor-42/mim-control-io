@@ -259,22 +259,12 @@ Pad 6  →  GND   (optional, can share with Pad 5)</pre>
 
   <h3>Flash Firmware</h3>
   <ol class="steps">
-    <li>Install <a href="https://www.arduino.cc/en/software" target="_blank">Arduino IDE</a> (version 2.x)</li>
-    <li>Install <a href="https://www.pjrc.com/teensy/teensyduino.html" target="_blank">Teensyduino</a> as a plugin</li>
-    <li>In Arduino IDE under <strong>Tools → USB Type</strong> set: <code>Serial + Keyboard + Mouse + Joystick</code></li>
-    <li>Download or clone the MIM firmware repository:<br>
-        <a href="https://github.com/boa-constrictor-42/mim-mouse-input-modifier" target="_blank">github.com/boa-constrictor-42/mim-mouse-input-modifier</a></li>
-    <li>Open <code>firmware/main/main_simple.ino</code> in Arduino IDE</li>
-    <li>In <code>firmware/common/config.h</code> make sure:
-<pre>#define HARDWARE_SIMPLE   // this line active
-// #define HARDWARE_FULL  // this line commented out</pre>
-    </li>
-    <li>Connect the Teensy via Micro-USB to the PC</li>
-    <li>In Arduino IDE: select <strong>Board → Teensy 4.1</strong></li>
-    <li>Click <strong>Upload</strong> (arrow icon) — Teensy Loader opens automatically and flashes</li>
+    <li>Download <a href="https://www.pjrc.com/teensy/loader.html" target="_blank">Teensy Loader</a> (pjrc.com) and install it</li>
+    <li>Go to <a href="https://mim-control.com/dev-options/" target="_blank">mim-control.com/dev-options</a> and download the latest MIM <code>.hex</code> file</li>
+    <li>Open the <code>.hex</code> in Teensy Loader, connect the Teensy via Micro-USB, press the white button on the Teensy — it flashes automatically</li>
   </ol>
 
-  <div class="photo">PHOTO: Screenshot Arduino IDE with correct board selection (Teensy 4.1) and USB Type. Alternatively: Teensy Loader during flash. [T1-C]</div>
+  <div class="photo">PHOTO: Teensy Loader with loaded .hex, progress bar during flash. [T1-C]</div>
 
   <h3>Test the Connection</h3>
   <ol class="steps">

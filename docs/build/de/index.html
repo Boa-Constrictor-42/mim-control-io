@@ -272,7 +272,7 @@ Pad 6  →  GND   (optional, kann mit Pad 5 geteilt werden)</pre>
   </table>
 
   <h3>Warum Kondensatoren?</h3>
-  <p>Hochauflösende Mäuse (1000 Hz+) können beim Enumeration-Vorgang kurze Spannungseinbrüche auf der VBUS-Leitung verursachen, die zu Verbindungsabbrüchen führen. Die Kondensatoren puffern diese Einbrüche direkt am Host-Port des Teensy.</p>
+  <p>Hochauflösende Mäuse (ab 2000 Hz) können beim Enumeration-Vorgang kurze Spannungseinbrüche auf der VBUS-Leitung verursachen, die zu Verbindungsabbrüchen führen. Die Kondensatoren puffern diese Einbrüche direkt am Host-Port des Teensy.</p>
   <p><strong>Platzierung:</strong> Beide Kondensatoren parallel zwischen Pad 2 (+5V) und Pad 5 (GND) auf der Unterseite des Teensy, so nah wie möglich an den Pads.</p>
 
   <div class="photo">FOTO: Teensy Unterseite mit beiden gelöteten Kondensatoren — Elektrolyt und MLCC sichtbar parallel auf den Host-Pads. Polarität des Elektrolyts erkennbar. [T2-A]</div>

@@ -272,7 +272,7 @@ Pad 6  →  GND   (optional, can share with Pad 5)</pre>
   </table>
 
   <h3>Why Capacitors?</h3>
-  <p>High-resolution mice (1000 Hz+) can cause brief voltage drops on the VBUS line during enumeration, leading to connection drops. The capacitors buffer these spikes directly at the Teensy's host port.</p>
+  <p>High-resolution mice (2000Hz and more) can cause brief voltage drops on the VBUS line during enumeration, leading to connection drops. The capacitors buffer these spikes directly at the Teensy's host port.</p>
   <p><strong>Placement:</strong> both capacitors in parallel between Pad 2 (+5V) and Pad 5 (GND) on the bottom of the Teensy, as close to the pads as possible.</p>
 
   <div class="photo">PHOTO: Teensy bottom side with both capacitors soldered — electrolytic and MLCC visibly wired in parallel on the host pads. Electrolytic polarity recognisable. [T2-A]</div>

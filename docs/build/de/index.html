@@ -364,14 +364,13 @@ Display 2: CS → Pin A, DC → Pin B</pre>
 
   <hr>
 
-  <h2 id="update">Firmware-Update</h2>
-  <p>Nach dem ersten Flash kannst du Updates direkt im Browser einspielen — kein erneutes Verbinden mit der Arduino IDE nötig.</p>
+  <h2 id="update">Firmware erstmalig flashen</h2>
+  <p>Firmware direkt im Browser über Teensy Loader einspielen — keine Arduino IDE nötig.</p>
   <ol class="steps">
     <li><a href="https://mim-control.com/update" target="_blank">mim-control.com/update</a> aufrufen</li>
-    <li>Gerät verbinden</li>
-    <li>Aktuelle vs. installierte Version wird angezeigt</li>
+    <li>Aktuelle vs. verfügbare Version wird angezeigt</li>
     <li>„Firmware herunterladen" → <code>.hex</code>-Datei wird geladen</li>
-    <li>Reset-Button kurz drücken → Teensy bootet in den Bootloader</li>
+    <li>Weißen Button am Teensy drücken → bootet in den Bootloader</li>
     <li>Teensy Loader erkennt den Bootloader und flasht automatisch</li>
   </ol>
 

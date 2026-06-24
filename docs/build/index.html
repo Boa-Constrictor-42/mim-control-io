@@ -48,9 +48,14 @@ button{font-family:inherit;cursor:pointer}
 
 /* Lang toggle */
 .lang-toggle{display:flex;gap:5px}
-.lang-btn{background:none;border:1px solid var(--border2);border-radius:3px;
-  font-size:.78rem;padding:3px 8px;cursor:pointer;color:#fff;opacity:.55;
-  transition:opacity .15s,border-color .15s;font-family:inherit}
+.lang-btn{position:relative;width:44px;height:26px;border:1px solid var(--border2);
+  border-radius:3px;cursor:pointer;opacity:.55;overflow:hidden;padding:0;
+  display:flex;align-items:center;justify-content:center;font-family:inherit;
+  transition:opacity .15s,border-color .15s;background:none}
+.lang-btn .flag{position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;font-size:1.45rem;line-height:1}
+.lang-btn .code{position:relative;z-index:1;font-size:.75rem;font-weight:bold;
+  color:#fff;text-shadow:0 0 4px #000,0 0 8px #000;letter-spacing:.04em}
 .lang-btn.active{opacity:1;border-color:#888}
 .lang-btn:hover{opacity:.85}
 
@@ -161,8 +166,8 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
       <img id="hdr-logo" src="../mim_logo_v6.png" alt="MIM" onerror="this.src='../mim_logo_v6.svg'">
     </a>
     <div class="lang-toggle">
-      <button class="lang-btn active" onclick="location.href='/build/'">EN</button>
-      <button class="lang-btn" onclick="location.href='/build/de/'">🇩🇪</button>
+      <button class="lang-btn active" onclick="location.href='/build/'"><span class="flag">🇬🇧</span><span class="code">EN</span></button>
+      <button class="lang-btn" onclick="location.href='/build/de/'"><span class="flag">🇩🇪</span><span class="code">DE</span></button>
     </div>
   </div>
 </header>

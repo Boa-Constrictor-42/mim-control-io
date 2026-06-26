@@ -647,6 +647,7 @@ async function loadVersions() {
     const list   = Array.isArray(data.versions) ? data.versions : [];
     const latest = data.latest || (list[0] && list[0].version);
     if (!list.length) { sel.innerHTML = `<option value="">${T('ver_not_found')}</option>`; return; }
+    list.sort((a, b) => { const n = s => { const [M,m,p] = s.replace(/-.*$/,'').split('.').map(Number); return M*1e6+m*1e3+p; }; return n(b.version)-n(a.version); });
     sel.innerHTML = '';
     list.forEach(v => {
       const o = document.createElement('option');
@@ -670,6 +671,7 @@ async function loadVersionsC() {
     const list   = Array.isArray(data.versions) ? data.versions : [];
     const latest = data.latest || (list[0] && list[0].version);
     if (!list.length) { sel.innerHTML = `<option value="">${T('ver_not_found')}</option>`; return; }
+    list.sort((a, b) => { const n = s => { const [M,m,p] = s.replace(/-.*$/,'').split('.').map(Number); return M*1e6+m*1e3+p; }; return n(b.version)-n(a.version); });
     sel.innerHTML = '';
     list.forEach(v => {
       const o = document.createElement('option');

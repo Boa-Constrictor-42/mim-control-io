@@ -765,6 +765,23 @@ body{transition:margin-left .2s ease}
       </div>
     </div>
 
+    <!-- Counter-Strafe -->
+    <div class="sec" style="max-width:1140px;margin:0 auto">
+      <div class="sec-hd" style="display:flex;align-items:center;justify-content:space-between">
+        <span data-i18n="sec_cs">Counter-Strafe</span>
+        <label class="kim-sw-wrap" title="Enable / disable Counter-Strafe">
+          <input type="checkbox" id="cs-active-chk" style="display:none">
+          <span class="kim-sw-track"><span class="kim-sw-thumb"></span></span>
+        </label>
+        <span id="cs-active-lbl" style="font-size:.8rem;color:var(--dim)">inactive</span>
+      </div>
+      <div class="sec-bd">
+        <div id="cs-pair-list"></div>
+        <div id="cs-empty-msg" style="font-size:.8rem;color:var(--dim2);padding:4px 0" data-i18n="cs_empty_msg">No pairs configured.</div>
+        <button class="fb" id="cs-add-btn" style="margin-top:6px" data-i18n="cs_add_btn">+ Add Pair</button>
+      </div>
+    </div>
+
     <!-- Footer: Reset / Export / Import -->
     <div style="display:flex;gap:8px;padding:6px 0 12px;max-width:1140px;margin:0 auto">
       <button class="fb dang" id="kim-reset-btn">Reset</button>
@@ -933,6 +950,8 @@ const STRINGS = {
     kim_edit_btn:'Edit', kim_del_title:'Delete entry',
     kim_editor_new:'New Entry', kim_editor_edit:'Edit Entry {n}',
     kim_bind_waiting:'&#x2190; Press a key…', step_n:'Step {n}',
+    sec_cs:'Counter-Strafe', cs_active:'active', cs_inactive:'inactive',
+    cs_empty_msg:'No pairs configured.', cs_add_btn:'+ Add Pair',
     sec_cim:'CIM &#x2014; Controller Input Modifier', sec_cim_sub:'&#x2014; right-stick correction',
     sec_cim_sens:'Correction Sensitivity',
     sec_aim:'AIM &#x2014; Mouse → Stick', aim_mouse_drives:'Mouse drives',
@@ -969,6 +988,8 @@ const STRINGS = {
     kim_edit_btn:'Bearb.', kim_del_title:'Entry l\xf6schen',
     kim_editor_new:'New Entry', kim_editor_edit:'Edit Entry {n}',
     kim_bind_waiting:'&#x2190; Taste dr\xfccken…', step_n:'Step {n}',
+    sec_cs:'Counter-Strafe', cs_active:'aktiv', cs_inactive:'inaktiv',
+    cs_empty_msg:'Keine Paare konfiguriert.', cs_add_btn:'+ Paar hinzuf\xfcgen',
     sec_cim:'CIM &#x2014; Controller Input Modifier', sec_cim_sub:'&#x2014; Rechtstick-Korrektur',
     sec_cim_sens:'Korrektur-Empfindlichkeit',
     sec_aim:'AIM &#x2014; Maus → Stick', aim_mouse_drives:'Maus steuert',
@@ -1231,6 +1252,8 @@ function handleLine(ln) {
     console.log('[KIM] Firmware ACK: bind_start empfangen, warte auf Taste');
     return;
   }
+  if(typeof r.cs_bound_key !== 'undefined') { CS.onBoundKey(r.cs_bound_key); return; }
+  if(typeof r.cs_bind_ack  !== 'undefined') { console.log('[CS] bind ACK'); return; }
   if(typeof r.dbg_press !== 'undefined') {
     console.log('[KIM] dbg_press hid='+r.dbg_press+' bind='+r.bind);
     return;
@@ -1271,6 +1294,7 @@ function handleLine(ln) {
     KIM.init(r);
     return;
   }
+  if(typeof r.cs_enabled !== 'undefined') { CS.init(r); return; }
 
   // ── get_aim_mapping response (map + mouse_stick) ────────────────
   if(Array.isArray(r.map) && typeof r.mouse_stick !== 'undefined') {
@@ -1337,7 +1361,7 @@ function activateTab(mode) {
     if(tabKim) { tabKim.disabled = false; }
     const panelMim = ge('panel-mim');
     if(panelMim) panelMim.classList.add('active');
-    if(S.connected) setTimeout(()=>KIM.load(), 150);
+    if(S.connected) setTimeout(()=>{ KIM.load(); CS.load(); }, 150);
   } else {
     // Einzelmodus: passenden Tab aktivieren
     let activeId = 'mim';
@@ -1350,7 +1374,7 @@ function activateTab(mode) {
     if(activeTab)   { activeTab.classList.add('active'); activeTab.disabled = false; }
     if(activePanel)  activePanel.classList.add('active');
 
-    if(activeId === 'kim' && S.connected) setTimeout(()=>KIM.load(), 150);
+    if(activeId === 'kim' && S.connected) setTimeout(()=>{ KIM.load(); CS.load(); }, 150);
     if(activeId === 'cim' && S.connected) setTimeout(()=>CIM.load(), 150);
     if(activeId === 'aim' && S.connected) setTimeout(()=>AIM.load(), 150);
   }
@@ -2358,6 +2382,114 @@ const KIM = {
   }
 };
 
+// ── CS (Counter-Strafe) ──────────────────────────────────────────────────────
+const CS = {
+  profile: {cs_enabled:0, n_pairs:0, pairs:[]},
+  _bindTarget:null, _bindIdx:null, _bindSlot:null,
+
+  init(data) {
+    this.profile = {
+      cs_enabled: data.cs_enabled ?? 0,
+      n_pairs:    data.n_pairs    ?? 0,
+      pairs: (data.pairs||[]).map(p=>({key_a:p.key_a||0, key_b:p.key_b||0, dur_ms:p.dur_ms||120}))
+    };
+    this._syncUi();
+  },
+
+  _syncUi() {
+    const chk = ge('cs-active-chk'), lbl = ge('cs-active-lbl');
+    chk.checked = !!this.profile.cs_enabled;
+    lbl.textContent = T(this.profile.cs_enabled ? 'cs_active' : 'cs_inactive');
+    lbl.style.color = this.profile.cs_enabled ? 'var(--green)' : 'var(--dim)';
+    this._renderPairs();
+  },
+
+  _renderPairs() {
+    const list = ge('cs-pair-list'), empty = ge('cs-empty-msg'), addBtn = ge('cs-add-btn');
+    list.innerHTML = '';
+    const pairs = this.profile.pairs;
+    empty.style.display = pairs.length ? 'none' : '';
+    addBtn.disabled = pairs.length >= 8;
+    pairs.forEach((p, i) => {
+      const row = document.createElement('div');
+      row.className = 'kim-row';
+      row.innerHTML = `
+        <span class="kim-lbl">Pair ${i+1}</span>
+        <button class="kim-bind-btn" id="cs-key-a-${i}" data-code="${p.key_a}">${p.key_a ? _kimKeyLabel(p.key_a) : '—'}</button>
+        <span class="kim-unit" style="padding:0 2px">→</span>
+        <button class="kim-bind-btn" id="cs-key-b-${i}" data-code="${p.key_b}">${p.key_b ? _kimKeyLabel(p.key_b) : '—'}</button>
+        <input type="number" class="kim-ms" id="cs-dur-${i}" min="10" max="2000" value="${p.dur_ms}" style="width:62px">
+        <span class="kim-unit">ms</span>
+        <button class="fb dang" style="margin-left:auto" data-del="${i}">✕</button>`;
+      list.appendChild(row);
+      ge(`cs-key-a-${i}`).onclick = () => CS.bind(i, 'a');
+      ge(`cs-key-b-${i}`).onclick = () => CS.bind(i, 'b');
+      ge(`cs-dur-${i}`).onchange  = () => {
+        const v = parseInt(ge(`cs-dur-${i}`).value) || 120;
+        this.profile.pairs[i].dur_ms = Math.max(10, Math.min(2000, v));
+        CS.sendConfig();
+      };
+      row.querySelector('[data-del]').onclick = () => CS.removePair(i);
+    });
+  },
+
+  onToggle() {
+    this.profile.cs_enabled = ge('cs-active-chk').checked ? 1 : 0;
+    const lbl = ge('cs-active-lbl');
+    lbl.textContent = T(this.profile.cs_enabled ? 'cs_active' : 'cs_inactive');
+    lbl.style.color = this.profile.cs_enabled ? 'var(--green)' : 'var(--dim)';
+    CS.sendConfig();
+  },
+
+  addPair() {
+    if(this.profile.pairs.length >= 8) return;
+    this.profile.pairs.push({key_a:0, key_b:0, dur_ms:120});
+    this.profile.n_pairs = this.profile.pairs.length;
+    this._renderPairs();
+    CS.sendConfig();
+  },
+
+  removePair(idx) {
+    this.profile.pairs.splice(idx, 1);
+    this.profile.n_pairs = this.profile.pairs.length;
+    this._renderPairs();
+    CS.sendConfig();
+  },
+
+  bind(idx, slot) {
+    if(this._bindTarget) { const b=ge(this._bindTarget); if(b) b.classList.remove('waiting'); }
+    const btnId = slot==='a' ? `cs-key-a-${idx}` : `cs-key-b-${idx}`;
+    this._bindTarget=btnId; this._bindIdx=idx; this._bindSlot=slot;
+    const btn = ge(btnId);
+    btn.classList.add('waiting');
+    btn.textContent = T('kim_bind_waiting');
+    sendJson({cmd:'set_cs_config', data:{start_bind:true}});
+  },
+
+  onBoundKey(code) {
+    const btnId=this._bindTarget, idx=this._bindIdx, slot=this._bindSlot;
+    this._bindTarget=null; this._bindIdx=null; this._bindSlot=null;
+    if(btnId===null || idx===null) return;
+    const btn = ge(btnId); if(!btn) return;
+    btn.classList.remove('waiting');
+    btn.dataset.code = code;
+    btn.textContent  = code ? _kimKeyLabel(code) : '—';
+    if(slot==='a') this.profile.pairs[idx].key_a = code;
+    else           this.profile.pairs[idx].key_b = code;
+    CS.sendConfig();
+  },
+
+  sendConfig() {
+    if(!S.connected) return;
+    sendJson({cmd:'set_cs_config', data:{
+      cs_enabled: this.profile.cs_enabled,
+      pairs: this.profile.pairs.map(p=>({key_a:p.key_a, key_b:p.key_b, dur_ms:p.dur_ms}))
+    }});
+  },
+
+  load() { if(S.connected) sendJson({cmd:'get_cs_config'}); }
+};
+
 // ── CIM ─────────────────────────────────────────────────────────────────────
 // Eigene Parameter-Liste für CIM (Right-Stick Korrektur). vX/vY teilen sich die
 // Spline-UI-Logik mit MIM, bekommen aber eigene Element-IDs (Prefix "cim-").
@@ -2842,6 +2974,10 @@ document.addEventListener('DOMContentLoaded',()=>{
       drawOled();
     };
   });
+
+  // ── CS event handlers ─────────────────────────────────────────
+  ge('cs-active-chk').onchange = ()=>CS.onToggle();
+  ge('cs-add-btn').onclick      = ()=>CS.addPair();
 
   setLang(_lang);
 });

@@ -1,6 +1,10 @@
 ﻿{
-    "latest":  "0.1.0-alpha",
+    "latest":  "2.5.0-alpha",
     "versions":  [
+                     {
+                         "version":  "2.5.0-alpha",
+                         "hex":  "mim_firmware_c_v2.5.0-alpha.hex"
+                     },
                      {
                          "version":  "0.1.0-alpha",
                          "hex":  "mim_firmware_c_v0.1.0-alpha.hex"

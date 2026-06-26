@@ -779,6 +779,12 @@ body{transition:margin-left .2s ease}
         <div id="cs-pair-list"></div>
         <div id="cs-empty-msg" style="font-size:.8rem;color:var(--dim2);padding:4px 0" data-i18n="cs_empty_msg">No pairs configured.</div>
         <button class="fb" id="cs-add-btn" style="margin-top:6px" data-i18n="cs_add_btn">+ Add Pair</button>
+        <div class="kim-row" style="padding-top:10px">
+          <span class="kim-lbl">Spread σ</span>
+          <input type="range" id="cs-sigma-sl" min="0" max="50" step="1" value="0"
+                 style="flex:1;max-width:200px;accent-color:var(--green)">
+          <span id="cs-sigma-val" class="kim-unit" style="min-width:42px">0 %</span>
+        </div>
       </div>
     </div>
 
@@ -2384,13 +2390,14 @@ const KIM = {
 
 // ── CS (Counter-Strafe) ──────────────────────────────────────────────────────
 const CS = {
-  profile: {cs_enabled:0, n_pairs:0, pairs:[]},
+  profile: {cs_enabled:0, cs_sigma_pct:0, n_pairs:0, pairs:[]},
   _bindTarget:null, _bindIdx:null, _bindSlot:null,
 
   init(data) {
     this.profile = {
-      cs_enabled: data.cs_enabled ?? 0,
-      n_pairs:    data.n_pairs    ?? 0,
+      cs_enabled:   data.cs_enabled   ?? 0,
+      cs_sigma_pct: data.cs_sigma_pct ?? 0,
+      n_pairs:      data.n_pairs      ?? 0,
       pairs: (data.pairs||[]).map(p=>({key_a:p.key_a||0, key_b:p.key_b||0, dur_ms:p.dur_ms||120}))
     };
     this._syncUi();
@@ -2401,8 +2408,17 @@ const CS = {
     chk.checked = !!this.profile.cs_enabled;
     lbl.textContent = T(this.profile.cs_enabled ? 'cs_active' : 'cs_inactive');
     lbl.style.color = this.profile.cs_enabled ? 'var(--green)' : 'var(--dim)';
+    ge('cs-sigma-sl').value = this.profile.cs_sigma_pct;
+    ge('cs-sigma-val').textContent = this.profile.cs_sigma_pct + ' %';
     this._renderPairs();
   },
+
+  onSigmaInput() {
+    const v = parseInt(ge('cs-sigma-sl').value);
+    ge('cs-sigma-val').textContent = v + ' %';
+    this.profile.cs_sigma_pct = v;
+  },
+  onSigmaChange() { CS.sendConfig(); },
 
   _renderPairs() {
     const list = ge('cs-pair-list'), empty = ge('cs-empty-msg'), addBtn = ge('cs-add-btn');
@@ -2482,7 +2498,8 @@ const CS = {
   sendConfig() {
     if(!S.connected) return;
     sendJson({cmd:'set_cs_config', data:{
-      cs_enabled: this.profile.cs_enabled,
+      cs_enabled:   this.profile.cs_enabled,
+      cs_sigma_pct: this.profile.cs_sigma_pct,
       pairs: this.profile.pairs.map(p=>({key_a:p.key_a, key_b:p.key_b, dur_ms:p.dur_ms}))
     }});
   },
@@ -2978,6 +2995,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   // ── CS event handlers ─────────────────────────────────────────
   ge('cs-active-chk').onchange = ()=>CS.onToggle();
   ge('cs-add-btn').onclick      = ()=>CS.addPair();
+  ge('cs-sigma-sl').oninput    = ()=>CS.onSigmaInput();
+  ge('cs-sigma-sl').onchange   = ()=>CS.onSigmaChange();
 
   setLang(_lang);
 });

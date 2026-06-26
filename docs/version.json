@@ -1,9 +1,12 @@
 ﻿{
-    "version":  "2.4.5-alpha",
-    "date":  "2026-06-16",
+    "version":  "2.5.0-alpha",
+    "date":  "2026-06-26",
     "changelog":  [
-                      "AIM: unused joystick sliders no longer rest at −1.0 in browser/game testers — both sliders are now initialised to centre (0.0) at startup",
-                      "AIM key mapping: buttons can now be assigned by pressing the actual key or mouse button — no more dropdown selection"
+                      "**External Correction** (MIM mode): real-time X/Y mouse offset injection via FTDI FT232 over Serial3/RX3 (Pin 15, 115200 baud, 7-byte binary frames). Configurable sample window (10–100 ms), reaching time (10–2000 ms), and Gaussian noise sigma (0–50 %) applied independently to X and Y every 100 ms. ON/OFF toggle; settings are EEPROM-persisted.",
+                      "**Counter-Strafing** (KIM mode): up to 8 bidirectional key pairs; releasing key A briefly fires key B for a configurable duration (and vice versa). Master enable toggle. Key assignment uses the existing click-to-bind flow — press the key to capture its HID code. Settings are EEPROM-persisted.",
+                      "**modifier-control.py**: new combined GUI tool covering MIM, AIM, CIM and KIM tabs. Includes the External Correction control panel (sliders, sigma, ON/OFF, live status lamp) and the Counter-Strafe editor (dynamic pair list, bind buttons, per-pair timing).",
+                      "**mim_test_external_correction.py**: standalone FTDI test tool for validating external correction — configurable X/Y offsets, send rate (10–100 ms), LMB gate, frame statistics and live log.",
+                      "KIM: click-to-bind no longer erroneously passes the captured keypress through to the host"
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.4.5-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.5.0-alpha.hex"
 }

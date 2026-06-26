@@ -1,14 +1,6 @@
 ﻿{
-    "latest":  "2.4.5-alpha",
+    "latest":  "2.5.0-alpha",
     "versions":  [
-                     {
-                         "version":  "2.4.5-alpha",
-                         "hex":  "mim_firmware_v2.4.5-alpha.hex"
-                     },
-                     {
-                         "version":  "2.4.4-alpha",
-                         "hex":  "mim_firmware_v2.4.4-alpha.hex"
-                     },
                      {
                          "version":  "2.4.2-alpha",
                          "hex":  "mim_firmware_v2.4.2-alpha.hex"
@@ -18,16 +10,16 @@
                          "hex":  "mim_firmware_v2.4.1-alpha.hex"
                      },
                      {
-                         "version":  "2.4.0-alpha",
-                         "hex":  "mim_firmware_v2.4.0-alpha.hex"
+                         "version":  "2.4.4-alpha",
+                         "hex":  "mim_firmware_v2.4.4-alpha.hex"
                      },
                      {
-                         "version":  "2.3.7-alpha",
-                         "hex":  "mim_firmware_v2.3.7-alpha.hex"
+                         "version":  "2.5.0-alpha",
+                         "hex":  "mim_firmware_v2.5.0-alpha.hex"
                      },
                      {
-                         "version":  "2.3.6-alpha",
-                         "hex":  "mim_firmware_v2.3.6-alpha.hex"
+                         "version":  "2.4.5-alpha",
+                         "hex":  "mim_firmware_v2.4.5-alpha.hex"
                      },
                      {
                          "version":  "2.3.5-alpha",
@@ -36,6 +28,18 @@
                      {
                          "version":  "2.3.4-alpha",
                          "hex":  "mim_firmware_v2.3.4-alpha.hex"
+                     },
+                     {
+                         "version":  "2.3.6-alpha",
+                         "hex":  "mim_firmware_v2.3.6-alpha.hex"
+                     },
+                     {
+                         "version":  "2.4.0-alpha",
+                         "hex":  "mim_firmware_v2.4.0-alpha.hex"
+                     },
+                     {
+                         "version":  "2.3.7-alpha",
+                         "hex":  "mim_firmware_v2.3.7-alpha.hex"
                      }
                  ]
 }

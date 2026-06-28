@@ -230,7 +230,9 @@ Pad 4  →  D+    (USB Pin 3)
 Pad 5  →  GND   (USB Pin 4)
 Pad 6  →  GND   (optional, can share with Pad 5)</pre>
 
-  <div class="photo">PHOTO: Teensy 4.1 bottom side — all five host pads visible and labelled. Ideally with wires already soldered, colours clearly visible (e.g. red=+5V, white=D−, green=D+, black=GND). High-contrast background, good lighting. [T1-A]</div>
+  <img class="wiring-img" src="img/T1-A.jpg"
+       alt="Teensy 4.1 — USB Host pads on the bottom side">
+  <p class="img-caption">Teensy 4.1 — Bottom side with USB Host pads (Pads 2–6). Red = +5 V, White = D−, Green = D+, Black = GND.</p>
 
   <h3>Schematic</h3>
 
@@ -253,7 +255,15 @@ Pad 6  →  GND   (optional, can share with Pad 5)</pre>
        alt="MIM Wiring Diagram v03 — Overview">
   <p class="img-caption">MIM Wiring Diagram v03 — Overview</p>
 
-  <div class="photo">PHOTO: Finished Bare Bones build from above — Teensy with soldered USB-A socket, Micro-USB cable towards PC, mouse already connected. Wiring must be recognisable, no loose cables. [T1-B]</div>
+  <img class="wiring-img" src="img/T1-B.jpg"
+       alt="Bare Bones build — three connection variants">
+  <p class="img-caption">Bare Bones build — left: with deleyCON USB-A adapter and extension cable; center: with right-angle USB-A socket; right: mounted on breadboard with wiring.</p>
+
+  <h3>Optional: Built in an Enclosure</h3>
+  <p>The Bare Bones build fits into a compact aluminium enclosure — no additional soldering required, just cable management and a USB-C panel-mount adapter.</p>
+  <img class="wiring-img" src="img/T1-C.jpg"
+       alt="Bare Bones MIM build in aluminium enclosure">
+  <p class="img-caption">Completed Bare Bones build in aluminium enclosure with MIM label and USB-C cable.</p>
 
   <hr>
 
@@ -276,7 +286,9 @@ Pad 6  →  GND   (optional, can share with Pad 5)</pre>
   <p>High-resolution mice (2000Hz and more) can cause brief voltage drops on the VBUS line during enumeration, leading to connection drops. The capacitors buffer these spikes directly at the Teensy's host port.</p>
   <p><strong>Placement:</strong> both capacitors in parallel between Pad 2 (+5V) and Pad 5 (GND) on the bottom of the Teensy, as close to the pads as possible.</p>
 
-  <div class="photo">PHOTO: Teensy bottom side with both capacitors soldered — electrolytic and MLCC visibly wired in parallel on the host pads. Electrolytic polarity recognisable. [T2-A]</div>
+  <img class="wiring-img" src="img/T2-A.jpg"
+       alt="Tier 2 compact build — capacitor and completed wiring">
+  <p class="img-caption">Left: Compact build on breadboard with 1000 µF buffer capacitor on the host pads. Right: Completed wired build in enclosure with illuminated reset button.</p>
 
   <h3>Reset Button</h3>
   <p>The reset button provides direct access to the HalfKay bootloader — useful when the firmware has locked up or for a manual firmware update.</p>

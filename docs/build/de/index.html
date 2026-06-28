@@ -230,7 +230,9 @@ Pad 4  →  D+    (USB Pin 3)
 Pad 5  →  GND   (USB Pin 4)
 Pad 6  →  GND   (optional, kann mit Pad 5 geteilt werden)</pre>
 
-  <div class="photo">FOTO: Teensy 4.1 Unterseite — alle fünf Host-Pads sichtbar und beschriftet. Idealerweise mit bereits angelöteten Kabeln, Farben gut erkennbar (z.B. rot=+5V, weiß=D−, grün=D+, schwarz=GND). Kontrastreicher Hintergrund, gute Beleuchtung. [T1-A]</div>
+  <img class="wiring-img" src="../img/T1-A.jpg"
+       alt="Teensy 4.1 — USB-Host-Pads auf der Unterseite">
+  <p class="img-caption">Teensy 4.1 — Unterseite mit USB-Host-Pads (Pads 2–6). Rot = +5 V, Weiß = D−, Grün = D+, Schwarz = GND.</p>
 
   <h3>Schaltplan</h3>
 
@@ -253,7 +255,15 @@ Pad 6  →  GND   (optional, kann mit Pad 5 geteilt werden)</pre>
        alt="MIM Verdrahtungsschema v03 — Übersicht">
   <p class="img-caption">MIM Verdrahtungsschema v03 — Übersicht</p>
 
-  <div class="photo">FOTO: Fertiger Bare-Bones-Aufbau von oben — Teensy mit gelöteter USB-A-Buchse, Micro-USB-Kabel Richtung PC, Maus bereits angeschlossen. Verkabelung muss erkennbar sein, keine losen Kabel. [T1-B]</div>
+  <img class="wiring-img" src="../img/T1-B.jpg"
+       alt="Bare-Bones-Aufbau — drei Verbindungsvarianten">
+  <p class="img-caption">Bare-Bones-Aufbau — links: mit deleyCON USB-A-Adapter und Verlängerungskabel; Mitte: mit Rechtwink-USB-A-Buchse; rechts: auf Breadboard mit Verkabelung.</p>
+
+  <h3>Optional: Im Gehäuse</h3>
+  <p>Der Bare-Bones-Aufbau passt in ein kompaktes Aluminium-Gehäuse — kein zusätzliches Löten nötig, nur Kabelmanagement und ein USB-C-Panel-Mount-Adapter.</p>
+  <img class="wiring-img" src="../img/T1-C.jpg"
+       alt="Bare-Bones-MIM-Aufbau im Aluminium-Gehäuse">
+  <p class="img-caption">Fertiger Bare-Bones-Aufbau im Aluminium-Gehäuse mit MIM-Label und USB-C-Kabel.</p>
 
   <hr>
 
@@ -276,7 +286,9 @@ Pad 6  →  GND   (optional, kann mit Pad 5 geteilt werden)</pre>
   <p>Hochauflösende Mäuse (ab 2000 Hz) können beim Enumeration-Vorgang kurze Spannungseinbrüche auf der VBUS-Leitung verursachen, die zu Verbindungsabbrüchen führen. Die Kondensatoren puffern diese Einbrüche direkt am Host-Port des Teensy.</p>
   <p><strong>Platzierung:</strong> Beide Kondensatoren parallel zwischen Pad 2 (+5V) und Pad 5 (GND) auf der Unterseite des Teensy, so nah wie möglich an den Pads.</p>
 
-  <div class="photo">FOTO: Teensy Unterseite mit beiden gelöteten Kondensatoren — Elektrolyt und MLCC sichtbar parallel auf den Host-Pads. Polarität des Elektrolyts erkennbar. [T2-A]</div>
+  <img class="wiring-img" src="../img/T2-A.jpg"
+       alt="Tier-2-Kompaktaufbau — Kondensator und fertige Verdrahtung">
+  <p class="img-caption">Links: Kompakter Aufbau auf Breadboard mit 1000-µF-Pufferkondensator auf den Host-Pads. Rechts: Fertig verdrahteter Aufbau im Gehäuse mit beleuchtetem Reset-Taster.</p>
 
   <h3>Reset-Taster</h3>
   <p>Der Reset-Taster gibt direkten Zugang zum HalfKay-Bootloader — nützlich wenn die Firmware hängt oder für ein manuelles Firmware-Update.</p>

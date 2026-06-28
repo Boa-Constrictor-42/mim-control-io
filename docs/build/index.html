@@ -290,9 +290,9 @@ Pad 6  →  GND   (optional, can share with Pad 5)</pre>
   <p>High-resolution mice (2000Hz and more) can cause brief voltage drops on the VBUS line during enumeration, leading to connection drops. The capacitors buffer these spikes directly at the Teensy's host port.</p>
   <p><strong>Placement:</strong> both capacitors in parallel between Pad 2 (+5V) and Pad 5 (GND) on the bottom of the Teensy, as close to the pads as possible.</p>
 
-  <img class="wiring-img" src="img/T2-A.jpg"
-       alt="Tier 2 compact build — capacitor and completed wiring">
-  <p class="img-caption">Left: Compact build on breadboard with 1000 µF buffer capacitor on the host pads. Right: Completed wired build in enclosure with illuminated reset button.</p>
+  <img class="wiring-img" src="img/T2-A2.jpg"
+       alt="Tier 2 build progression — breadboard to compact enclosure">
+  <p class="img-caption">Left: Bare Bones build on breadboard. Center: Compact build with capacitors, USB-A socket, and illuminated reset button. Right: Finished build in compact enclosure.</p>
 
   <h3>Reset Button</h3>
   <p>The reset button provides direct access to the HalfKay bootloader — useful when the firmware has locked up or for a manual firmware update.</p>
@@ -348,7 +348,13 @@ Display 2: CS → Pin A, DC → Pin B</pre>
   <div class="photo">PHOTO: Teensy with both TFT displays wired, still outside enclosure — SPI bus wiring visible, both displays active. [T3-A]</div>
   <div class="photo">PHOTO: Hammond enclosure with drilled holes — USB-C panel-mount cutout, reset button hole, encoder holes in front panel. [T3-B]</div>
   <div class="photo">PHOTO: Interior view fully assembled — perfboard in enclosure slots, cable routing, TFTs mounted on end panels or front panel. [T3-C]</div>
-  <div class="photo">PHOTO: Finished exterior — screwed enclosure, USB-C socket visible, encoders and reset button on front panel. [T3-D]</div>
+  <img class="wiring-img" src="img/T3-B.jpg"
+       alt="MIM Full Build — both TFT displays active with speed curves and encoder values">
+  <p class="img-caption">Full Build — both TFT displays active: speed curve (top) and Y-speed profile values (bottom). Left and right encoder for navigation and value adjustment.</p>
+
+  <img class="wiring-img" src="img/T3-B2.jpg"
+       alt="MIM Full Build — alternate angle, both displays and encoders visible">
+  <p class="img-caption">Full Build from above — both displays and encoders visible. Device connected and in use.</p>
 
   <hr>
 

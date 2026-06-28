@@ -1,12 +1,14 @@
 ﻿{
-    "version":  "2.5.0-alpha",
-    "date":  "2026-06-26",
+    "version":  "2.5.1-alpha",
+    "date":  "2026-06-28",
     "changelog":  [
-                      "**External Correction** (MIM mode): real-time X/Y mouse offset injection via FTDI FT232 over Serial3/RX3 (Pin 15, 115200 baud, 7-byte binary frames). Configurable sample window (10–100 ms), reaching time (10–2000 ms), and Gaussian noise sigma (0–50 %) applied independently to X and Y every 100 ms. ON/OFF toggle; settings are EEPROM-persisted.",
-                      "**Counter-Strafing** (KIM mode): up to 8 bidirectional key pairs; releasing key A briefly fires key B for a configurable duration (and vice versa). Master enable toggle. Key assignment uses the existing click-to-bind flow — press the key to capture its HID code. Settings are EEPROM-persisted.",
-                      "**modifier-control.py**: new combined GUI tool covering MIM, AIM, CIM and KIM tabs. Includes the External Correction control panel (sliders, sigma, ON/OFF, live status lamp) and the Counter-Strafe editor (dynamic pair list, bind buttons, per-pair timing).",
-                      "**mim_test_external_correction.py**: standalone FTDI test tool for validating external correction — configurable X/Y offsets, send rate (10–100 ms), LMB gate, frame statistics and live log.",
-                      "KIM: click-to-bind no longer erroneously passes the captured keypress through to the host"
+                      "**External Correction — Instant Jump mode** (`corrMode = 2`): applies a configurable fraction of the EMA correction vector (0–100 %) as a single mouse report per trigger. Trigger: every received frame (`jumpIntervalMs = 0`) or a user-defined timer (1–20 ms). Gaussian noise (0–50 %) applied independently to X and Y fresh on every jump.",
+                      "**External Correction — three-way mode selector** in GUI: Classic (fixed α, sample/reaching time), Adaptive (innovation-based α), Jump (instant-jump mode). Alpha and Jump parameter sections show/hide based on selected mode.",
+                      "**External Correction** — when enabled, the pre-configured MIM velocity profile (VX/VY spline, Gaussian noise) is now fully suppressed; external correction is the sole correction source.",
+                      "**External Correction** — firmware always boots with correction **disabled** regardless of saved EEPROM state; only an explicit GUI toggle activates it.",
+                      "**External Correction** — GUI checkbox starts unchecked on every launch; connect response no longer overrides it.",
+                      "**External Correction** — `get_ext_correction` reads runtime state instead of EEPROM, eliminating repeated `[EEPROM]` log entries in the monitor.",
+                      "**External Correction** — status poll (`get_ext_correction`) is skipped while correction is OFF; monitor shows only heartbeat and parameter changes."
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.5.0-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.5.1-alpha.hex"
 }

@@ -377,6 +377,18 @@ body{transition:margin-left .2s ease}
 .aim-stick-btn:last-child{border-right:none}
 .aim-stick-btn:hover{color:var(--text)}
 .aim-stick-btn.active{background:#1a3a1a;color:var(--green);font-weight:600}
+/* AIM parameter section */
+.aim-preset-row{display:flex;gap:8px;padding:4px 0 8px}
+.aim-preset-btn{font-size:.82rem;padding:4px 14px;border:1px solid var(--border2);
+  background:var(--bg3);color:var(--dim);border-radius:3px;cursor:pointer;
+  transition:border-color .15s,color .15s}
+.aim-preset-btn:hover{border-color:#888;color:var(--text)}
+.aim-preset-btn.active{background:#1a3a1a;border-color:var(--green);color:var(--green)}
+.aim-curve-row{display:flex;align-items:center;gap:14px;padding:6px 0}
+.aim-curve-opt{display:flex;align-items:center;gap:4px;font-size:.82rem;color:var(--dim);cursor:pointer}
+.aim-curve-opt input[type=radio]{accent-color:var(--green);cursor:pointer}
+.aim-adv-toggle{font-size:.78rem;color:var(--dim2);cursor:pointer;padding:6px 0 2px;user-select:none}
+.aim-adv-toggle:hover{color:var(--dim)}
 </style>
 </head>
 <body>
@@ -857,8 +869,53 @@ body{transition:margin-left .2s ease}
   <!-- Tab: AIM -->
   <div class="tab-panel" id="panel-aim">
 
-    <!-- Mouse → Stick selector -->
+    <!-- AIM Parameters -->
     <div class="sec" style="margin-top:12px">
+      <div class="sec-hd">AIM Parameters</div>
+      <div class="sec-bd">
+        <div class="aim-preset-row">
+          <button class="aim-preset-btn" id="aim-preset-smooth">Smooth</button>
+          <button class="aim-preset-btn" id="aim-preset-balanced">Balanced</button>
+          <button class="aim-preset-btn" id="aim-preset-snappy">Snappy</button>
+        </div>
+        <div class="pr">
+          <div class="pr-name">Sensitivity</div>
+          <div class="pr-val" id="aim-lbl-sensitivity">1.00 x</div>
+          <input type="range" class="pr-sl" id="aim-sl-sensitivity" min="0.1" max="5" step="0.05" value="1">
+          <input type="text"  class="pr-en" id="aim-en-sensitivity" value="1.00">
+        </div>
+        <div class="pr">
+          <div class="pr-name">Responsive.</div>
+          <div class="pr-val" id="aim-lbl-ema_alpha" style="font-size:.7rem;color:var(--dim2)">Smooth◄►Snappy</div>
+          <input type="range" class="pr-sl" id="aim-sl-ema_alpha" min="0" max="1" step="0.01" value="0.3">
+          <input type="text"  class="pr-en" id="aim-en-ema_alpha" value="0.30">
+        </div>
+        <div class="pr">
+          <div class="pr-name">Dead Zone</div>
+          <div class="pr-val" id="aim-lbl-noise_gate">2.0</div>
+          <input type="range" class="pr-sl" id="aim-sl-noise_gate" min="0" max="20" step="0.1" value="2">
+          <input type="text"  class="pr-en" id="aim-en-noise_gate" value="2.0">
+        </div>
+        <div class="aim-curve-row">
+          <span class="pr-name">Curve</span>
+          <label class="aim-curve-opt"><input type="radio" name="aim-curve" value="0.7"> Soft</label>
+          <label class="aim-curve-opt"><input type="radio" name="aim-curve" value="1.0" checked> Linear</label>
+          <label class="aim-curve-opt"><input type="radio" name="aim-curve" value="1.8"> Aggressive</label>
+        </div>
+        <div class="aim-adv-toggle" id="aim-adv-toggle">▶ Advanced</div>
+        <div id="aim-adv-section" style="display:none">
+          <div class="pr">
+            <div class="pr-name">Max Defl.</div>
+            <div class="pr-val" id="aim-lbl-max_deflect">0.75</div>
+            <input type="range" class="pr-sl" id="aim-sl-max_deflect" min="0.1" max="1" step="0.01" value="0.75">
+            <input type="text"  class="pr-en" id="aim-en-max_deflect" value="0.75">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mouse → Stick selector -->
+    <div class="sec" style="margin-top:7px">
       <div class="sec-hd" data-i18n="sec_aim">AIM — Mouse → Stick</div>
       <div class="sec-bd">
         <div class="kim-row">
@@ -1301,6 +1358,12 @@ function handleLine(ln) {
     return;
   }
   if(typeof r.cs_enabled !== 'undefined') { CS.init(r); return; }
+
+  // ── get_aim_config response (ema_alpha / noise_gate / sensitivity …) ──
+  if(typeof r.ema_alpha !== 'undefined') {
+    AIM.applyConfig(r);
+    return;
+  }
 
   // ── get_aim_mapping response (map + mouse_stick) ────────────────
   if(Array.isArray(r.map) && typeof r.mouse_stick !== 'undefined') {
@@ -2780,11 +2843,20 @@ const KEYCODE_TO_HID = (() => {
 // MouseEvent.button → HID usage (Mouse Left/Right/Middle/B4/B5)
 const MOUSEBTN_TO_HID = {0:0xF0, 2:0xF1, 1:0xF2, 3:0xF3, 4:0xF4};
 
+const AIM_PRESETS = {
+  Smooth:   {ema_alpha:0.15, noise_gate:3.0, sensitivity:0.8,  max_deflect:0.75, curve_exp:0.7},
+  Balanced: {ema_alpha:0.30, noise_gate:2.0, sensitivity:1.0,  max_deflect:0.75, curve_exp:1.0},
+  Snappy:   {ema_alpha:0.70, noise_gate:1.0, sensitivity:1.2,  max_deflect:0.90, curve_exp:1.5},
+};
+const AIM_CURVE_PRESETS = {Soft:0.7, Linear:1.0, Aggressive:1.8};
+
 const AIM = {
   map: new Array(16).fill(0),
   mouseStick: 1,   // 0=left, 1=right
   depth: 0,
   loaded: false,
+  cfg: {ema_alpha:0.3, noise_gate:2.0, sensitivity:1.0, max_deflect:0.75, curve_exp:1.0},
+  cfgDepth: 0,
 
   codeLabel(code) {
     const e = AIM_CODES.find(k=>k.c===code);
@@ -2838,6 +2910,114 @@ const AIM = {
     sendJson({cmd:'set_aim_mapping', data:{ map:this.map.slice(0,16), mouse_stick:this.mouseStick }});
   },
 
+  // ── AIM config (ema_alpha / noise_gate / sensitivity / max_deflect / curve_exp) ──
+
+  buildParams() {
+    const KEYS = ['sensitivity','ema_alpha','noise_gate','max_deflect'];
+    const FMT  = {sensitivity:v=>v.toFixed(2)+' x', ema_alpha:v=>v.toFixed(2),
+                  noise_gate:v=>v.toFixed(1), max_deflect:v=>v.toFixed(2)};
+    KEYS.forEach(k=>{
+      const sl=ge('aim-sl-'+k), en=ge('aim-en-'+k), lbl=ge('aim-lbl-'+k);
+      if(!sl) return;
+      sl.addEventListener('input',()=>{
+        const v=parseFloat(sl.value);
+        this.cfg[k]=v;
+        if(en) en.value=FMT[k](v);
+        if(lbl && k!=='ema_alpha') lbl.textContent=FMT[k](v);
+        this._clearPresetHighlight();
+        this._sendConfig();
+      });
+      if(en) en.addEventListener('change',()=>{
+        const v=parseFloat(en.value.replace(',','.'));
+        if(isNaN(v)) return;
+        const cv=Math.min(parseFloat(sl.max), Math.max(parseFloat(sl.min), v));
+        this.cfg[k]=cv; sl.value=cv; en.value=FMT[k](cv);
+        if(lbl && k!=='ema_alpha') lbl.textContent=FMT[k](cv);
+        this._clearPresetHighlight();
+        this._sendConfig();
+      });
+    });
+    // Curve radio buttons
+    document.querySelectorAll('input[name="aim-curve"]').forEach(r=>{
+      r.addEventListener('change',()=>{
+        if(!r.checked) return;
+        this.cfg.curve_exp = parseFloat(r.value);
+        this._clearPresetHighlight();
+        this._sendConfig();
+      });
+    });
+    // Advanced toggle
+    const adv=ge('aim-adv-toggle'), sec=ge('aim-adv-section');
+    if(adv && sec) adv.addEventListener('click',()=>{
+      const vis = sec.style.display==='none';
+      sec.style.display = vis ? '' : 'none';
+      adv.textContent   = (vis ? '▼' : '▶') + ' Advanced';
+    });
+    // Preset buttons
+    for(const name of ['Smooth','Balanced','Snappy']){
+      const btn=ge('aim-preset-'+name.toLowerCase());
+      if(btn) btn.addEventListener('click',()=>this.applyPreset(name));
+    }
+  },
+
+  applyPreset(name) {
+    const vals=AIM_PRESETS[name]; if(!vals) return;
+    this.cfgDepth++;
+    for(const [k,v] of Object.entries(vals)){
+      this.cfg[k]=v;
+      const sl=ge('aim-sl-'+k), en=ge('aim-en-'+k), lbl=ge('aim-lbl-'+k);
+      if(sl) sl.value=v;
+      if(k==='sensitivity'){ if(en) en.value=v.toFixed(2); if(lbl) lbl.textContent=v.toFixed(2)+' x'; }
+      if(k==='ema_alpha')  { if(en) en.value=v.toFixed(2); }
+      if(k==='noise_gate') { if(en) en.value=v.toFixed(1); if(lbl) lbl.textContent=v.toFixed(1); }
+      if(k==='max_deflect'){ if(en) en.value=v.toFixed(2); if(lbl) lbl.textContent=v.toFixed(2); }
+    }
+    this.cfgDepth--;
+    this._refreshCurveRadio();
+    this._highlightPreset(name);
+    this._sendConfig();
+  },
+
+  applyConfig(r) {
+    this.cfgDepth++;
+    for(const k of ['ema_alpha','noise_gate','sensitivity','max_deflect','curve_exp']){
+      if(!(k in r)) continue;
+      const v=parseFloat(r[k]); this.cfg[k]=v;
+      const sl=ge('aim-sl-'+k), en=ge('aim-en-'+k), lbl=ge('aim-lbl-'+k);
+      if(sl) sl.value=v;
+      if(k==='sensitivity'){ if(en) en.value=v.toFixed(2); if(lbl) lbl.textContent=v.toFixed(2)+' x'; }
+      if(k==='ema_alpha')  { if(en) en.value=v.toFixed(2); }
+      if(k==='noise_gate') { if(en) en.value=v.toFixed(1); if(lbl) lbl.textContent=v.toFixed(1); }
+      if(k==='max_deflect'){ if(en) en.value=v.toFixed(2); if(lbl) lbl.textContent=v.toFixed(2); }
+    }
+    this.cfgDepth--;
+    this._refreshCurveRadio();
+  },
+
+  _refreshCurveRadio() {
+    const exp=this.cfg.curve_exp;
+    document.querySelectorAll('input[name="aim-curve"]').forEach(r=>{
+      r.checked = Math.abs(parseFloat(r.value)-exp)<0.01;
+    });
+  },
+
+  _highlightPreset(name) {
+    this._clearPresetHighlight();
+    const btn=ge('aim-preset-'+name.toLowerCase());
+    if(btn) btn.classList.add('active');
+  },
+
+  _clearPresetHighlight() {
+    document.querySelectorAll('.aim-preset-btn').forEach(b=>b.classList.remove('active'));
+  },
+
+  _sendConfig() {
+    if(!S.connected) return;
+    sendJson({cmd:'set_aim_config', data:{...this.cfg}});
+  },
+
+  loadConfig() { if(S.connected) sendJson({cmd:'get_aim_config'}); },
+
   // get_aim_mapping Antwort
   apply(r) {
     this.depth++;
@@ -2851,7 +3031,11 @@ const AIM = {
     this.loaded=true;
   },
 
-  load() { if(S.connected) sendJson({cmd:'get_aim_mapping'}); }
+  load() {
+    if(!S.connected) return;
+    sendJson({cmd:'get_aim_mapping'});
+    sendJson({cmd:'get_aim_config'});
+  }
 };
 
 // Key/Maus-Capture-Modal für die AIM-Button-Belegung
@@ -2915,6 +3099,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   buildParams();
   CIM.build();
   AIM.build();
+  AIM.buildParams();
   AIMCapture.init();
   initCharts();
   drawOled();

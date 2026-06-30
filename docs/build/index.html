@@ -303,10 +303,6 @@ Pad 6  →  GND   (optional, can share with Pad 5)</pre>
 
   <div class="note">A brief press → Teensy boots into the HalfKay bootloader. Teensy Loader recognises it automatically and waits for a new firmware image.</div>
 
-  <div class="photo">PHOTO: Teensy front side, Program pad marked. Finished wired button, cable to Program pad and GND visible. [T2-B / T2-C]</div>
-
-  <div class="photo">PHOTO: Complete build on perfboard — Teensy, both capacitors, USB-A socket permanently soldered, button cable leaving. Neat, clear wiring. [T2-D]</div>
-
   <h3>Assembly Order</h3>
   <ol class="steps">
     <li>Place Teensy on perfboard, solder pin headers</li>
@@ -345,9 +341,9 @@ E2 (right)  — Change value / mode toggle (LongPress)</pre>
 Display 2: CS → Pin A, DC → Pin B</pre>
 
 
-  <div class="photo">PHOTO: Teensy with both TFT displays wired, still outside enclosure — SPI bus wiring visible, both displays active. [T3-A]</div>
-  <div class="photo">PHOTO: Hammond enclosure with drilled holes — USB-C panel-mount cutout, reset button hole, encoder holes in front panel. [T3-B]</div>
-  <div class="photo">PHOTO: Interior view fully assembled — perfboard in enclosure slots, cable routing, TFTs mounted on end panels or front panel. [T3-C]</div>
+  <img class="wiring-img" src="img/T3-C.jpg"
+       alt="MIM Full Build — interior view: perfboard in enclosure, TFTs and encoders installed">
+  <p class="img-caption">Full Build — interior view: perfboard mounted in enclosure slots, both TFTs installed, cable routing completed.</p>
   <img class="wiring-img" src="img/T3-B.jpg"
        alt="MIM Full Build — both TFT displays active with speed curves and encoder values">
   <p class="img-caption">Full Build — both TFT displays active: speed curve (top) and Y-speed profile values (bottom). Left and right encoder for navigation and value adjustment.</p>
@@ -367,7 +363,9 @@ Display 2: CS → Pin A, DC → Pin B</pre>
     <li>Open the <code>.hex</code> in Teensy Loader, connect the Teensy via Micro-USB, press the white button on the Teensy — it flashes automatically</li>
   </ol>
 
-  <div class="photo">PHOTO: Teensy Loader with loaded .hex, progress bar during flash. [T1-C]</div>
+  <img class="wiring-img" src="img/T1-C2.jpg"
+       alt="Teensy Loader with loaded .hex file, progress bar during flash">
+  <p class="img-caption">Teensy Loader with the MIM firmware .hex loaded — progress bar during flash.</p>
 
   <h3>Test the Connection</h3>
   <ol class="steps">
@@ -428,15 +426,12 @@ Display 2: CS → Pin A, DC → Pin B</pre>
   <ul class="checklist">
     <li><strong>T2-A</strong> Capacitors soldered to Teensy bottom (electrolytic + MLCC visible)</li>
     <li><strong>T2-B</strong> Program pad of the Teensy (front side, close-up, marked)</li>
-    <li><strong>T2-C</strong> Reset button wired (cable visible)</li>
-    <li><strong>T2-D</strong> Complete build on perfboard (overview)</li>
+
   </ul>
 
   <h3>Tier 3</h3>
   <ul class="checklist">
-    <li><strong>T3-A</strong> Both TFTs wired, outside enclosure, active</li>
-    <li><strong>T3-B</strong> Hammond enclosure with holes (before assembly)</li>
-    <li><strong>T3-C</strong> Interior view fully assembled</li>
+
     <li><strong>T3-D</strong> Finished exterior</li>
   </ul>
 

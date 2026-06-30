@@ -303,10 +303,6 @@ Pad 6  →  GND   (optional, kann mit Pad 5 geteilt werden)</pre>
 
   <div class="note">Kurzer Druck → Teensy bootet in den HalfKay-Bootloader. Teensy Loader erkennt ihn automatisch und wartet auf ein neues Firmware-Image.</div>
 
-  <div class="photo">FOTO: Teensy Vorderseite, Program-Pad markiert. Fertig verdrahteter Taster, Kabel zum Program-Pad und GND sichtbar. [T2-B / T2-C]</div>
-
-  <div class="photo">FOTO: Vollständiger Aufbau auf Lochrasterplatine — Teensy, beide Kondensatoren, USB-A-Buchse fest verlötet, Tasterkabel abgehend. Ordentliche, übersichtliche Verdrahtung. [T2-D]</div>
-
   <h3>Aufbaureihenfolge</h3>
   <ol class="steps">
     <li>Teensy auf Lochrasterplatine platzieren, Stiftleisten anlöten</li>
@@ -345,9 +341,9 @@ E2 (rechts)  — Wert ändern / Moduswechsel (LongPress)</pre>
 Display 2: CS → Pin A, DC → Pin B</pre>
 
 
-  <div class="photo">FOTO: Teensy mit beiden TFT-Displays verdrahtet, noch außerhalb des Gehäuses — SPI-Bus-Verdrahtung sichtbar, beide Displays aktiv. [T3-A]</div>
-  <div class="photo">FOTO: Hammond-Gehäuse mit gebohrten Löchern — USB-C-Panel-Mount-Ausschnitt, Reset-Taster-Loch, Encoder-Löcher in der Frontplatte. [T3-B]</div>
-  <div class="photo">FOTO: Innenansicht vollständig montiert — Platine in Gehäuseschienen, Kabelführung, TFTs an Front-/Endplatte befestigt. [T3-C]</div>
+  <img class="wiring-img" src="../img/T3-C.jpg"
+       alt="MIM Vollausbau — Innenansicht: Platine im Gehäuse, TFTs und Encoder eingebaut">
+  <p class="img-caption">Vollausbau — Innenansicht: Platine in Gehäuseschienen eingebaut, beide TFTs montiert, Kabelführung abgeschlossen.</p>
   <img class="wiring-img" src="../img/T3-B.jpg"
        alt="MIM Full Build — beide TFT-Displays aktiv mit Geschwindigkeitskurven und Encoder-Werten">
   <p class="img-caption">Full Build — beide TFT-Displays aktiv: Geschwindigkeitskurve (oben) und Y-Speed-Profilwerte (unten). Linker und rechter Encoder für Navigation und Wertanpassung.</p>
@@ -367,7 +363,9 @@ Display 2: CS → Pin A, DC → Pin B</pre>
     <li>Die <code>.hex</code> im Teensy Loader öffnen, Teensy per Micro-USB anschließen, den weißen Knopf auf dem Teensy drücken — der Loader flasht automatisch</li>
   </ol>
 
-  <div class="photo">FOTO: Teensy Loader mit geladener .hex, Fortschrittsanzeige beim Flashen. [T1-C]</div>
+  <img class="wiring-img" src="../img/T1-C2.jpg"
+       alt="Teensy Loader mit geladener .hex-Datei, Fortschrittsanzeige beim Flashen">
+  <p class="img-caption">Teensy Loader mit der MIM-Firmware .hex geladen — Fortschrittsanzeige beim Flashen.</p>
 
   <h3>Verbindung testen</h3>
   <ol class="steps">
@@ -428,15 +426,12 @@ Display 2: CS → Pin A, DC → Pin B</pre>
   <ul class="checklist">
     <li><strong>T2-A</strong> Kondensatoren auf Teensy Unterseite gelötet (Elektrolyt + MLCC sichtbar)</li>
     <li><strong>T2-B</strong> Program-Pad des Teensy (Vorderseite, Nahaufnahme, markiert)</li>
-    <li><strong>T2-C</strong> Reset-Taster verdrahtet (Kabel sichtbar)</li>
-    <li><strong>T2-D</strong> Vollständiger Aufbau auf Lochrasterplatine (Übersicht)</li>
+
   </ul>
 
   <h3>Tier 3</h3>
   <ul class="checklist">
-    <li><strong>T3-A</strong> Beide TFTs verdrahtet, außerhalb Gehäuse, aktiv</li>
-    <li><strong>T3-B</strong> Hammond-Gehäuse mit Bohrungen (vor Montage)</li>
-    <li><strong>T3-C</strong> Innenansicht vollständig montiert</li>
+
     <li><strong>T3-D</strong> Fertige Außenansicht</li>
   </ul>
 

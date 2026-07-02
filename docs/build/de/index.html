@@ -106,6 +106,12 @@ p code,li code{background:var(--bg3);padding:1px 5px;border-radius:2px;
   padding:10px 14px;margin:12px 0;font-size:.84rem;line-height:1.6;color:var(--text)}
 .note strong{color:var(--orange)}
 
+/* Buy / finished-unit hint */
+.buy-note{background:var(--bg3);border-left:3px solid var(--green);border-radius:0 3px 3px 0;
+  padding:11px 15px;margin:16px 0;font-size:.85rem;line-height:1.65;color:var(--text)}
+.buy-note strong{color:var(--green)}
+.buy-note a{color:var(--green)}
+
 /* Photo placeholder */
 .photo{background:#0c0c0c;border:1px dashed var(--border2);border-radius:4px;
   padding:16px 20px;margin:14px 0;font-size:.78rem;color:#555;line-height:1.6}
@@ -175,9 +181,13 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
 <div class="wrap">
 
   <h1>MIM selbst bauen</h1>
-  <p class="subtitle">Mouse Input Modifier · DIY-Anleitung · Deutsch</p>
+  <p class="subtitle">Mouse Input Modifier · Open Hardware · An einem Nachmittag gebaut</p>
 
-  <p>MIM ist Open Hardware. Jeder kann das Gerät selbst bauen und verwendet dabei dieselbe Firmware wie die fertigen Alpha-Einheiten. Diese Anleitung beschreibt drei Ausbaustufen, die aufeinander aufbauen — gefolgt von Firmware-Anweisungen, die für alle Stufen gleich gelten.</p>
+  <p>MIM ist Open Hardware — und das ist der ganze Reiz. Das Gerät, das deine Mauseingaben in Echtzeit umformt, kannst du in die Hand nehmen, aufschrauben und selbst bauen. Keine verschlossene Blackbox: Auf dem Teensy, den du am eigenen Küchentisch lötest, läuft exakt dieselbe Firmware wie in den fertigen Alpha-Einheiten. Fang mit einem Bare-Bones-Board in rund 25 Minuten an — oder geh den ganzen Weg bis zum Full Build mit zwei Displays und Encodern im Alugehäuse. Drei Stufen, jede baut auf der vorherigen auf, und das Firmware-Flashen funktioniert bei allen gleich.</p>
+
+  <div class="buy-note">
+    <strong>Keine Lust zu löten?</strong> Musst du auch nicht. Fertige MIM-Geräte gibt es auf Anfrage — kein Lötkolben, keine Verkabelung, einfach einstecken und loslegen. Melde dich im <a href="https://discord.gg/zV8DBPU3d" target="_blank">Discord</a>, dann klären wir das. Die Bauanleitung unten bleibt natürlich hier, falls dich später doch die Neugier packt.
+  </div>
 
   <hr>
 
@@ -209,7 +219,7 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
 
   <!-- ═══════════════════════════════════════════════════════ TIER 1 -->
   <h2 id="tier-1">Tier 1 — Bare Bones <a class="anchor" href="#tier-1">#</a></h2>
-  <p><strong>Ziel:</strong> Ein funktionierendes MIM-Gerät so schnell wie möglich, mit minimalem Lötaufwand. Ideal zum Ausprobieren bevor mehr Zeit investiert wird.</p>
+  <p><strong>Ziel:</strong> Der schnellste Weg zu einem funktionierenden MIM — nur eine Handvoll Lötpunkte. Perfekt zum ersten Reinschnuppern, bevor du dich an einen aufwendigeren Aufbau wagst.</p>
 
   <h3>Bauteile</h3>
   <table class="parts-table">
@@ -273,7 +283,7 @@ Pad 6  →  GND   (optional, kann mit Pad 5 geteilt werden)</pre>
 
   <!-- ═══════════════════════════════════════════════════════ TIER 2 -->
   <h2 id="tier-2">Tier 2 — Kompaktbuild <a class="anchor" href="#tier-2">#</a></h2>
-  <p><strong>Baut auf Tier 1 auf.</strong> Fest verlötet auf Lochrasterplatine, mit Reset-Taster und Pufferkondensatoren. Dieser Aufbau läuft stabil auch bei hochauflösenden Gaming-Mäusen (Beast X Pro, 4K-Polling).</p>
+  <p><strong>Baut auf Tier 1 auf.</strong> Das ist der Aufbau, der dauerhaft auf deinem Schreibtisch bleibt: fest verlötet auf Lochrasterplatine, mit richtigem Reset-Taster und Pufferkondensatoren. Grundsolide auch bei hochauflösenden Gaming-Mäusen (Beast X Pro, 4K-Polling) — einmal aufgebaut und du musst nie wieder ran.</p>
 
   <h3>Zusätzliche Bauteile gegenüber Tier 1</h3>
   <table class="parts-table">
@@ -317,7 +327,7 @@ Pad 6  →  GND   (optional, kann mit Pad 5 geteilt werden)</pre>
 
   <!-- ═══════════════════════════════════════════════════════ TIER 3 -->
   <h2 id="tier-3">Tier 3 — Vollausbau <a class="anchor" href="#tier-3">#</a></h2>
-  <p><strong>Baut auf Tier 2 auf.</strong> 2× TFT-Display, 2× Encoder, Alu-Gehäuse, USB-C-Buchse am Panel. Entspricht dem Alpha-Edition-Aufbau.</p>
+  <p><strong>Baut auf Tier 2 auf.</strong> Das volle Erlebnis: zwei TFT-Displays, zwei Encoder, Alu-Gehäuse und eine USB-C-Buchse am Panel. Deine Kurven stellst du direkt am Gerät ein, ganz ohne Laptop. Genau dieser Aufbau ist die Alpha Edition — dasselbe Gerät, das du auch bekommst, wenn du ein fertiges bestellst.</p>
 
   <h3>Zusätzliche Bauteile gegenüber Tier 2</h3>
   <table class="parts-table">
@@ -405,7 +415,8 @@ Display 2: CS → Pin A, DC → Pin B</pre>
 
   <h2 id="community">Hilfe &amp; Community</h2>
   <p>Fragen, Probleme, Preset-Sharing — alles im Discord:</p>
-  <p><strong>→ <a href="https://discord.gg/PLACEHOLDER" target="_blank">Discord beitreten</a></strong></p>
+  <p><strong>→ <a href="https://discord.gg/zV8DBPU3d" target="_blank">Discord beitreten</a></strong></p>
+  <p>Und wenn du den Bau lieber ganz überspringen willst: Frag dort einfach nach einem fertigen Gerät — gleicher Ort, gleiche nette Leute.</p>
   <p>Video-Bauanleitung:</p>
   <p><strong>→ <a href="YOUTUBE_PLACEHOLDER" target="_blank">Auf YouTube ansehen</a></strong></p>
 

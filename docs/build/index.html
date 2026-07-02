@@ -106,6 +106,12 @@ p code,li code{background:var(--bg3);padding:1px 5px;border-radius:2px;
   padding:10px 14px;margin:12px 0;font-size:.84rem;line-height:1.6;color:var(--text)}
 .note strong{color:var(--orange)}
 
+/* Buy / finished-unit hint */
+.buy-note{background:var(--bg3);border-left:3px solid var(--green);border-radius:0 3px 3px 0;
+  padding:11px 15px;margin:16px 0;font-size:.85rem;line-height:1.65;color:var(--text)}
+.buy-note strong{color:var(--green)}
+.buy-note a{color:var(--green)}
+
 /* Photo placeholder */
 .photo{background:#0c0c0c;border:1px dashed var(--border2);border-radius:4px;
   padding:16px 20px;margin:14px 0;font-size:.78rem;color:#555;line-height:1.6}
@@ -175,9 +181,13 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
 <div class="wrap">
 
   <h1>Build Your Own MIM</h1>
-  <p class="subtitle">Mouse Input Modifier · DIY Guide · English</p>
+  <p class="subtitle">Mouse Input Modifier · Open Hardware · Build it in an afternoon</p>
 
-  <p>MIM is open hardware. Anyone can build their own device using the same firmware that runs in the finished Alpha units. This guide covers three build tiers that build on each other — followed by firmware flashing instructions that apply to all tiers equally.</p>
+  <p>MIM is open hardware — and that's the whole point. The device that reshapes your mouse input in real time is something you can hold, open up, and build yourself. No locked-down black box: the exact same firmware that ships in the finished Alpha units runs on a Teensy you solder at your own kitchen table. Start with a bare-bones board in about 25 minutes, or go all the way to a full build with dual displays and encoders in an aluminium enclosure. Three tiers, each one building on the last, and firmware flashing that works the same across all of them.</p>
+
+  <div class="buy-note">
+    <strong>Not into soldering?</strong> You don't have to be. Ready-to-use MIM units are available on request — no iron, no wiring, just plug in and play. Say hi on <a href="https://discord.gg/zV8DBPU3d" target="_blank">Discord</a> and we'll sort you out. The build guide below stays right here for whenever you get curious.
+  </div>
 
   <hr>
 
@@ -209,7 +219,7 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
 
   <!-- ═══════════════════════════════════════════════════════ TIER 1 -->
   <h2 id="tier-1">Tier 1 — Bare Bones <a class="anchor" href="#tier-1">#</a></h2>
-  <p><strong>Goal:</strong> A working MIM device as fast as possible, minimal soldering. Ideal for trying things out before investing more time.</p>
+  <p><strong>Goal:</strong> The fastest possible path to a working MIM — just a handful of solder joints. Perfect for a first taste before you commit to a fancier build.</p>
 
   <h3>Parts</h3>
   <table class="parts-table">
@@ -273,7 +283,7 @@ Pad 6  →  GND   (optional, can share with Pad 5)</pre>
 
   <!-- ═══════════════════════════════════════════════════════ TIER 2 -->
   <h2 id="tier-2">Tier 2 — Compact Build <a class="anchor" href="#tier-2">#</a></h2>
-  <p><strong>Builds on Tier 1.</strong> Permanently soldered on perfboard, with reset button and buffer capacitors. This setup runs stably even with high-resolution gaming mice (Beast X Pro, 4K polling).</p>
+  <p><strong>Builds on Tier 1.</strong> This is the one you'll actually keep on your desk: permanently soldered on perfboard, with a proper reset button and buffer capacitors. Rock-solid even with high-resolution gaming mice (Beast X Pro, 4K polling) — set it up once and forget about it.</p>
 
   <h3>Additional Parts vs. Tier 1</h3>
   <table class="parts-table">
@@ -317,7 +327,7 @@ Pad 6  →  GND   (optional, can share with Pad 5)</pre>
 
   <!-- ═══════════════════════════════════════════════════════ TIER 3 -->
   <h2 id="tier-3">Tier 3 — Full Build <a class="anchor" href="#tier-3">#</a></h2>
-  <p><strong>Builds on Tier 2.</strong> 2× TFT display, 2× encoder, aluminium enclosure, USB-C socket on the panel. Corresponds to the Alpha Edition build.</p>
+  <p><strong>Builds on Tier 2.</strong> The full experience: dual TFT displays, two encoders, an aluminium enclosure and a panel-mounted USB-C socket. Tune your curves live on the device, no laptop needed. This is exactly the Alpha Edition build — the same unit you'd get if you ordered a finished one.</p>
 
   <h3>Additional Parts vs. Tier 2</h3>
   <table class="parts-table">
@@ -405,7 +415,8 @@ Display 2: CS → Pin A, DC → Pin B</pre>
 
   <h2 id="community">Help &amp; Community</h2>
   <p>Questions, problems, preset sharing — all in the Discord:</p>
-  <p><strong>→ <a href="https://discord.gg/PLACEHOLDER" target="_blank">Join Discord</a></strong></p>
+  <p><strong>→ <a href="https://discord.gg/zV8DBPU3d" target="_blank">Join Discord</a></strong></p>
+  <p>And if you'd rather skip the build entirely: ask about a ready-to-use unit there too — same place, same friendly people.</p>
   <p>Video build guide:</p>
   <p><strong>→ <a href="YOUTUBE_PLACEHOLDER" target="_blank">Watch on YouTube</a></strong></p>
 

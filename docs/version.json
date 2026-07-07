@@ -1,14 +1,19 @@
 ﻿{
-    "version":  "2.5.1-alpha",
-    "date":  "2026-06-28",
+    "version":  "2.6.0-alpha",
+    "date":  "2026-07-07",
     "changelog":  [
-                      "**External Correction — Instant Jump mode** (`corrMode = 2`): applies a configurable fraction of the EMA correction vector (0–100 %) as a single mouse report per trigger. Trigger: every received frame (`jumpIntervalMs = 0`) or a user-defined timer (1–20 ms). Gaussian noise (0–50 %) applied independently to X and Y fresh on every jump.",
-                      "**External Correction — three-way mode selector** in GUI: Classic (fixed α, sample/reaching time), Adaptive (innovation-based α), Jump (instant-jump mode). Alpha and Jump parameter sections show/hide based on selected mode.",
-                      "**External Correction** — when enabled, the pre-configured MIM velocity profile (VX/VY spline, Gaussian noise) is now fully suppressed; external correction is the sole correction source.",
-                      "**External Correction** — firmware always boots with correction **disabled** regardless of saved EEPROM state; only an explicit GUI toggle activates it.",
-                      "**External Correction** — GUI checkbox starts unchecked on every launch; connect response no longer overrides it.",
-                      "**External Correction** — `get_ext_correction` reads runtime state instead of EEPROM, eliminating repeated `[EEPROM]` log entries in the monitor.",
-                      "**External Correction** — status poll (`get_ext_correction`) is skipped while correction is OFF; monitor shows only heartbeat and parameter changes."
+                      "**External Correction — priority control**: three-way switch governing how external correction and user mouse input share control. *User Priority* (correction smoothly fades out while the hand is moving), *Corrector Priority* (full correction, previous behaviour), *Weighted* (constant blend factor 0–1 via slider).",
+                      "**External Correction — object-switch suppression**: prediction-based gating rejects frames that fall outside a configurable radius around the predicted target position (velocity-extrapolated), so alternating detections of multiple objects no longer cause the correction to jump. A confirmed object switch requires N consecutive consistent frames (configurable 1–10) and then performs a hard reset onto the new target.",
+                      "**External Correction — light prediction**: optional extrapolation of the target by `velocity × frame age` (0–100 % weight) to compensate measurement latency. Uses the new frame-age field.",
+                      "**External Correction — target-switch reset \u0026 deadband**: innovation above a threshold resets the EMA onto the new target instead of slewing through (active when gate is off); a deadband suppresses micro-jitter output near the target.",
+                      "**External Correction — additive MIM spline feed-forward**: new \"Add. MIM/CIM Splines\" toggle (default OFF) applies the MIM velocity-spline correction on top of the external correction, scaled by a 0–1 weight slider.",
+                      "**External Correction — slew-rate limiter**: optional \"Max Step\" limit (0–100 px, 0 = off) caps the correction magnitude per report while preserving direction (X/Y scaled uniformly), so a brief target outlier can no longer cause a single-report lurch — the correction approaches the target at a controlled maximum speed. Applies to Classic/Adaptive modes.",
+                      "**External Correction — v2 frame format**: parser accepts the new 9-byte `0xFE` frames carrying a 16-bit frame-age field alongside the legacy 7-byte `0xFF` format. Stale frames (age \u003e sample window) are discarded; the GUI shows the last frame age next to the signal lamp.",
+                      "**AIM — key capture in Python GUI**: button map entries are set by clicking \"Set\" and pressing the desired key or mouse button (including side buttons) instead of typing hex codes; \"×\" clears a slot.",
+                      "**AIM profile persistence**: modifier key codes (LCtrl, LShift, … 0xE0–0xE7) are now accepted by profile validation and `set_aim_mapping`. Previously the default map failed its own validation, so the AIM profile silently reverted to defaults on every reboot and GUI writes containing modifiers were discarded.",
+                      "**AIM key output**: mapped keyboard keys are now translated from HID usage IDs to Teensyduino key codes before sending — previously e.g. a mapped Space key typed a comma.",
+                      "**EEPROM profile corruption**: `ExtCorrProfile` (@416) and `CounterStrafeProfile` (@434) overlapped by 22 bytes — saving either profile invalidated the other\u0027s CRC, causing settings to randomly reset. Counter-Strafe profile relocated to address 480.",
+                      "**MKCOMBO mode**: survives the mode-switch reboot; `loadActiveMode()` previously rejected the pending MKCOMBO token and fell back to auto-detection."
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.5.1-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.6.0-alpha.hex"
 }

@@ -419,6 +419,7 @@ body{transition:margin-left .2s ease}
       <div id="dot"></div>
       <span id="s-text" data-i18n="s_disconnected">Disconnected</span>
       <span id="s-fw"></span>
+      <span id="s-hwid"></span>
       <span id="s-lat"></span>
       <div id="lang-toggle">
         <button class="lang-btn active" id="btn-lang-en" onclick="setLang('en')" title="English">EN</button>
@@ -1333,6 +1334,13 @@ function handleLine(ln) {
     document.getElementById('s-fw').textContent = 'FW '+r.fw_version;
   }
 
+  // ── hw_id (from ping): show it + bind MIM profiles per device ──────
+  if(r.hw_id && r.hw_id !== _hwid) {
+    _hwid = r.hw_id;
+    document.getElementById('s-hwid').textContent = 'ID '+_hwid;
+    PM.setDevice(_hwid);
+  }
+
   // ── mode_switch: device is rebooting ────────────────────────────
   if(r.action === 'rebooting') {
     clog(`[MIM] Rebooting as ${r.mode} — disconnecting …`);
@@ -1642,6 +1650,7 @@ function setConnected(v){
     dot.classList.remove('on');
     btn.textContent='⏻  '+T('btn_conn_text'); st.textContent=T('s_disconnected');
     ge('s-fw').textContent=''; ge('s-lat').textContent='';
+    ge('s-hwid').textContent=''; PM.setDevice('');   // zurück auf 'default'-Profile
     ge('btn-out-joypad').disabled=true;
     ge('btn-out-mnk').disabled=true;
     ge('s-mode').textContent='';
@@ -1928,8 +1937,38 @@ function applyEntry(i,p){
 }
 
 // ── Profile Manager ───────────────────────────────────────────────────────────
+let _hwid = '';   // Teensy-HW-ID aus der Ping-Antwort; '' = kein Gerät → 'default'
+
 const PM = {
   active: -1,   // -1=none, 1-3=profile slot
+
+  // Gerätegebundene localStorage-Keys (Namensraum = HW-ID, sonst 'default')
+  _ns()       { return _hwid || 'default'; },
+  _dataKey(n) { return 'mim_profile_data_' + this._ns() + '_' + n; },
+  _nameKey(n) { return 'mim_profile_name_' + this._ns() + '_' + n; },
+
+  // Einmal-Migration: alte globale Keys (mim_profile_data_<n>) → aktueller Namensraum
+  _migrate() {
+    const ns = this._ns();
+    if(localStorage.getItem('mim_migrated_'+ns)) return;
+    localStorage.setItem('mim_migrated_'+ns, '1');
+    for(let n=1; n<=4; n++){
+      const d = localStorage.getItem('mim_profile_data_'+n);
+      if(d !== null && localStorage.getItem(this._dataKey(n)) === null)
+        localStorage.setItem(this._dataKey(n), d);
+      const nm = localStorage.getItem('mim_profile_name_'+n);
+      if(nm !== null && localStorage.getItem(this._nameKey(n)) === null)
+        localStorage.setItem(this._nameKey(n), nm);
+    }
+  },
+
+  // Auf den Namensraum eines Geräts umschalten (bei Ping-hw_id / Disconnect)
+  setDevice(hwid) {
+    _hwid = hwid || '';
+    this._migrate();
+    for(let i=1; i<=4; i++){ const el = ge('pname-'+i); if(el) el.textContent = this.getName(i); }
+    this.clearSelection();
+  },
 
   snapshot() {
     const data = { _mim_preset:true, _schema:1 };
@@ -1964,7 +2003,7 @@ const PM = {
   switchSlot(n) {
     this._setHighlight(n);
     this.active = n;
-    const stored = localStorage.getItem('mim_profile_data_'+n);
+    const stored = localStorage.getItem(this._dataKey(n));
     this.apply(stored ? JSON.parse(stored) : this.defaultData());
     sendAll();
     clog('[MIM] ' + this.getName(n) + ' loaded');
@@ -1984,7 +2023,7 @@ const PM = {
   saveSlot(n) {
     const data = this.snapshot();
     data._profile_name = this.getName(n);
-    localStorage.setItem('mim_profile_data_'+n, JSON.stringify(data));
+    localStorage.setItem(this._dataKey(n), JSON.stringify(data));
     this.active = n;
     this._setHighlight(n);
     clog('[MIM] ' + this.getName(n) + ' saved');
@@ -2013,15 +2052,16 @@ const PM = {
   },
 
   getName(n) {
-    return localStorage.getItem('mim_profile_name_'+n) || T('profile_default').replace('{n}',n);
+    return localStorage.getItem(this._nameKey(n)) || T('profile_default').replace('{n}',n);
   },
   setName(n, name) {
-    localStorage.setItem('mim_profile_name_'+n, name);
+    localStorage.setItem(this._nameKey(n), name);
     const el = ge('pname-'+n);
     if(el) el.textContent = name;
   },
 
   init() {
+    this._migrate();   // 'default'-Namensraum aus alten globalen Keys seeden
     for(let i=1; i<=4; i++){
       const el = ge('pname-'+i);
       if(el) el.textContent = this.getName(i);

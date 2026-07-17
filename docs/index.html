@@ -369,14 +369,6 @@ body{transition:margin-left .2s ease}
 .aim-cap-hint{color:var(--dim2);font-size:.72rem}
 #aim-cap-footer{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px;
   border-top:1px solid var(--border)}
-.aim-stick-grp{display:flex;gap:0;border:1px solid var(--border2);border-radius:3px;
-  overflow:hidden}
-.aim-stick-btn{background:var(--bg3);border:none;border-right:1px solid var(--border2);
-  color:var(--dim);font-size:.8rem;padding:5px 18px;cursor:pointer;
-  transition:background .15s,color .15s}
-.aim-stick-btn:last-child{border-right:none}
-.aim-stick-btn:hover{color:var(--text)}
-.aim-stick-btn.active{background:#1a3a1a;color:var(--green);font-weight:600}
 /* AIM parameter section */
 .aim-preset-row{display:flex;gap:8px;padding:4px 0 8px}
 .aim-preset-btn{font-size:.82rem;padding:4px 14px;border:1px solid var(--border2);
@@ -535,7 +527,7 @@ body{transition:margin-left .2s ease}
     <div id="aim-cap-body">
       <div class="aim-cap-tgt">Controller button: <b id="aim-cap-name">—</b></div>
       <div id="aim-cap-zone" data-i18n="aim_cap_zone">Press the key you want to assign…<br>
-        <span class="aim-cap-hint" data-i18n="aim_cap_hint">(or click a mouse button in this box · Esc to cancel)</span></div>
+        <span class="aim-cap-hint" data-i18n="aim_cap_hint">(keyboard only · Esc to cancel)</span></div>
     </div>
     <div id="aim-cap-footer">
       <button class="fb" id="aim-cap-clear">Clear (none)</button>
@@ -915,18 +907,16 @@ body{transition:margin-left .2s ease}
       </div>
     </div>
 
-    <!-- Mouse → Stick selector -->
+    <!-- Keyboard → left stick (movement).
+         Replaces the old "Mouse → Stick" selector: firmware C always puts the mouse on the
+         right stick (usb_device.cpp writes bytes 10..13 and ignores the `stick` parameter),
+         so that selector could never do anything on the only firmware this tab reaches.
+         The left stick now carries movement — that is what the selector's space is for. -->
     <div class="sec" style="margin-top:7px">
-      <div class="sec-hd" data-i18n="sec_aim">AIM — Mouse → Stick</div>
+      <div class="sec-hd" data-i18n="sec_aim_move">AIM — Keyboard → Left stick (movement)</div>
       <div class="sec-bd">
-        <div class="kim-row">
-          <span class="kim-lbl" style="width:140px" data-i18n="aim_mouse_drives">Mouse drives</span>
-          <div class="aim-stick-grp" id="aim-stick-grp" data-stick="1">
-            <button class="aim-stick-btn" data-stick="0">Left stick</button>
-            <button class="aim-stick-btn active" data-stick="1">Right stick</button>
-          </div>
-          <span style="color:var(--dim2);font-size:.72rem;margin-left:8px" data-i18n="aim_mouse_hint">Which joystick the mouse aim controls</span>
-        </div>
+        <div id="aim-lstick-col"></div>
+        <span style="color:var(--dim2);font-size:.72rem" data-i18n="aim_lstick_hint">Full deflection; diagonals are normalised. The mouse always aims with the right stick.</span>
       </div>
     </div>
 
@@ -1018,9 +1008,9 @@ const STRINGS = {
     cs_empty_msg:'No pairs configured.', cs_add_btn:'+ Add Pair',
     sec_cim:'CIM &#x2014; Controller Input Modifier', sec_cim_sub:'&#x2014; right-stick correction',
     sec_cim_sens:'Correction Sensitivity',
-    sec_aim:'AIM &#x2014; Mouse → Stick', aim_mouse_drives:'Mouse drives',
-    aim_mouse_hint:'Which joystick the mouse aim controls',
-    aim_btn_sub:'&#x2014; assign keyboard / mouse input to each controller button',
+    sec_aim_move:'AIM &#x2014; Keyboard → Left stick (movement)',
+    aim_lstick_hint:'Full deflection; diagonals are normalised. The mouse always aims with the right stick.',
+    aim_btn_sub:'&#x2014; assign a keyboard key to each controller button',
     modal_step1_lbl:'Step 1 &#x2014; Input source',
     modal_cim_title:'Controller pass-through',
     modal_cim_sub:'Gamepad/Controller → Joypad output (CIM)',
@@ -1030,8 +1020,8 @@ const STRINGS = {
     modal_reboot_warn:'Device will reboot and reconnect in the new mode.',
     mnk_combo_title:'Mouse + Keyboard Combo',
     mnk_combo_sub:'Both inputs simultaneously via USB hub (MIM+KIM)',
-    aim_cap_zone:'Press the key you want to assign…<br><span class="aim-cap-hint">(or click a mouse button in this box \xb7 Esc to cancel)</span>',
-    aim_cap_hint:'(or click a mouse button in this box \xb7 Esc to cancel)',
+    aim_cap_zone:'Press the key you want to assign…<br><span class="aim-cap-hint">(keyboard only · Esc to cancel)</span>',
+    aim_cap_hint:'(keyboard only · Esc to cancel)',
     confirm_overwrite:'Overwrite Profile {n}?',
     param_rfs:'RF-Sprd', param_rfd:'RF-Duty', profile_default:'Profile {n}',
   },
@@ -1056,9 +1046,9 @@ const STRINGS = {
     cs_empty_msg:'Keine Paare konfiguriert.', cs_add_btn:'+ Paar hinzuf\xfcgen',
     sec_cim:'CIM &#x2014; Controller Input Modifier', sec_cim_sub:'&#x2014; Rechtstick-Korrektur',
     sec_cim_sens:'Korrektur-Empfindlichkeit',
-    sec_aim:'AIM &#x2014; Maus → Stick', aim_mouse_drives:'Maus steuert',
-    aim_mouse_hint:'Welchen Joystick die Maus steuert',
-    aim_btn_sub:'&#x2014; Tastatur- / Mauseingabe jedem Controller-Button zuweisen',
+    sec_aim_move:'AIM &#x2014; Tastatur → linker Stick (Bewegung)',
+    aim_lstick_hint:'Voller Ausschlag; Diagonalen werden normiert. Die Maus zielt immer mit dem rechten Stick.',
+    aim_btn_sub:'&#x2014; jedem Controller-Button eine Taste zuweisen',
     modal_step1_lbl:'Schritt 1 &#x2014; Eingabequelle',
     modal_cim_title:'Controller Pass-Through',
     modal_cim_sub:'Gamepad/Controller → Joypad-Ausgabe (CIM)',
@@ -1068,8 +1058,8 @@ const STRINGS = {
     modal_reboot_warn:'Ger\xe4t wird neu gestartet und im neuen Modus verbunden.',
     mnk_combo_title:'Mouse + Keyboard Combo',
     mnk_combo_sub:'Beide Eingaben gleichzeitig \xfcber USB-Hub (MIM+KIM)',
-    aim_cap_zone:'Taste dr\xfccken, die du zuweisen m\xf6chtest…<br><span class="aim-cap-hint">(oder Maustaste in diesem Feld klicken \xb7 Esc zum Abbrechen)</span>',
-    aim_cap_hint:'(oder Maustaste in diesem Feld klicken \xb7 Esc zum Abbrechen)',
+    aim_cap_zone:'Taste dr\xfccken, die du zuweisen m\xf6chtest…<br><span class="aim-cap-hint">(nur Tastatur · Esc zum Abbrechen)</span>',
+    aim_cap_hint:'(nur Tastatur · Esc zum Abbrechen)',
     confirm_overwrite:'Profile {n} \xfcberschreiben?',
     param_rfs:'RF-Streuung', param_rfd:'RF-Dr\xfcck-Anteil', profile_default:'Profil {n}',
   }
@@ -1373,8 +1363,12 @@ function handleLine(ln) {
     return;
   }
 
-  // ── get_aim_mapping response (map + mouse_stick) ────────────────
-  if(Array.isArray(r.map) && typeof r.mouse_stick !== 'undefined') {
+  // ── get_aim_mapping response (kbmap + lstick_map) ───────────────
+  //  Was `map + mouse_stick` until AIMProfile v4. A device with older firmware answers with
+  //  `map` and is not recognised here — deliberately: its `map` means the OPPOSITE direction
+  //  ("mouse button sends keycode"), so feeding it into kbmap would show plausible-looking
+  //  but wrong bindings. No match = the tab stays empty, which is honest.
+  if(Array.isArray(r.kbmap) || Array.isArray(r.lstick_map)) {
     AIM.apply(r);
     return;
   }
@@ -2842,13 +2836,18 @@ const CIM = {
 // Mouse → Stick Button-Mapping. 16 Controller-Buttons → Keyboard/Maus-Codes.
 const AIM_BTN_NAMES = ['A','B','X','Y','LB','RB','LT','RT',
   'Dpad ↑','Dpad ↓','Dpad ←','Dpad →','View/Back','Menu/Start','L3','R3'];
+// lstick_map order — must match AIM_LSTICK_DEFAULT in aim_params.h
+const AIM_LSTICK_NAMES = ['Stick ↑','Stick ↓','Stick ←','Stick →'];
 
-// Gemeinsame Optionsliste: "none" + Maus + Keyboard (USB HID usage codes)
+// Options: "none" + keyboard only (USB HID usage codes).
+// Mouse codes (0xF0..0xF4) were removed with AIMProfile v4: they belonged to the old map[]
+// ("mouse button sends keycode"), a firmware-A-only feature. Both remaining tables — kbmap
+// and lstick_map — accept keyboard codes only, and the firmware validation rejects mouse
+// codes outright. Offering them would have been a trap: the device would silently keep the
+// old value. The mouse buttons are hard-wired now (Left→A, Right→B, Back→X, Fwd→Y,
+// Wheel-click→R3, Wheel↑→RB, Wheel↓→View).
 const AIM_CODES = (() => {
   const list = [{c:0x00,l:'— none —'}];
-  // Maustasten
-  list.push({c:0xF0,l:'Mouse Left'},{c:0xF1,l:'Mouse Right'},{c:0xF2,l:'Mouse Middle'},
-            {c:0xF3,l:'Mouse Button 4'},{c:0xF4,l:'Mouse Button 5'});
   // Buchstaben A–Z (0x04..0x1D)
   for(let i=0;i<26;i++) list.push({c:0x04+i, l:String.fromCharCode(65+i)});
   // Ziffern 1–9 (0x1E..0x26), 0 (0x27)
@@ -2881,7 +2880,6 @@ const KEYCODE_TO_HID = (() => {
   return m;
 })();
 // MouseEvent.button → HID usage (Mouse Left/Right/Middle/B4/B5)
-const MOUSEBTN_TO_HID = {0:0xF0, 2:0xF1, 1:0xF2, 3:0xF3, 4:0xF4};
 
 const AIM_PRESETS = {
   Smooth:   {ema_alpha:0.15, noise_gate:3.0, sensitivity:0.8,  max_deflect:0.75, curve_exp:0.7},
@@ -2891,8 +2889,11 @@ const AIM_PRESETS = {
 const AIM_CURVE_PRESETS = {Soft:0.7, Linear:1.0, Aggressive:1.8};
 
 const AIM = {
-  map: new Array(16).fill(0),
-  mouseStick: 1,   // 0=left, 1=right
+  // kbmap: keyboard → controller button (16). Was `map` until AIMProfile v4, which had the
+  // OPPOSITE meaning ("mouse button i sends this keycode") and only worked on firmware A.
+  kbmap: new Array(16).fill(0),
+  // lstick_map: keyboard → left stick (4) — up, down, left, right
+  lstick: new Array(4).fill(0),
   depth: 0,
   loaded: false,
   cfg: {ema_alpha:0.3, noise_gate:2.0, sensitivity:1.0, max_deflect:0.75, curve_exp:1.0},
@@ -2904,50 +2905,61 @@ const AIM = {
   },
 
   build() {
-    const col=ge('aim-map-col'); if(!col) return;
-    col.innerHTML = AIM_BTN_NAMES.map((name,i)=>`
-      <div class="aim-map-row">
-        <span class="aim-map-num">${i}</span>
-        <span class="aim-map-name">${name}</span>
-        <span class="aim-map-cur" id="aim-cur-${i}">${this.codeLabel(this.map[i])}</span>
-        <button class="aim-map-set" data-idx="${i}">Set</button>
-      </div>`).join('');
-    col.querySelectorAll('.aim-map-set').forEach(b=>{
-      b.addEventListener('click',()=>AIMCapture.open(parseInt(b.dataset.idx)));
-    });
-    // Stick-Selector
-    ge('aim-stick-grp').querySelectorAll('.aim-stick-btn').forEach(b=>{
-      b.addEventListener('click',()=>{
-        this.mouseStick = parseInt(b.dataset.stick);
-        this._renderStick();
-        this._send();
+    const col=ge('aim-map-col');
+    if(col){
+      col.innerHTML = AIM_BTN_NAMES.map((name,i)=>`
+        <div class="aim-map-row">
+          <span class="aim-map-num">${i}</span>
+          <span class="aim-map-name">${name}</span>
+          <span class="aim-map-cur" id="aim-cur-${i}">${this.codeLabel(this.kbmap[i])}</span>
+          <button class="aim-map-set" data-idx="${i}">Set</button>
+        </div>`).join('');
+      col.querySelectorAll('.aim-map-set').forEach(b=>{
+        b.addEventListener('click',()=>AIMCapture.open(parseInt(b.dataset.idx),'kbmap'));
       });
-    });
+    }
+    const lc=ge('aim-lstick-col');
+    if(lc){
+      lc.innerHTML = AIM_LSTICK_NAMES.map((name,i)=>`
+        <div class="aim-map-row">
+          <span class="aim-map-num">${i}</span>
+          <span class="aim-map-name">${name}</span>
+          <span class="aim-map-cur" id="aim-lcur-${i}">${this.codeLabel(this.lstick[i])}</span>
+          <button class="aim-lstick-set" data-idx="${i}">Set</button>
+        </div>`).join('');
+      lc.querySelectorAll('.aim-lstick-set').forEach(b=>{
+        b.addEventListener('click',()=>AIMCapture.open(parseInt(b.dataset.idx),'lstick'));
+      });
+    }
   },
 
   _renderRow(i) {
-    const cur=ge('aim-cur-'+i); if(cur) cur.textContent = this.codeLabel(this.map[i]);
+    const cur=ge('aim-cur-'+i); if(cur) cur.textContent = this.codeLabel(this.kbmap[i]);
+  },
+  _renderLRow(i) {
+    const cur=ge('aim-lcur-'+i); if(cur) cur.textContent = this.codeLabel(this.lstick[i]);
   },
 
   // Belegung aus dem Capture-Modal übernehmen
-  setMapping(i, code) {
+  setMapping(i, code, kind) {
     if(this.depth>0) return;
-    if(i<0 || i>=16) return;
-    this.map[i] = code|0;
-    this._renderRow(i);
+    if(kind==='lstick'){
+      if(i<0 || i>=4) return;
+      this.lstick[i] = code|0;
+      this._renderLRow(i);
+    } else {
+      if(i<0 || i>=16) return;
+      this.kbmap[i] = code|0;
+      this._renderRow(i);
+    }
     this._send();
   },
 
-  _renderStick() {
-    const grp=ge('aim-stick-grp'); if(!grp) return;
-    grp.dataset.stick=this.mouseStick;
-    grp.querySelectorAll('.aim-stick-btn').forEach(b=>{
-      b.classList.toggle('active', parseInt(b.dataset.stick)===this.mouseStick);
-    });
-  },
-
   _send() {
-    sendJson({cmd:'set_aim_mapping', data:{ map:this.map.slice(0,16), mouse_stick:this.mouseStick }});
+    sendJson({cmd:'set_aim_mapping', data:{
+      kbmap: this.kbmap.slice(0,16),
+      lstick_map: this.lstick.slice(0,4),
+    }});
   },
 
   // ── AIM config (ema_alpha / noise_gate / sensitivity / max_deflect / curve_exp) ──
@@ -3062,11 +3074,14 @@ const AIM = {
   apply(r) {
     this.depth++;
     try {
-      if(Array.isArray(r.map)) for(let i=0;i<16;i++){
-        this.map[i] = r.map[i]??0;
+      if(Array.isArray(r.kbmap)) for(let i=0;i<16;i++){
+        this.kbmap[i] = r.kbmap[i]??0;
         this._renderRow(i);
       }
-      if(typeof r.mouse_stick==='number'){ this.mouseStick=r.mouse_stick; this._renderStick(); }
+      if(Array.isArray(r.lstick_map)) for(let i=0;i<4;i++){
+        this.lstick[i] = r.lstick_map[i]??0;
+        this._renderLRow(i);
+      }
     } finally { this.depth--; }
     this.loaded=true;
   },
@@ -3078,21 +3093,18 @@ const AIM = {
   }
 };
 
-// Key/Maus-Capture-Modal für die AIM-Button-Belegung
+// Key-Capture-Modal für die AIM-Belegung (kbmap + lstick_map)
 const AIMCapture = {
   idx: -1,
+  kind: 'kbmap',   // 'kbmap' | 'lstick'
   init() {
     const cancel=ge('aim-cap-cancel'), clear=ge('aim-cap-clear'), zone=ge('aim-cap-zone');
     if(cancel) cancel.onclick = ()=>this.close();
     if(clear)  clear.onclick  = ()=>this._assign(0x00);
+    // Keyboard only: mouse capture was removed with AIMProfile v4 together with map[].
+    // Both remaining tables reject mouse codes (firmware validation does too), so accepting
+    // a click here would have looked like it worked and silently changed nothing.
     if(zone){
-      zone.addEventListener('mousedown', e=>{
-        if(this.idx<0) return;
-        e.preventDefault();
-        const code = MOUSEBTN_TO_HID[e.button];
-        if(code!==undefined) this._assign(code);
-      });
-      // Rechtsklick-Kontextmenü im Capture-Feld unterdrücken (= Mouse Right zuweisen)
       zone.addEventListener('contextmenu', e=>{ if(this.idx>=0) e.preventDefault(); });
     }
   },
@@ -3105,9 +3117,10 @@ const AIMCapture = {
     if(code!==undefined) AIMCapture._assign(code);
     // unbekannte Taste → ignorieren, Modal bleibt offen
   },
-  open(i) {
-    this.idx=i;
-    const nm=ge('aim-cap-name'); if(nm) nm.textContent = AIM_BTN_NAMES[i]+' (#'+i+')';
+  open(i, kind='kbmap') {
+    this.idx=i; this.kind=kind;
+    const names = (kind==='lstick') ? AIM_LSTICK_NAMES : AIM_BTN_NAMES;
+    const nm=ge('aim-cap-name'); if(nm) nm.textContent = names[i]+' (#'+i+')';
     ge('aim-cap-overlay').style.display='flex';
     document.addEventListener('keydown', this._onKey, true);
   },
@@ -3117,8 +3130,8 @@ const AIMCapture = {
     this.idx=-1;
   },
   _assign(code) {
-    const i=this.idx; this.close();
-    AIM.setMapping(i, code);
+    const i=this.idx, k=this.kind; this.close();
+    AIM.setMapping(i, code, k);
   }
 };
 

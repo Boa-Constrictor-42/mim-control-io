@@ -527,7 +527,7 @@ body{transition:margin-left .2s ease}
     <div id="aim-cap-body">
       <div class="aim-cap-tgt">Controller button: <b id="aim-cap-name">—</b></div>
       <div id="aim-cap-zone" data-i18n="aim_cap_zone">Press the key you want to assign…<br>
-        <span class="aim-cap-hint" data-i18n="aim_cap_hint">(keyboard only · Esc to cancel)</span></div>
+        <span class="aim-cap-hint" id="aim-cap-hint" data-i18n="aim_cap_hint">(key / mouse / wheel · Esc to cancel)</span></div>
     </div>
     <div id="aim-cap-footer">
       <button class="fb" id="aim-cap-clear">Clear (none)</button>
@@ -1020,8 +1020,8 @@ const STRINGS = {
     modal_reboot_warn:'Device will reboot and reconnect in the new mode.',
     mnk_combo_title:'Mouse + Keyboard Combo',
     mnk_combo_sub:'Both inputs simultaneously via USB hub (MIM+KIM)',
-    aim_cap_zone:'Press the key you want to assign…<br><span class="aim-cap-hint">(keyboard only · Esc to cancel)</span>',
-    aim_cap_hint:'(keyboard only · Esc to cancel)',
+    aim_cap_zone:'Press the key you want to assign…<br><span class="aim-cap-hint">(key / mouse / wheel · Esc to cancel)</span>',
+    aim_cap_hint:'(key / mouse / wheel · Esc to cancel)',
     confirm_overwrite:'Overwrite Profile {n}?',
     param_rfs:'RF-Sprd', param_rfd:'RF-Duty', profile_default:'Profile {n}',
   },
@@ -1058,8 +1058,8 @@ const STRINGS = {
     modal_reboot_warn:'Ger\xe4t wird neu gestartet und im neuen Modus verbunden.',
     mnk_combo_title:'Mouse + Keyboard Combo',
     mnk_combo_sub:'Beide Eingaben gleichzeitig \xfcber USB-Hub (MIM+KIM)',
-    aim_cap_zone:'Taste dr\xfccken, die du zuweisen m\xf6chtest…<br><span class="aim-cap-hint">(nur Tastatur · Esc zum Abbrechen)</span>',
-    aim_cap_hint:'(nur Tastatur · Esc zum Abbrechen)',
+    aim_cap_zone:'Taste dr\xfccken, die du zuweisen m\xf6chtest…<br><span class="aim-cap-hint">(Taste / Maus / Rad · Esc zum Abbrechen)</span>',
+    aim_cap_hint:'(Taste / Maus / Rad · Esc zum Abbrechen)',
     confirm_overwrite:'Profile {n} \xfcberschreiben?',
     param_rfs:'RF-Streuung', param_rfd:'RF-Dr\xfcck-Anteil', profile_default:'Profil {n}',
   }
@@ -2839,15 +2839,17 @@ const AIM_BTN_NAMES = ['A','B','X','Y','LB','RB','LT','RT',
 // lstick_map order — must match AIM_LSTICK_DEFAULT in aim_params.h
 const AIM_LSTICK_NAMES = ['Stick ↑','Stick ↓','Stick ←','Stick →'];
 
-// Options: "none" + keyboard only (USB HID usage codes).
-// Mouse codes (0xF0..0xF4) were removed with AIMProfile v4: they belonged to the old map[]
-// ("mouse button sends keycode"), a firmware-A-only feature. Both remaining tables — kbmap
-// and lstick_map — accept keyboard codes only, and the firmware validation rejects mouse
-// codes outright. Offering them would have been a trap: the device would silently keep the
-// old value. The mouse buttons are hard-wired now (Left→A, Right→B, Back→X, Fwd→Y,
-// Wheel-click→R3, Wheel↑→RB, Wheel↓→View).
+// Options: "none" + mouse/wheel + keyboard (USB HID usage codes).
+// kbmap trägt jetzt EINGABE → Controller-Button: Tastatur UND Maus/Rad. Die frühere feste
+// Maus-Tabelle in der Firmware ist entfallen; welche Maustaste welchen Button treibt, steht
+// jetzt in kbmap und ist konfigurierbar. Maus-Codes: 0xF0..0xF4 = L/R/M/B4/B5, 0xF5/0xF6 =
+// Rad hoch/runter (Bit i der Maus-Buttons ↔ Code 0xF0+i). lstick_map bleibt tastatur-only.
 const AIM_CODES = (() => {
   const list = [{c:0x00,l:'— none —'}];
+  // Maus + Rad
+  list.push({c:0xF0,l:'Mouse L'},{c:0xF1,l:'Mouse R'},{c:0xF2,l:'Mouse M'},
+            {c:0xF3,l:'Mouse B4'},{c:0xF4,l:'Mouse B5'},
+            {c:0xF5,l:'Wheel ↑'},{c:0xF6,l:'Wheel ↓'});
   // Buchstaben A–Z (0x04..0x1D)
   for(let i=0;i<26;i++) list.push({c:0x04+i, l:String.fromCharCode(65+i)});
   // Ziffern 1–9 (0x1E..0x26), 0 (0x27)
@@ -2879,7 +2881,9 @@ const KEYCODE_TO_HID = (() => {
   m['ControlRight']=0xE4; m['ShiftRight']=0xE5; m['AltRight']=0xE6;
   return m;
 })();
-// MouseEvent.button → HID usage (Mouse Left/Right/Middle/B4/B5)
+// MouseEvent.button → Maus-Code. e.button: 0=links, 1=Mitte, 2=rechts, 3=zurueck(B4),
+// 4=vor(B5). Muss zum Firmware-Schema passen (0xF0=L, 0xF1=R, 0xF2=M, 0xF3=B4, 0xF4=B5).
+const MOUSEBTN_TO_HID = {0:0xF0, 2:0xF1, 1:0xF2, 3:0xF3, 4:0xF4};
 
 const AIM_PRESETS = {
   Smooth:   {ema_alpha:0.15, noise_gate:3.0, sensitivity:0.8,  max_deflect:0.75, curve_exp:0.7},
@@ -2891,7 +2895,9 @@ const AIM_CURVE_PRESETS = {Soft:0.7, Linear:1.0, Aggressive:1.8};
 const AIM = {
   // kbmap: keyboard → controller button (16). Was `map` until AIMProfile v4, which had the
   // OPPOSITE meaning ("mouse button i sends this keycode") and only worked on firmware A.
-  kbmap: new Array(16).fill(0),
+  // Vorbelegung (bis get_aim_mapping vom Geraet kommt) — spiegelt AIM_KBMAP_DEFAULT:
+  // A←MausL, B←MausR, X←Maus-B4, Y←Maus-B5, R3←Maus-M; Rest Tastatur.
+  kbmap: [0xF0,0xF1,0xF3,0xF4,0x14,0x08,0xE1,0x2C,0x1E,0x1F,0x20,0x21,0x2B,0x29,0xE0,0xF2],
   // lstick_map: keyboard → left stick (4) — up, down, left, right
   lstick: new Array(4).fill(0),
   depth: 0,
@@ -3101,11 +3107,20 @@ const AIMCapture = {
     const cancel=ge('aim-cap-cancel'), clear=ge('aim-cap-clear'), zone=ge('aim-cap-zone');
     if(cancel) cancel.onclick = ()=>this.close();
     if(clear)  clear.onclick  = ()=>this._assign(0x00);
-    // Keyboard only: mouse capture was removed with AIMProfile v4 together with map[].
-    // Both remaining tables reject mouse codes (firmware validation does too), so accepting
-    // a click here would have looked like it worked and silently changed nothing.
     if(zone){
+      // kbmap nimmt Tastatur UND Maus/Rad; lstick nur Tastatur (kind-Gate). Der
+      // Kontextmenue-Unterdruecker gilt immer, sonst kaeme das Menue beim Rechtsklick.
       zone.addEventListener('contextmenu', e=>{ if(this.idx>=0) e.preventDefault(); });
+      zone.addEventListener('mousedown', e=>{
+        if(this.idx<0 || this.kind!=='kbmap') return;
+        const code = MOUSEBTN_TO_HID[e.button];
+        if(code!==undefined){ e.preventDefault(); this._assign(code); }
+      });
+      zone.addEventListener('wheel', e=>{
+        if(this.idx<0 || this.kind!=='kbmap') return;
+        e.preventDefault();
+        this._assign(e.deltaY < 0 ? 0xF5 : 0xF6);   // hoch → 0xF5, runter → 0xF6
+      }, {passive:false});
     }
   },
   // document-level keydown (this === document → AIMCapture explizit referenzieren)
@@ -3121,6 +3136,11 @@ const AIMCapture = {
     this.idx=i; this.kind=kind;
     const names = (kind==='lstick') ? AIM_LSTICK_NAMES : AIM_BTN_NAMES;
     const nm=ge('aim-cap-name'); if(nm) nm.textContent = names[i]+' (#'+i+')';
+    // Hinweis je nach Tabelle: lstick ist tastatur-only, kbmap nimmt auch Maus/Rad.
+    const hint=ge('aim-cap-hint');
+    if(hint) hint.textContent = (kind==='lstick')
+      ? '(keyboard only · Esc to cancel)'
+      : '(key / mouse / wheel · Esc to cancel)';
     ge('aim-cap-overlay').style.display='flex';
     document.addEventListener('keydown', this._onKey, true);
   },

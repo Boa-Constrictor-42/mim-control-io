@@ -1,14 +1,8 @@
 ﻿{
-    "version":  "2.10.0-alpha",
+    "version":  "2.11.1-alpha",
     "date":  "2026-07-17",
     "changelog":  [
-                      "**USB hub support — mouse *and* keyboard at once (AIM).** A hub on the host port was previously dead; the device saw nothing behind it. Now a mouse and a keyboard on the same hub work together: the mouse aims, the keyboard drives controller buttons. This was physically impossible before — the firmware could only ever claim one of the two.",
-                      "**Keyboard → left stick (movement).** WASD (configurable) now drives the **left** analog stick, where every game expects movement. Diagonals are normalised so diagonal isn\u0027t faster than straight. The left stick was previously hard-wired to neutral, so there was nowhere for movement to go — WASD sat on the D-pad, which no game uses to walk.",
-                      "**Mouse buttons and wheel are now freely assignable.** In the AIM button assignment, each controller button can take a keyboard key **or** a mouse button/wheel as its trigger — pick it in the same \"Set\" capture. Previously the mouse buttons were hard-wired (Left→A, Right→B, …) and could not be changed.",
-                      "**MKCOMBO — mouse + keyboard combined (Firmware A).** With a hub, Firmware A now runs the mouse (MIM cursor correction) and the keyboard (KIM sequences) at the same time. This mode existed in name only before and silently behaved like plain MIM.",
-                      "**New AIM default binding.** WASD on the left stick; the five mouse buttons on A/B/X/Y/R3; Shift/Space on the analog triggers LT/RT; D-pad on 1/2/3/4; L3 on Left-Ctrl. AIM settings are reset once to these defaults on update (MIM/CIM/KIM profiles are untouched — separate profiles, separate addresses). Mouse wheel up/down are now assignable but unbound by default (were fixed to RB/View).",
-                      "**MIM stayed safe with a hub attached.** Keyboard modifiers (Shift/Ctrl/Alt/GUI) are no longer passed through to the PC in MIM/AIM mode when a hub enumerates a keyboard — without the gate, MIM would have leaked modifiers while swallowing normal keys, i.e. a half-dead keyboard. Verified on hardware: the device sees the Shift, the PC does not.",
-                      "**Firmware version reported itself as 2.8.0.** The version string was not pulled during releases, so a device on 2.9.0 answered \"2.8.0\" — a bug report would have chased the wrong version. Now bumped and read back after flashing."
+                      "**AIM recoil compensation (splines).** A time-based curve, triggered by your fire key, pushes the right stick to counter a weapon\u0027s recoil while you hold fire — independent of your aiming, so it works even when you don\u0027t move the mouse. You draw the pull as a 7-point curve per axis (px/s), set how long it lasts and how strong it is, and it ramps up and settles on its own. **Off by default** — nothing moves until you enable it and draw a curve. It lives in its own profile, so tuning it never touches your MIM or CIM settings. Configured in the Python control app\u0027s AIM tab (Firmware C). The fire trigger is selectable (a mouse button or a key)."
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.10.0-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.11.1-alpha.hex"
 }

@@ -1,8 +1,8 @@
 ﻿{
-    "version":  "2.11.1-alpha",
-    "date":  "2026-07-17",
+    "version":  "2.12.0-alpha",
+    "date":  "2026-07-30",
     "changelog":  [
-                      "**AIM recoil compensation (splines).** A time-based curve, triggered by your fire key, pushes the right stick to counter a weapon\u0027s recoil while you hold fire — independent of your aiming, so it works even when you don\u0027t move the mouse. You draw the pull as a 7-point curve per axis (px/s), set how long it lasts and how strong it is, and it ramps up and settles on its own. **Off by default** — nothing moves until you enable it and draw a curve. It lives in its own profile, so tuning it never touches your MIM or CIM settings. Configured in the Python control app\u0027s AIM tab (Firmware C). The fire trigger is selectable (a mouse button or a key)."
+                      "**External Correction — your buttons now come from the Teensy, not Windows.** When you run External Correction with a PC-side sender, the gate (e.g. \"only while the right mouse button is held\") is now driven by the mouse on the Teensy itself, reported back over a new wire: **TX3 / pin 14 → FTDI RX**. This fixes a second mouse on the PC accidentally arming the correction — Windows merges all mice into one button state, so only the Teensy can tell which mouse you actually clicked. If you use External Correction, add the TX3 wire (see the updated wiring sheet); if you don\u0027t, nothing changes."
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.11.1-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.12.0-alpha.hex"
 }

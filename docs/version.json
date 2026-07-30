@@ -1,8 +1,8 @@
 ﻿{
-    "version":  "2.12.0-alpha",
+    "version":  "2.13.0-alpha",
     "date":  "2026-07-30",
     "changelog":  [
-                      "**External Correction — your buttons now come from the Teensy, not Windows.** When you run External Correction with a PC-side sender, the gate (e.g. \"only while the right mouse button is held\") is now driven by the mouse on the Teensy itself, reported back over a new wire: **TX3 / pin 14 → FTDI RX**. This fixes a second mouse on the PC accidentally arming the correction — Windows merges all mice into one button state, so only the Teensy can tell which mouse you actually clicked. If you use External Correction, add the TX3 wire (see the updated wiring sheet); if you don\u0027t, nothing changes."
+                      "**External Correction — two new overshoot brakes for aggressive settings.** If a faster/more aggressive correction made the aim overshoot the target, two switches in the External-Correction tab now help — both **off by default**, so nothing changes until you turn them on. **In-Flight-Reduktion** stops the correction from re-commanding what it has already sent but not yet seen (it accounts for the round-trip delay), so you can push sensitivity harder without overshoot. **Nah-Ziel-Limit** eases the speed as you close on the target for a soft landing without overshoot on arrival. Each has one slider (amount / knee distance)."
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.12.0-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.13.0-alpha.hex"
 }

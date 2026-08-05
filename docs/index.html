@@ -631,6 +631,70 @@ body{transition:margin-left .2s ease}
     <div class="sec-bd" id="params-bd"></div>
   </div>
 
+  <!-- Auto-Mark -->
+  <div class="sec">
+    <div class="sec-hd" style="display:flex;align-items:center;justify-content:space-between">
+      <span data-i18n="sec_am">Auto-Mark</span>
+      <label class="kim-sw-wrap" title="Enable / disable Auto-Mark">
+        <input type="checkbox" id="am-active-chk">
+        <span class="kim-sw-track"><span class="kim-sw-thumb"></span></span>
+      </label>
+      <span id="am-active-lbl" style="font-size:.8rem;color:var(--dim)">inactive</span>
+    </div>
+    <div class="sec-bd">
+      <div class="kim-row">
+        <span class="kim-lbl" data-i18n="am_trigger">Trigger</span>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer">
+          <input type="radio" name="am-trigger-mode" id="am-trg-single" value="0" checked>
+          <span style="font-size:.82rem" data-i18n="am_trg_single">Single mouse button</span>
+        </label>
+        <select id="am-btn-sel"></select>
+      </div>
+      <div class="kim-row">
+        <span class="kim-lbl"></span>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer">
+          <input type="radio" name="am-trigger-mode" id="am-trg-combo" value="1">
+          <span style="font-size:.82rem" data-i18n="am_trg_combo">LMB + RMB (both held)</span>
+        </label>
+      </div>
+      <div style="font-size:.72rem;color:var(--dim2);padding-left:98px;margin-top:1px" data-i18n="am_trigger_hint">
+        Marking runs only while the trigger is held down.
+      </div>
+
+      <div class="kim-row" style="padding-top:8px">
+        <span class="kim-lbl" data-i18n="am_key">Ping key</span>
+        <select id="am-key-sel"></select>
+      </div>
+
+      <div class="kim-row">
+        <span class="kim-lbl" data-i18n="am_interval">Interval</span>
+        <input type="number" class="kim-ms" id="am-interval" min="100" max="10000" step="10" value="1000">
+        <span class="kim-unit">ms</span>
+        <span class="kim-unit">± σ</span>
+        <input type="number" class="kim-ms" id="am-int-jit" min="0" max="2000" step="10" value="150">
+        <span class="kim-unit">ms</span>
+      </div>
+      <div class="kim-row">
+        <span class="kim-lbl" data-i18n="am_hold">Hold</span>
+        <input type="number" class="kim-ms" id="am-hold" min="5" max="500" step="5" value="40">
+        <span class="kim-unit">ms</span>
+        <span class="kim-unit">± σ</span>
+        <input type="number" class="kim-ms" id="am-hold-jit" min="0" max="2000" step="5" value="10">
+        <span class="kim-unit">ms</span>
+      </div>
+
+      <div class="kim-row" style="padding-top:8px">
+        <span class="kim-lbl" data-i18n="am_motion">Motion</span>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer">
+          <input type="checkbox" id="am-motion-chk">
+          <span style="font-size:.82rem" data-i18n="am_motion_req">Only ping after actual mouse movement</span>
+        </label>
+        <input type="number" class="kim-ms" id="am-motion-thr" min="0" max="10000" step="5" value="40">
+        <span class="kim-unit">counts</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer -->
   <div id="footer">
     <button class="fb prim" id="btn-all" data-i18n="btn_send_all">Send all values</button>
@@ -1006,6 +1070,12 @@ const STRINGS = {
     kim_bind_waiting:'&#x2190; Press a key…', step_n:'Step {n}',
     sec_cs:'Counter-Strafe', cs_active:'active', cs_inactive:'inactive',
     cs_empty_msg:'No pairs configured.', cs_add_btn:'+ Add Pair',
+    sec_am:'Auto-Mark', am_active:'active', am_inactive:'inactive',
+    am_trigger:'Trigger', am_trg_single:'Single mouse button',
+    am_trg_combo:'LMB + RMB (both held)',
+    am_trigger_hint:'Marking runs only while the trigger is held down.',
+    am_key:'Ping key', am_interval:'Interval', am_hold:'Hold',
+    am_motion:'Motion', am_motion_req:'Only ping after actual mouse movement',
     sec_cim:'CIM &#x2014; Controller Input Modifier', sec_cim_sub:'&#x2014; right-stick correction',
     sec_cim_sens:'Correction Sensitivity',
     sec_aim_move:'AIM &#x2014; Keyboard → Left stick (movement)',
@@ -1044,6 +1114,12 @@ const STRINGS = {
     kim_bind_waiting:'&#x2190; Taste dr\xfccken…', step_n:'Step {n}',
     sec_cs:'Counter-Strafe', cs_active:'aktiv', cs_inactive:'inaktiv',
     cs_empty_msg:'Keine Paare konfiguriert.', cs_add_btn:'+ Paar hinzuf\xfcgen',
+    sec_am:'Auto-Mark', am_active:'aktiv', am_inactive:'inaktiv',
+    am_trigger:'Ausl\xf6ser', am_trg_single:'Einzelne Maustaste',
+    am_trg_combo:'LMB + RMB (beide gehalten)',
+    am_trigger_hint:'Markiert wird nur, solange der Ausl\xf6ser gehalten wird.',
+    am_key:'Ping-Taste', am_interval:'Intervall', am_hold:'Haltezeit',
+    am_motion:'Bewegung', am_motion_req:'Nur pingen, wenn die Maus bewegt wurde',
     sec_cim:'CIM &#x2014; Controller Input Modifier', sec_cim_sub:'&#x2014; Rechtstick-Korrektur',
     sec_cim_sens:'Korrektur-Empfindlichkeit',
     sec_aim_move:'AIM &#x2014; Tastatur → linker Stick (Bewegung)',
@@ -1356,6 +1432,7 @@ function handleLine(ln) {
     return;
   }
   if(typeof r.cs_enabled !== 'undefined') { CS.init(r); return; }
+  if(typeof r.am_enabled !== 'undefined') { AM.init(r); return; }
 
   // ── get_aim_config response (ema_alpha / noise_gate / sensitivity …) ──
   if(typeof r.ema_alpha !== 'undefined') {
@@ -1432,7 +1509,7 @@ function activateTab(mode) {
     if(tabKim) { tabKim.disabled = false; }
     const panelMim = ge('panel-mim');
     if(panelMim) panelMim.classList.add('active');
-    if(S.connected) setTimeout(()=>{ KIM.load(); CS.load(); }, 150);
+    if(S.connected) setTimeout(()=>{ KIM.load(); CS.load(); AM.load(); }, 150);
   } else {
     // Einzelmodus: passenden Tab aktivieren
     let activeId = 'mim';
@@ -1445,6 +1522,7 @@ function activateTab(mode) {
     if(activeTab)   { activeTab.classList.add('active'); activeTab.disabled = false; }
     if(activePanel)  activePanel.classList.add('active');
 
+    if(activeId === 'mim' && S.connected) setTimeout(()=>AM.load(), 150);
     if(activeId === 'kim' && S.connected) setTimeout(()=>{ KIM.load(); CS.load(); }, 150);
     if(activeId === 'cim' && S.connected) setTimeout(()=>CIM.load(), 150);
     if(activeId === 'aim' && S.connected) setTimeout(()=>AIM.load(), 150);
@@ -2604,6 +2682,91 @@ const CS = {
   load() { if(S.connected) sendJson({cmd:'get_cs_config'}); }
 };
 
+// ── AM (Auto-Mark) ───────────────────────────────────────────────────────────
+//  Solange die Auslöser-Taste gehalten wird, tickt die Firmware eine Ping-Taste.
+//  Auslöser ist entweder EINE Maustaste (ODER-Maske) oder LMB+RMB zugleich
+//  (Maske 0x03 + am_trigger_all=1) — die Firmware wertet beides über dieselbe
+//  Maske aus, nur die Verknüpfung unterscheidet sich.
+const AM_BUTTONS = [
+  {m:0x01,l:'LMB'},{m:0x02,l:'RMB'},{m:0x04,l:'MMB'},{m:0x08,l:'B4'},{m:0x10,l:'B5'},
+];
+const AM_COMBO_MASK = 0x03;   // LMB + RMB
+
+const AM = {
+  profile: {am_enabled:0, am_trigger_mask:0x02, am_trigger_all:0, am_ping_hid:0x1D,
+            am_require_motion:0, am_interval_ms:1000, am_interval_jitter_ms:150,
+            am_hold_ms:40, am_hold_jitter_ms:10, am_motion_threshold:40},
+  _loading:false,
+
+  buildOpts() {
+    ge('am-btn-sel').innerHTML = AM_BUTTONS.map(b=>`<option value="${b.m}">${b.l}</option>`).join('');
+    ge('am-key-sel').innerHTML = _kimKeyOpts(this.profile.am_ping_hid);
+  },
+
+  init(data) {
+    for(const k in this.profile)
+      if(typeof data[k] !== 'undefined') this.profile[k] = data[k];
+    this._syncUi();
+  },
+
+  _syncUi() {
+    this._loading = true;
+    const p = this.profile;
+    ge('am-active-chk').checked = !!p.am_enabled;
+    this._setLbl();
+    ge('am-trg-single').checked = !p.am_trigger_all;
+    ge('am-trg-combo').checked  = !!p.am_trigger_all;
+    // Erste gesetzte Bitposition gewinnt — die UI kennt nur eine Taste pro
+    // ODER-Auslöser, die Firmware erlaubt prinzipiell mehrere.
+    const btn = AM_BUTTONS.find(b => p.am_trigger_mask & b.m);
+    ge('am-btn-sel').value = String(btn ? btn.m : 0x02);
+    ge('am-key-sel').innerHTML = _kimKeyOpts(p.am_ping_hid);
+    ge('am-interval').value    = p.am_interval_ms;
+    ge('am-int-jit').value     = p.am_interval_jitter_ms;
+    ge('am-hold').value        = p.am_hold_ms;
+    ge('am-hold-jit').value    = p.am_hold_jitter_ms;
+    ge('am-motion-chk').checked = !!p.am_require_motion;
+    ge('am-motion-thr').value   = p.am_motion_threshold;
+    this._applyTriggerMode();
+    this._loading = false;
+  },
+
+  _setLbl() {
+    const lbl = ge('am-active-lbl');
+    lbl.textContent = T(this.profile.am_enabled ? 'am_active' : 'am_inactive');
+    lbl.style.color = this.profile.am_enabled ? 'var(--green)' : 'var(--dim)';
+  },
+
+  // Im Kombi-Modus ist die Maske fix — die Einzeltasten-Auswahl wäre irreführend.
+  _applyTriggerMode() { ge('am-btn-sel').disabled = ge('am-trg-combo').checked; },
+
+  onChange() {
+    if(this._loading) return;
+    const p = this.profile, combo = ge('am-trg-combo').checked;
+    p.am_enabled        = ge('am-active-chk').checked ? 1 : 0;
+    p.am_trigger_all    = combo ? 1 : 0;
+    p.am_trigger_mask   = combo ? AM_COMBO_MASK : (parseInt(ge('am-btn-sel').value) || 0x02);
+    p.am_ping_hid       = parseInt(ge('am-key-sel').value) || 0;
+    p.am_require_motion = ge('am-motion-chk').checked ? 1 : 0;
+    p.am_interval_ms        = _clamp(ge('am-interval').value,   100, 10000, 1000);
+    p.am_interval_jitter_ms = _clamp(ge('am-int-jit').value,      0,  2000,  150);
+    p.am_hold_ms            = _clamp(ge('am-hold').value,         5,   500,   40);
+    p.am_hold_jitter_ms     = _clamp(ge('am-hold-jit').value,     0,  2000,   10);
+    p.am_motion_threshold   = _clamp(ge('am-motion-thr').value,   0, 10000,   40);
+    this._setLbl();
+    this._applyTriggerMode();
+    this.sendConfig();
+  },
+
+  sendConfig() { if(S.connected) sendJson({cmd:'set_auto_mark', data:this.profile}); },
+  load()       { if(S.connected) sendJson({cmd:'get_auto_mark'}); }
+};
+
+function _clamp(v, lo, hi, def) {
+  const n = parseInt(v);
+  return isNaN(n) ? def : Math.max(lo, Math.min(hi, n));
+}
+
 // ── CIM ─────────────────────────────────────────────────────────────────────
 // Eigene Parameter-Liste für CIM (Right-Stick Korrektur). vX/vY teilen sich die
 // Spline-UI-Logik mit MIM, bekommen aber eigene Element-IDs (Prefix "cim-").
@@ -3251,6 +3414,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
 
   // ── CS event handlers ─────────────────────────────────────────
+  AM.buildOpts();
+  ['am-active-chk','am-trg-single','am-trg-combo','am-btn-sel','am-key-sel',
+   'am-interval','am-int-jit','am-hold','am-hold-jit','am-motion-chk','am-motion-thr']
+    .forEach(id => { const el = ge(id); if(el) el.onchange = ()=>AM.onChange(); });
+
   ge('cs-active-chk').onchange = ()=>CS.onToggle();
   ge('cs-add-btn').onclick      = ()=>CS.addPair();
   ge('cs-sigma-sl').oninput    = ()=>CS.onSigmaInput();

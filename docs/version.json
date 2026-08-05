@@ -1,8 +1,9 @@
 ﻿{
-    "version":  "2.13.0-alpha",
-    "date":  "2026-07-30",
+    "version":  "2.14.0-alpha",
+    "date":  "2026-08-05",
     "changelog":  [
-                      "**External Correction — two new overshoot brakes for aggressive settings.** If a faster/more aggressive correction made the aim overshoot the target, two switches in the External-Correction tab now help — both **off by default**, so nothing changes until you turn them on. **In-Flight-Reduktion** stops the correction from re-commanding what it has already sent but not yet seen (it accounts for the round-trip delay), so you can push sensitivity harder without overshoot. **Nah-Ziel-Limit** eases the speed as you close on the target for a soft landing without overshoot on arrival. Each has one slider (amount / knee distance)."
+                      "**Auto-Mark — hold a mouse button, the device pings for you.** Hold the trigger and the firmware taps your in-game ping/mark key on its own rhythm, so whatever is under the crosshair gets marked without you letting go of the mouse. The trigger is yours to pick: **any single mouse button**, or **LMB + RMB together** — the combo only fires while *both* are down, so a single click never sets it off. Ping key, interval, key hold time and a Gaussian spread on both timings are configurable; the spread keeps the taps from landing on a machine-exact grid. Optionally it only pings after you have actually moved the mouse since the last one, so a parked crosshair stays quiet. **Off by default.** It runs natively in MIM and MKCOMBO with no mode switch, and it is set up in the new **Mark** tab of the Python control app or in the **Auto-Mark** section on mim-control.com.",
+                      "**Note on picking the ping key.** The key list shows US layout names. HID usage 0x1D is the physical `Z` key, which lands as `Y` on a German QWERTZ keyboard — pick by physical key position, not by the letter your game shows."
                   ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.13.0-alpha.hex"
+    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.14.0-alpha.hex"
 }

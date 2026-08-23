@@ -1,9 +1,10 @@
-﻿{
-    "version":  "2.14.0-alpha",
-    "date":  "2026-08-05",
-    "changelog":  [
-                      "**Auto-Mark — hold a mouse button, the device pings for you.** Hold the trigger and the firmware taps your in-game ping/mark key on its own rhythm, so whatever is under the crosshair gets marked without you letting go of the mouse. The trigger is yours to pick: **any single mouse button**, or **LMB + RMB together** — the combo only fires while *both* are down, so a single click never sets it off. Ping key, interval, key hold time and a Gaussian spread on both timings are configurable; the spread keeps the taps from landing on a machine-exact grid. Optionally it only pings after you have actually moved the mouse since the last one, so a parked crosshair stays quiet. **Off by default.** It runs natively in MIM and MKCOMBO with no mode switch, and it is set up in the new **Mark** tab of the Python control app or in the **Auto-Mark** section on mim-control.com.",
-                      "**Note on picking the ping key.** The key list shows US layout names. HID usage 0x1D is the physical `Z` key, which lands as `Y` on a German QWERTZ keyboard — pick by physical key position, not by the letter your game shows."
-                  ],
-    "hex_url":  "https://mim-control.com/firmware/mim_firmware_v2.14.0-alpha.hex"
+{
+  "version": "2.14.1-alpha",
+  "date": "2026-08-23",
+  "changelog": [
+    "**New Ext-Corr trigger: \"LMB or RMB\".** Alongside the existing *Always*, *LMB only* and *RMB only*, the External Correction can now be gated on **either** mouse button — it runs while the left OR the right button is held (or both), and stays off only when neither is pressed. Pick it in the **Trigger** row of the Ext-Corr tab in the Python control app.",
+    "**Auto-Mark — hold a mouse button, the device pings for you.** Hold the trigger and the firmware taps your in-game ping/mark key on its own rhythm, so whatever is under the crosshair gets marked without you letting go of the mouse. The trigger is yours to pick: **any single mouse button**, or **LMB + RMB together** — the combo only fires while *both* are down, so a single click never sets it off. Ping key, interval, key hold time and a Gaussian spread on both timings are configurable; the spread keeps the taps from landing on a machine-exact grid. Optionally it only pings after you have actually moved the mouse since the last one, so a parked crosshair stays quiet. **Off by default.** It runs natively in MIM and MKCOMBO with no mode switch, and it is set up in the new **Mark** tab of the Python control app or in the **Auto-Mark** section on mim-control.com.",
+    "**Note on picking the ping key.** The key list shows US layout names. HID usage 0x1D is the physical `Z` key, which lands as `Y` on a German QWERTZ keyboard — pick by physical key position, not by the letter your game shows."
+  ],
+  "hex_url": "https://mim-control.com/firmware/mim_firmware_v2.14.1-alpha.hex"
 }

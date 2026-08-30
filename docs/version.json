@@ -1,10 +1,11 @@
 {
-  "version": "2.14.1-alpha",
-  "date": "2026-08-23",
+  "version": "2.14.2-alpha",
+  "date": "2026-08-30",
   "changelog": [
-    "**New Ext-Corr trigger: \"LMB or RMB\".** Alongside the existing *Always*, *LMB only* and *RMB only*, the External Correction can now be gated on **either** mouse button — it runs while the left OR the right button is held (or both), and stays off only when neither is pressed. Pick it in the **Trigger** row of the Ext-Corr tab in the Python control app.",
-    "**Auto-Mark — hold a mouse button, the device pings for you.** Hold the trigger and the firmware taps your in-game ping/mark key on its own rhythm, so whatever is under the crosshair gets marked without you letting go of the mouse. The trigger is yours to pick: **any single mouse button**, or **LMB + RMB together** — the combo only fires while *both* are down, so a single click never sets it off. Ping key, interval, key hold time and a Gaussian spread on both timings are configurable; the spread keeps the taps from landing on a machine-exact grid. Optionally it only pings after you have actually moved the mouse since the last one, so a parked crosshair stays quiet. **Off by default.** It runs natively in MIM and MKCOMBO with no mode switch, and it is set up in the new **Mark** tab of the Python control app or in the **Auto-Mark** section on mim-control.com.",
-    "**Note on picking the ping key.** The key list shows US layout names. HID usage 0x1D is the physical `Z` key, which lands as `Y` on a German QWERTZ keyboard — pick by physical key position, not by the letter your game shows."
+    "**Speed cap for the External Correction.** A new \"Max Speed\" (counts/s) caps how fast the correction moves — it excludes sudden distance-driven jumps. It is the *nominal* ceiling: with scatter on, the actual cap is jittered up and down per frame so a saturating correction never sits on a constant value. On by default at 1500 cr/s (roomy for normal aim, only clips spikes); 0 = off.",
+    "**Movement scatter.** The correction no longer travels a dead-straight line to the target: an independent Gaussian is applied to the X and Y speed, re-drawn once per frame and held between frames, so the path curves. Sigma is in % of the computed speed. On by default at 20 %.",
+    "**Trigger start delay (offset).** After you press the trigger button the correction now starts after a short, Gaussian-jittered delay (reaction-time feel) instead of instantly. Default 120 ms ± 15 %; set it right under the trigger selection. \"Always\" has no trigger, so no delay.",
+    "**Ext-Corr parameter sets in the control app.** New \"Satz speichern\" / \"Satz laden\" buttons store and restore the whole Ext-Corr parameter set as a .json, plus \"Setzen (an FW)\" to push every value to the device and read it back for confirmation."
   ],
-  "hex_url": "https://mim-control.com/firmware/mim_firmware_v2.14.1-alpha.hex"
+  "hex_url": "https://mim-control.com/firmware/mim_firmware_v2.14.2-alpha.hex"
 }

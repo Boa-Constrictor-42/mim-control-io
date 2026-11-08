@@ -383,7 +383,9 @@ body{transition:margin-left .2s ease}
 .aim-adv-toggle:hover{color:var(--dim)}
 
 /* ── Social-Links (oben links im Header, alle Seiten) ── */
-#hdr-social{position:absolute;left:20px;top:0;bottom:0;display:flex;flex-direction:column;
+#hdr-social{position:absolute;top:0;bottom:0;
+  /* bündig mit linker Kante der Inhaltsspalte: --soc-frame = max-width, --soc-pad = padding */
+  left:max(var(--soc-pad,16px),calc(50% - var(--soc-frame,860px)/2 + var(--soc-pad,16px)));display:flex;flex-direction:column;
   justify-content:center;align-items:flex-start;gap:4px;z-index:2}
 #hdr-social .soc-cap{font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:#555;
   line-height:1;padding-left:1px;user-select:none}
@@ -395,6 +397,7 @@ body{transition:margin-left .2s ease}
 #hdr-social a.soc-dc:hover{color:#fff;border-color:#5865f2;background:#5865f2}
 #hdr-social a.soc-yt:hover{color:#fff;border-color:#e62117;background:#e62117}
 #hdr-social a:focus-visible{outline:1px solid var(--green);outline-offset:2px}
+#hdr-social{--soc-frame:1140px;--soc-pad:12px}
 @media(max-width:640px){#hdr-social{left:10px}#hdr-social .soc-cap{display:none}}
 </style>
 </head>

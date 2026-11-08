@@ -144,7 +144,9 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
   font-size:.72rem;color:var(--dim);text-align:center;line-height:22px}
 
 /* ── Social-Links (oben links im Header, alle Seiten) ── */
-#hdr-social{position:absolute;left:20px;top:0;bottom:0;display:flex;flex-direction:column;
+#hdr-social{position:absolute;top:0;bottom:0;
+  /* bündig mit linker Kante der Inhaltsspalte: --soc-frame = max-width, --soc-pad = padding */
+  left:max(var(--soc-pad,16px),calc(50% - var(--soc-frame,860px)/2 + var(--soc-pad,16px)));display:flex;flex-direction:column;
   justify-content:center;align-items:flex-start;gap:4px;z-index:2}
 #hdr-social .soc-cap{font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:#555;
   line-height:1;padding-left:1px;user-select:none}

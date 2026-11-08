@@ -156,6 +156,12 @@ Font: `"Consolas", "Courier New", monospace` — konsistent auf allen Seiten.
 
 > Logo-Link führt immer zur Homepage (`/`). Auf update/dev-options: `../mim_logo_v6.png`.
 
+**Social-Links (`#hdr-social`, alle 5 Seiten inkl. build/ + build/de/):**
+- Direkt als erstes Kind von `<header id="hdr">`, `position:absolute; left:20px` (Header ist sticky → Containing Block), dadurch auf jeder Seite identisch oben links — unabhängig vom jeweiligen `#hdr-inner`-Layout.
+- Kleine Caption „JOIN US“ über zwei Icon-Buttons (Discord `https://discord.gg/rpbVENwkh`, YouTube `https://www.youtube.com/@input.layer.project`).
+- Icons gedimmt; Hover füllt mit Markenfarbe (Discord `#5865f2`, YouTube `#e62117`). Caption ≤640px ausgeblendet.
+- Bei Link-Änderung: alle 5 Seiten + Discord/YouTube-Links im Text von `build/` anpassen.
+
 ### Connect-Wrap (nur index.html)
 ```html
 <div id="conn-wrap">
